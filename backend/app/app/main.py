@@ -9,7 +9,7 @@ app = FastAPI(
     openapi_url = f'{configs.API_V1_STR}/openapi.json'
 )
 
-if settings.BACKEND_CORS_ORIGINS:
+if configs.BACKEND_CORS_ORIGINS:
     app.add_middleware(
         CORSMiddleware,
         allow_origins = [str(origin) for origin in configs.BACKEND_CORS_ORIGINS],
@@ -18,4 +18,4 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_headers = ['*']
     )
 
-app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_router, prefix=configs.API_V1_STR)

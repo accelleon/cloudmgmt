@@ -3,14 +3,14 @@ from sqlalchemy.orm import Session
 import pyotp
 
 from app import database
-from app.core_security import verify_password
+from app.core.security import verify_password
 from app.schema.user import CreateUser, UpdateUser
 from app.tests.utils import random_lower_string
 
 def test_create_user(db: Session) -> None:
     username = random_lower_string()
     password = random_lower_string()
-    user_in = UserCreate(
+    user_in = CreateUser(
         username=username,
         password=password,
         first_name='',
@@ -22,7 +22,7 @@ def test_create_user(db: Session) -> None:
 def test_password_auth(db: Session) -> None:
     username = random_lower_string()
     password = random_lower_string()
-    user_in = UserCreate(
+    user_in = CreateUser(
         username=username,
         password=password,
         first_name='',
@@ -42,7 +42,7 @@ def test_not_password_auth(db: Session) -> None:
 def test_user_is_admin(db: Session) -> None:
     username = random_lower_string()
     password = random_lower_string()
-    user_in = UserCreate(
+    user_in = CreateUser(
         username=username,
         password=password,
         is_admin=True,
@@ -55,7 +55,7 @@ def test_user_is_admin(db: Session) -> None:
 def test_user_not_is_admin(db: Session) -> None:
     username = random_lower_string()
     password = random_lower_string()
-    user_in = UserCreate(
+    user_in = CreateUser(
         username=username,
         password=password,
         first_name='',
@@ -67,7 +67,7 @@ def test_user_not_is_admin(db: Session) -> None:
 def test_get_user(db: Session) -> None:
     username = random_lower_string()
     password = random_lower_string()
-    user_in = UserCreate(
+    user_in = CreateUser(
         username=username,
         password=password,
         first_name='',
@@ -83,7 +83,7 @@ def test_update_user(db: Session) -> None:
     username = random_lower_string()
     password = random_lower_string()
     name = random_lower_string()
-    user_in = UserCreate(
+    user_in = CreateUser(
         username=username,
         password=password,
         first_name=name,
@@ -104,7 +104,7 @@ def test_update_user(db: Session) -> None:
 def test_enable_twofa(db: Session) -> None:
     username = random_lower_string()
     password = random_lower_string()
-    user_in = UserCreate(
+    user_in = CreateUser(
         username=username,
         password=password,
         first_name='',
@@ -119,7 +119,7 @@ def test_enable_twofa(db: Session) -> None:
     assert not user.twofa_enabled
     assert user.twofa_secret_tmp
 
-    totp = pytop.TOTP(user.twofa_secret_tmp)
+    totp = pyotp.TOTP(user.twofa_secret_tmp)
     # Fail if we don't accept a 2fa code
     assert database.user.authenticate_twofa(db, user=user, otp=totp.now())
 
@@ -129,14 +129,14 @@ def test_enable_twofa(db: Session) -> None:
     assert not user2.twofa_secret_tmp
     assert user2.twofa_secret == user.twofa_secret_tmp
 
-    totp = pytop.TOTP(user.twofa_secret)
+    totp = pyotp.TOTP(user.twofa_secret)
     # Fail if we don't accept a 2fa code
     assert database.user.authenticate_twofa(db, user=user, otp=totp.now())
 
 def test_disable_twofa(db: Session) -> None:
     username = random_lower_string()
     password = random_lower_string()
-    user_in = UserCreate(
+    user_in = CreateUser(
         username=username,
         password=password,
         first_name='',

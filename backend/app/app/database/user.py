@@ -1,10 +1,11 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union, Dict, Any, Optional
 
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy import relationship
 
 from app.core.security import hash_password, verify_password, create_secret, verify_totp
 from app.database.base import Base, CRUDBase
+from app.database.session import Session
 from app.schema.user import CreateUser, UpdateUser
 
 class User(Base):
@@ -50,14 +51,14 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
         return super().update(db, db_obj=db_obj, obj_in=update_data)
 
     # Class specific
-    def get_by_username(
+    def create(
         self,
         db: Session,
         *,
-        username: str
+        obj_in: CreateUser
     ) -> User:
         # Convert obj_in to a dict
-        obj_in_data = jsonable_encoder(obj_in)
+        obj_in_data = obj_in if isinstance(obj_in, dict) else obj_in.dict(exclude_unset=True)
         # Hash our password
         obj_in_data['password'] = hash_password(obj_in_data['password'])
         # Create user object and add to DB

@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app import database
 from app.core.config import configs
+from app.database.user import User
 from app.schema.user import CreateUser, UpdateUser
 from app.tests.utils import random_lower_string
 
@@ -29,7 +30,7 @@ def user_authenticate_headers(
 
 def create_random_user(db: Session) -> User:
     username = random_lower_string()
-    password = random_upper_string()
+    password = random_lower_string()
     user_in = CreateUser(
         username = username,
         password = password,

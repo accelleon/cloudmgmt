@@ -46,7 +46,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         offset: int = 0,
         limit: int = 100
     ) -> List[ModelType]:
-        return db.query(self.model).offset(skip).limit(limit).all()
+        return db.query(self.model).offset(offset).limit(limit).all()
 
     def create(
         self,
@@ -76,8 +76,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         update_data = obj_in if isinstance(obj_in, dict) else obj_in.dict(exclude_unset=True)
         # Run through the dict, setting the appropriate values for db_obj
         for k,v in obj_data.items():
-            if key in update_data:
-                setattr(db_obj, key, v)
+            if k in update_data:
+                setattr(db_obj, k, v)
         #TODO: Evaluate the possibility of removing this line `if db_obj in session.dirty`
         db.update(ModelType).where(self.id == db_obj.id).values(**update_data)
         db.commit()

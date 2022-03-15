@@ -2,12 +2,12 @@ from typing import Dict
 
 from fastapi.testclient import TestClient
 
-from app.core.configs import configs
+from app.core.config import configs
 
 def test_get_access_token(client: TestClient) -> None:
     login_data = {
-        'username': settings.FIRST_USER_NAME,
-        'password': settings.FIRST_USER_PASS,
+        'username': configs.FIRST_USER_NAME,
+        'password': configs.FIRST_USER_PASS,
     }
 
     r = client.post(f'{configs.API_V1_STR}/login', data=login_data)

@@ -8,7 +8,7 @@ class UserBase(BaseModel):
     username: Optional[str] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    is_admin: Optional[bool] = False
+    is_admin: Optional[bool] = None
 
 # Request sent to DB to create a user
 # The password here is *plain text*
@@ -24,11 +24,16 @@ class UpdateUser(UserBase):
     password: Optional[str] = None
     twofa_enabled: Optional[bool] = None
 
-# Traits that shouldn't be exposed to the API
-class UserDB(UserBase):
+# DB specific things we *can* expose to the API
+class User(UserBase):
     id: Optional[int] = None
-    password: str # Stored *hashed* password
 
     # Required by sqlalchemy
     class Config:
         orm_mode = True
+
+# Traits that shouldn't be exposed to the API
+class UserDB(User):
+    password: str # Stored *hashed* password
+
+    

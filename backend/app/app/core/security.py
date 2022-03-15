@@ -8,13 +8,13 @@ from passlib.context import CryptContext
 from app.core.config import configs
 
 ALGORITHM = 'HS256'
-pwd_context = CryptContext(schemes=['bcrypt'], deprecated=auto)
+pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
 def create_token(
     subject: Union[str, Any],
     expires_delta: timedelta = None
 ) -> str:
-    expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes = configs.TOKEN_EXPIRES_MINUTES))
+    expires = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes = configs.TOKEN_EXPIRES_MINUTES))
     to_encode = {'exp': expires, 'sub': str(subject)}
     return jwt.encode(to_encode, configs.SECRET_KEY, algorithm=ALGORITHM)
 
@@ -35,7 +35,7 @@ def create_secret() -> str:
 
 # Create a URI to make a QR code from
 def create_uri(username: str, secret: str) -> str:
-    return pytop.totp.TOTP(secret).provisioning_uri(name=username, issuer_name=configs.SERVER_NAME)
+    return pyotp.totp.TOTP(secret).provisioning_uri(name=username, issuer_name=configs.SERVER_NAME)
 
 # Verify a TOTP code
 def verify_totp(secret: str, code: str) -> bool:

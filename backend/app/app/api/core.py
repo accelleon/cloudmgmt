@@ -31,7 +31,7 @@ def get_current_user(
     token: str = Depends(reusable_oauth2)
 ) -> database.User:
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
+        payload = jwt.decode(token, configs.SECRET_KEY, algorithms=[security.ALGORITHM])
         token_data = schema.TokenPayload(**payload)
     except (jwt.JWTError, ValidationError):
         raise HTTPException(
@@ -47,6 +47,6 @@ def get_current_user(
 def get_admin_user(
     user: database.User = Depends(get_current_user)
 ) -> database.User:
-    if not crud.user.is_admin(user):
+    if not database.user.is_admin(user):
         raise HTTPException(status_code=403, detail='User does not have the required privileges to access this resource')
     return user

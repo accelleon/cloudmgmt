@@ -1,12 +1,11 @@
-from datetime import timedelta
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, Response
-from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from app import model, schema
+from app import schema, database
 from app.core import security
+from app.api import core
 
 router = APIRouter(prefix='/login')
 
@@ -19,14 +18,14 @@ router = APIRouter(prefix='/login')
     }
 )
 async def login(
-    db: Session = Depends(deps.get_db),
     request: schema.auth.AuthRequest,
-    response: Response
+    response: Response,
+    db: Session = Depends(core.get_db)
 ) -> Any:
     """
     """
 
-    user = crud.user.authenticate(db, username=request.username, password=request.password)
+    user = database.user.authenticate(db, username=request.username, password=request.password)
 
     if not user:
         response.status_code = 401
