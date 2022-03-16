@@ -8,9 +8,10 @@ from sqlalchemy.orm import Session
 from app import schema, database
 from app.api import core
 
-router = APIRouter(prefix = '/user')
+router = APIRouter()
 
-@router.get('/me', response_model=schema.User)
+
+@router.get("/me", response_model=schema.user.User)
 def get_self(
     *,
     db: Session = Depends(core.get_db),
@@ -18,7 +19,8 @@ def get_self(
 ) -> Any:
     return user
 
-@router.post('/me', response_model=schema.User)
+
+@router.post("/me", response_model=schema.user.User)
 def update_self(
     *,
     user_in: schema.UpdateUser,
@@ -28,11 +30,8 @@ def update_self(
     """
     Update own user.
     """
-    if 'is_admin' in user_in and user_in.is_admin and not user.is_admin:
-        raise HTTPException(
-            403,
-            'User may not perform this action'
-        )
+    if user_in.is_admin and not user.is_admin:
+        raise HTTPException(403, "User may not perform this action")
 
     user = database.user.update(db, db_obj=user, obj_in=user_in)
     return user

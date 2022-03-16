@@ -3,9 +3,10 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import AnyHttpUrl, BaseSettings, HttpUrl, PostgresDsn, validator
 
+
 class Configs(BaseSettings):
     # General settings
-    API_V1_STR: str = '/api/v1'
+    API_V1_STR: str = "/api/v1"
     SERVER_NAME: str
     SERVER_HOST: AnyHttpUrl
     PROJECT_NAME: str
@@ -40,14 +41,15 @@ class Configs(BaseSettings):
             scheme="postgresql",
             user=values.get("POSTGRES_USER"),
             password=values.get("POSTGRES_PASSWORD"),
-            host=values.get("POSTGRES_SERVER"),
+            host=values.get("POSTGRES_SERVER"),  # type: ignore
             path=f"/{values.get('POSTGRES_DB') or ''}",
         )
 
-    FIRST_USER_NAME: str = 'admin'
+    FIRST_USER_NAME: str = "admin"
     FIRST_USER_PASS: str
 
     class Config:
         case_sensitive = True
 
-configs = Configs()
+
+configs = Configs()  # type: ignore

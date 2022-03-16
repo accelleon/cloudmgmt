@@ -2,6 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
+
 # Shared traits for both API and DB
 # These are optional for the derived update class to avoid passing unnecessary data
 class UserBase(BaseModel):
@@ -9,6 +10,7 @@ class UserBase(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     is_admin: Optional[bool] = None
+
 
 # Request sent to DB to create a user
 # The password here is *plain text*
@@ -19,10 +21,12 @@ class CreateUser(UserBase):
     last_name: str
     password: str
 
+
 # Request sent to DB to update a user
 class UpdateUser(UserBase):
     password: Optional[str] = None
     twofa_enabled: Optional[bool] = None
+
 
 # DB specific things we *can* expose to the API
 class User(UserBase):
@@ -32,8 +36,7 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
+
 # Traits that shouldn't be exposed to the API
 class UserDB(User):
-    password: str # Stored *hashed* password
-
-    
+    password: str  # Stored *hashed* password
