@@ -26,7 +26,6 @@ def test_login_twofa(client: TestClient, db: Session) -> None:
     }
     r = client.post(f'{configs.API_V1_STR}/login', json=login_data)
     js = r.json()
-    print(js)
     # We should get a 403 and json containing `twofarequired`
     assert r.status_code == 403
     assert 'twofarequired' in js

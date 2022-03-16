@@ -74,7 +74,6 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
-        print(f"{db_obj!r}")
         return db_obj
 
     # Class specific
