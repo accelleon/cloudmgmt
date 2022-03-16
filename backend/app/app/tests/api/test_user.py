@@ -19,3 +19,7 @@ def test_get_me(client: TestClient) -> None:
     user = r.json()
     assert user["username"] == login_data["username"]
     assert user["is_admin"]
+
+
+def test_update_me(client: TestClient) -> None:
+    pass
