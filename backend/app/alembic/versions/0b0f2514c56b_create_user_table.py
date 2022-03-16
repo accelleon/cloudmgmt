@@ -1,4 +1,4 @@
-"""Database v1
+"""Create user table
 
 Revision ID: 0b0f2514c56b
 Revises: mypy
