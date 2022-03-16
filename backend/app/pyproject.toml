@@ -11,8 +11,23 @@ alembic = "^1.7.7"
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 pyotp = "^2.6.0"
+pytest = "^7.1.0"
+requests = "^2.27.1"
+psycopg2-binary = "^2.9.3"
 
 [tool.poetry.dev-dependencies]
+mypy = "^0.941"
+sqlalchemy-stubs = "^0.4"
+isort = "^5.10.1"
+flake8 = "^4.0.1"
+pytest-cov = "^3.0.0"
+black = "^22.1.0"
+
+[tool.isort]
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+line_length = 120
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
