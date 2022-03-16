@@ -139,7 +139,7 @@ def test_enable_twofa(db: Session) -> None:
     totp = pyotp.TOTP(user.twofa_secret_tmp)
     # Fail if we don't accept a 2fa code
     assert database.user.authenticate_twofa(db, user=user, otp=totp.now())
-
+    update_data = UpdateUser(twofa_enabled=True, twofa_code=totp.now())
     user2 = database.user.update(db, db_obj=user, obj_in=update_data)
     # Now we fail if we don't mark 2fa enabled, remove the tmp secret and set the secret
     assert user2.twofa_enabled

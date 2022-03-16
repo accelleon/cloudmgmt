@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class AuthRequest(BaseModel):
     username: str
     password: str
-    twofacode: Optional[str] = None
+    twofa_code: Optional[str] = None
 
 
 class AuthResponseOk(BaseModel):
@@ -16,12 +16,12 @@ class AuthResponseOk(BaseModel):
 
 
 class AuthResponse2Fa(BaseModel):
-    twofarequired: bool = True
+    twofa_required: bool = True
 
 
 class TwoFaRequest(BaseModel):
     enableTwoFa: bool
-    twofacode: Optional[str]
+    twofa_code: Optional[str]
 
 
 class TwoFaResponse(BaseModel):

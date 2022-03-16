@@ -33,5 +33,10 @@ def update_self(
     if user_in.is_admin and not user.is_admin:
         raise HTTPException(403, "User may not perform this action")
 
+    # Are we trying to enable 2fa? If so ensure our first code is valid
+    if user_in.twofa_enabled and user_in.twofa_code:
+        if not database.user.authenticate_twofa(db, user=user, otp=user_in.twofa_code):
+            raise HTTPException(403, "Invalid TOTP code provided")
+
     user = database.user.update(db, db_obj=user, obj_in=user_in)
     return user

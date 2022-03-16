@@ -10,6 +10,7 @@ class UserBase(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     is_admin: Optional[bool] = None
+    twofa_enabled: Optional[bool] = None
 
 
 # Request sent to DB to create a user
@@ -20,17 +21,19 @@ class CreateUser(UserBase):
     first_name: str
     last_name: str
     password: str
+    twofa_enabled: None = None  # Never enable 2fa on a new user
 
 
 # Request sent to DB to update a user
 class UpdateUser(UserBase):
     password: Optional[str] = None
-    twofa_enabled: Optional[bool] = None
+    twofa_code: Optional[str] = None
 
 
 # DB specific things we *can* expose to the API
 class User(UserBase):
     id: Optional[int] = None
+    twofa_secret_tmp: Optional[str] = None
 
     # Required by sqlalchemy
     class Config:

@@ -27,11 +27,13 @@ async def login(
         return schema.common.FailedResponse(message="Incorrect username/password")
 
     if user.twofa_enabled:
-        if request.twofacode is None:
-            # User has twofa enabled but didn't give us a code
+        if request.twofa_code is None:
+            # User has 2fa enabled but didn't give us a code
             response.status_code = 403
             return schema.auth.AuthResponse2Fa()
-        elif not database.user.authenticate_twofa(db, user=user, otp=request.twofacode):
+        elif not database.user.authenticate_twofa(
+            db, user=user, otp=request.twofa_code
+        ):
             # User passed us the wrong 2fa code
             response.status_code = 401
             return schema.common.FailedResponse(message="Incorrect TOTP code provided")

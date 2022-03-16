@@ -46,8 +46,9 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
             "twofa_enabled" in update_data
             and update_data["twofa_enabled"] != db_obj.twofa_enabled
         ):
-            if update_data["twofa_enabled"] and db_obj.twofa_secret_tmp is None:
-                # We're enabling twofa for the first time, create the secret, don't modify enabled yet
+            if update_data["twofa_enabled"] and "twofa_code" not in update_data:
+                # We asked for it to be enabled but didn't provide a code
+                # We're enabling for the first time
                 update_data["twofa_secret_tmp"] = create_secret()
                 del update_data["twofa_enabled"]
             elif update_data["twofa_enabled"] and db_obj.twofa_secret_tmp is not None:
@@ -55,7 +56,7 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
                 update_data["twofa_secret"] = db_obj.twofa_secret_tmp
                 update_data["twofa_secret_tmp"] = None
             else:
-                # We're disabling twofa
+                # We're disabling 2fa
                 update_data["twofa_secret"] = None
                 update_data["twofa_secret_tmp"] = None
 
