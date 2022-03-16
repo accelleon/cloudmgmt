@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.config import configs
 from app.database.session import SessionLocal
 from app.main import app
+from app.tests.utils.user import auth_headers_random, admin_user_headers
 
 
 @pytest.fixture(scope="session")
@@ -22,9 +23,9 @@ def client() -> Generator:
 
 @pytest.fixture(scope="module")
 def admin_token_headers(client: TestClient) -> Dict[str, str]:
-    return dict()
+    return admin_user_headers(client=client)
 
 
 @pytest.fixture(scope="module")
 def user_token_headers(client: TestClient, db: Session) -> Dict[str, str]:
-    return dict()
+    return auth_headers_random(client=client, db=db)
