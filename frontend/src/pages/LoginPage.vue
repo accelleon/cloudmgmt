@@ -10,14 +10,15 @@
           <q-separator />
 
           <q-card-section>
-            <q-form class="q-gutter-md">
+            <q-form class="q-gutter-md" @submit="onSubmit">
               <q-input
                 ref="nameRef"
                 square
                 filled
                 v-model="name"
                 type="text"
-                label="username"
+                label="Username"
+                autofocus
                 lazy-rules
                 :rules="[ val => val && val.length > 0 || 'Username cannot be empty']"
               />
@@ -26,7 +27,7 @@
                 square
                 filled
                 v-model="pass"
-                label="password"
+                label="Password"
                 lazy-rules
                 :rules="[ val => val && val.length > 0 || 'Password cannot be empty']"
                 :type="isPwd ? 'password' : 'text'"
@@ -48,8 +49,7 @@
               size="lg"
               class="full-width"
               label="Login"
-              type="submit"
-              @click="onSubmit()"
+              @click="onSubmit"
             />
           </q-card-actions>
         </q-card>
@@ -65,19 +65,28 @@
 </style>
 
 <script>
-import { useQuasar } from 'quasar';
-import { ref } from 'vue';
+import { useQuasar, SessionStorage } from 'quasar';
+import { ref, onBeforeUnmount } from 'vue';
+import { useRouter } from 'vue-router';
 import { api } from 'boot/axios';
 
 export default {
-  name: 'LoginComponent',
+  name: 'LoginPage',
   setup() {
     const $q = useQuasar();
+    const router = useRouter();
+
     const isPwd = ref(true);
+
     const name = ref(null);
     const nameRef = ref(null);
+
     const pass = ref(null);
     const passRef = ref(null);
+
+    onBeforeUnmount(() => {
+        $q.loading.hide();
+      })
 
     return {
       isPwd,
@@ -89,23 +98,29 @@ export default {
       onSubmit() {
         nameRef.value.validate()
         passRef.value.validate()
-
-        if(nameRef.value.hasError || passRef.value.hasError) {
-
-        }
-        else {
+        
+        if (!nameRef.value.hasError && !passRef.value.hasError) {
           $q.loading.show()
 
           api.post('/login', {
               username: name.value,
               password: pass.value,
-            });
-
-          $q.notify({
-            color: 'green-4',
-            textColor: 'white',
-            message: 'Submitted',
-          });
+            }).then((resp) => {
+              SessionStorage.set('token', resp.data.access_token)
+              router.push({ name: 'main' })
+            }).catch((err) => {
+              if (err.response.status === 403) {
+                // Server is requesting 2fa
+                console.log('Requested 2fa code')
+              } else if (err.response.status === 401) {
+                // Denied access
+                $q.notify({
+                  type: 'negative',
+                  message: 'Incorrect username/password'
+                })
+                $q.loading.hide()
+              }
+            })
         }
       },
     };
