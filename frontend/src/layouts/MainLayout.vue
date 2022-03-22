@@ -48,6 +48,7 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import EssentialLink from 'components/EssentialLink.vue';
+import { api } from 'boot/axios';
 
 const linksList = [
   {
@@ -103,6 +104,9 @@ export default defineComponent({
 
   setup () {
     const leftDrawerOpen = ref(false)
+
+    const asdf = api.get('users/me');
+    console.log(asdf);
 
     return {
       essentialLinks: linksList,
