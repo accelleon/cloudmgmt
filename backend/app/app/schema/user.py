@@ -34,6 +34,7 @@ class UpdateUser(UserBase):
 class User(UserBase):
     id: Optional[int] = None
     twofa_secret_tmp: Optional[str] = None
+    twofa_uri: Optional[str] = None
 
     # Required by sqlalchemy
     class Config:
