@@ -1,4 +1,5 @@
 from typing import Dict, Union
+from urllib.parse import urlparse, parse_qs
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -71,18 +72,21 @@ def test_enable_twofa(
     user = r.json()
     # Make sure update was successful, received a secret and 2fa isn't marked enabled yet
     assert r.status_code == 200
-    assert "twofa_secret_tmp" in user
-    assert user["twofa_secret_tmp"]
+    assert "twofa_uri" in user
+    assert user["twofa_uri"]
+
+    uri = urlparse(user["twofa_uri"])
+    secret = parse_qs(uri.query)["secret"][0]
 
     # Generate a 2fa response code and send again
-    totp = pyotp.TOTP(user["twofa_secret_tmp"])
+    totp = pyotp.TOTP(secret)
     update_data = {"twofa_enabled": True, "twofa_code": totp.now()}
     r = client.post(f"{configs.API_V1_STR}/users/me", headers=headers, json=update_data)
     user = r.json()
     # Make sure update was successful, twofa *was* enabled and we wiped the secret
     assert r.status_code == 200
     assert user["twofa_enabled"]
-    assert not user["twofa_secret_tmp"]
+    assert not user["twofa_uri"]
 
 
 def test_disable_twofa(

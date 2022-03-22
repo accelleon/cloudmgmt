@@ -55,10 +55,7 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
                 # We're modifying the user after successfully verifying the first OTP code
                 update_data["twofa_secret"] = db_obj.twofa_secret_tmp
                 update_data["twofa_secret_tmp"] = None
-        if (
-            "twofa_enabled" in update_data
-            and not update_data["twofa_enabled"]
-        ):
+        if "twofa_enabled" in update_data and not update_data["twofa_enabled"]:
             # We're disabling 2fa
             update_data["twofa_secret"] = None
             update_data["twofa_secret_tmp"] = None
