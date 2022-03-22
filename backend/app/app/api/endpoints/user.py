@@ -1,12 +1,12 @@
-from http.client import HTTPException
 from typing import Any
 
-from fastapi import APIRouter, Body, Depends, Response
+from fastapi import APIRouter, Body, Depends, Response, HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.orm import Session
 
 from app import schema, database
 from app.api import core
+from app.core.security import create_uri
 
 router = APIRouter()
 
@@ -38,5 +38,11 @@ def update_self(
         if not database.user.authenticate_twofa(db, user=user, otp=user_in.twofa_code):
             raise HTTPException(403, "Invalid TOTP code provided")
 
-    user = database.user.update(db, db_obj=user, obj_in=user_in)
-    return user
+    newUser = database.user.update(db, db_obj=user, obj_in=user_in)
+    resp = newUser
+
+    # Generate our URI if needed
+    if newUser.twofa_secret_tmp:
+        resp.twofa_uri = create_uri(newUser.username, newUser.twofa_secret_tmp)
+
+    return resp
