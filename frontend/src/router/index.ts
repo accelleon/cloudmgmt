@@ -7,6 +7,8 @@ import {
 } from 'vue-router';
 import routes from './routes';
 
+import { useAuthStore } from 'src/stores/auth-store';
+
 /*
  * If not building with SSR mode, you can
  * directly export the Router instantiation;
@@ -16,7 +18,7 @@ import routes from './routes';
  * with the Router instance.
  */
 
-export default route(function (/* { store, ssrContext } */) {
+export default route(function ({ store, /* ssrContext */}) {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
     : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory);
@@ -31,6 +33,23 @@ export default route(function (/* { store, ssrContext } */) {
     history: createHistory(
       process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE
     ),
+  });
+
+  Router.beforeEach((to, from, next) => {
+    const authStore = useAuthStore(store);
+    if (to.path !== '/login' && authStore.isAuthenticated) {
+      // Requested anything but login and we're authenticated
+      next();
+    } else if (to.path === '/login' && authStore.isAuthenticated) {
+      // We're already logged in but wanted to go the login page, redirect to main
+      next({ name: 'main' });
+    } else if (to.path === '/login' && !authStore.isAuthenticated) {
+      // We're not logged in and wanted login
+      next();
+    } else {
+      // None of the above just go back to login, pass the path we wanted
+      next({ path: '/login', query: { next: to.fullPath} });
+    }
   });
 
   return Router;

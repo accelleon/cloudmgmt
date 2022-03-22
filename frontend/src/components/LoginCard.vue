@@ -52,15 +52,12 @@
 </template>
 
 <script>
-import { useQuasar } from 'quasar';
 import { defineComponent, ref } from 'vue';
 
 export default defineComponent({
   emits: ['submit'],
 
   setup(props, { emit }) {
-    const $q = useQuasar();
-    
     const isPwd = ref(true);
 
     const name = ref(null);
@@ -82,7 +79,7 @@ export default defineComponent({
         if (!nameRef.value.hasError && !passRef.value.hasError) {
           emit('submit', {
             username: name.value,
-            password: name.value
+            password: pass.value
           });
         }
       }

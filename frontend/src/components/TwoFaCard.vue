@@ -18,28 +18,25 @@
           autofocus
           mask="######"
           lazy-rules
-          :rules="[ val => val && val.length !== 6 || 'Code must be 6 digits']"
+          :rules="[ val => val && val.length == 6 || 'Code must be 6 digits']"
         />
       </q-form>
     </q-card-section>
     
     <q-card-actions align="right">
-      <q-btn color="primary" label="Submit" @click="onSubmit" />
       <q-btn color="primary" label="Cancel" @click="$emit('cancel')" />
+      <q-btn color="primary" label="Submit" @click="onSubmit" />
     </q-card-actions>
   </q-card>
 </template>
 
 <script>
-import { useQuasar } from "quasar";
-import { ref, defineComponent } from "vue";
+import { ref, defineComponent } from 'vue';
 
 export default defineComponent({
   emits: ['submit', 'cancel'],
 
   setup(props, { emit }) {
-    const $q = useQuasar();
-
     const code = ref(null);
     const codeRef = ref(null);
 

@@ -12,16 +12,18 @@
 <script>
 import { useQuasar } from 'quasar';
 import { ref, onBeforeUnmount, defineComponent } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from 'src/stores/auth-store';
 import LoginCard from 'components/LoginCard.vue';
 import TwoFaCard from 'components/TwoFaCard.vue';
 
 export default defineComponent({
     name: 'LoginPage',
+
     setup() {
         const $q = useQuasar();
         const router = useRouter();
+        const route = useRoute();
         const twofa = ref(false);
 
         var data = {
@@ -41,27 +43,27 @@ export default defineComponent({
               const store = useAuthStore();
               $q.loading.show();
               if (!twofa.value) {
-                data.username = e.username;
-                data.password = e.password;
+                data = e;
               } else {
                 data.twofa_code = e.twofa_code;
               }
               
-              try {
-                await store.login(data);
-              } catch (e) {
-                console.log(e)
-              }
-              if (err) {
-                if (err.response.status == 403) {
-                  // Requires twofa
+              await store.login(data).then(() => {
+                router.push(route.query.next || 'main');
+              }).catch((err) => {
+                if (err.status == 403 && err.data.twofa_required) {
+                  // Required 2fa
                   twofa.value = true;
                   $q.loading.hide();
                 } else {
-                  $q.notify(err.response.data.message);
+                  // Some other error
+                  $q.loading.hide();
+                  $q.notify({
+                    type: 'negative',
+                    message: err.data.message,
+                  });
                 }
-                router.push('main');
-              }
+              });
             },
 
             cancel() {

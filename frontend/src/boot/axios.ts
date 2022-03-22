@@ -1,5 +1,9 @@
 import { boot } from 'quasar/wrappers';
 import axios, { AxiosInstance } from 'axios';
+import { useRouter } from 'vue-router';
+import { useQuasar } from 'quasar';
+
+import { useAuthStore } from 'stores/auth-store';
 
 declare module '@vue/runtime-core' {
   interface ComponentCustomProperties {
@@ -14,9 +18,43 @@ declare module '@vue/runtime-core' {
 // "export default () => {}" function below (which runs individually
 // for each client)
 const api = axios.create({
-  baseURL: process.env.NODE_ENV !== 'prod' ? 'http://172.50.1.69:8000/api/v1' : 'http://potato.net'
+  baseURL: process.env.NODE_ENV !== 'prod' ? 'http://172.31.7.183:8000/api/v1' : 'http://potato.net'
 });
 api.defaults.headers.post['Content-Type'] = 'application/json';
+
+api.interceptors.request.use(
+  config => {
+    // If we're authenticated, pull our token
+    const store = useAuthStore();
+    if (store.isAuthenticated) {
+      config.headers.Authorization = `Bearer ${store.token}`;
+    }
+
+    return config;
+  },
+  error => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  resp => resp,
+  error => {
+    // If we get a 401 invalidate our session
+    if (error.response.status == 401) {
+      const store = useAuthStore();
+      if (store.isAuthenticated) {
+        const router = useRouter();
+        const $q = useQuasar();
+        store.logout();
+        $q.notify({
+          type: 'negative',
+          message: 'Your session has expired.',
+        });
+        router.push('/login');
+      }
+    }
+    return Promise.reject(error);
+  }
+)
 
 export default boot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
