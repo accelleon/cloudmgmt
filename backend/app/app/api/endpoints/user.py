@@ -42,7 +42,7 @@ def update_self(
     resp = newUser
 
     # Generate our URI if needed
-    if newUser.twofa_secret_tmp:
+    if user_in.twofa_enabled and newUser.twofa_secret_tmp:
         resp.twofa_uri = create_uri(newUser.username, newUser.twofa_secret_tmp)
 
     return resp
