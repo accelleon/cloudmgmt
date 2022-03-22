@@ -11,6 +11,20 @@
           @click="toggleLeftDrawer"
         />
 
+        <q-btn
+          flat
+          dense
+          label="Enable Twofa"
+          @click="enableTwoFa"
+        />
+
+        <q-btn
+          flat
+          dense
+          label="Disable Twofa"
+          @click="disableTwoFa"
+        />
+
         <q-toolbar-title>
           Quasar App
         </q-toolbar-title>
@@ -48,7 +62,9 @@
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
 import EssentialLink from 'components/EssentialLink.vue';
-import { api } from 'boot/axios';
+import { useQuasar } from 'quasar';
+import TwoFaDialog from 'src/components/TwoFaDialog.vue';
+import { useUserStore } from 'src/stores/user-store';
 
 const linksList = [
   {
@@ -104,15 +120,26 @@ export default defineComponent({
 
   setup () {
     const leftDrawerOpen = ref(false)
+    const $q = useQuasar();
+    const user = useUserStore();
 
-    const asdf = api.get('users/me');
-    console.log(asdf);
+    user.getUser();
 
     return {
       essentialLinks: linksList,
       leftDrawerOpen,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value
+      },
+
+      enableTwoFa() {
+        $q.dialog({
+          component: TwoFaDialog,
+        })
+      },
+
+      async disableTwoFa() {
+        await user.disableTwoFa();
       }
     }
   }
