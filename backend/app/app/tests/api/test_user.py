@@ -107,3 +107,48 @@ def test_disable_twofa(
     assert not user["twofa_enabled"]
     # Try normal login
     headers = user_authenticate_headers(client, username, password)
+
+
+def test_search_user(
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    r = client.get(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        params={
+            "username": configs.FIRST_USER_NAME,
+            "page": 0,
+            "per_page": 10,
+        },
+    )
+    if not r.ok:
+        print(r.json())
+    resp = r.json()
+    assert resp["total"] == 1
+    assert resp["results"][0]["username"] == configs.FIRST_USER_NAME
+
+
+def test_search_links(admin_token_headers: Dict[str, str], client: TestClient) -> None:
+    r = client.get(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        params={
+            "page": 1,
+            "per_page": 10,
+        },
+    )
+    resp = r.json()
+    assert r.status_code == 200
+    assert "next" in resp
+    assert "prev" in resp
+
+    next = urlparse(resp["next"])
+    nextQ = parse_qs(next.query)
+    assert nextQ["page"][0] == "2"
+    assert nextQ["per_page"][0] == "10"
+
+    prev = urlparse(resp["prev"])
+    prevQ = parse_qs(prev.query)
+    assert prevQ["page"][0] == "0"
+    assert prevQ["per_page"][0] == "10"
