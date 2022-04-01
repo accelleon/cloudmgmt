@@ -17,12 +17,3 @@ class AuthResponseOk(BaseModel):
 
 class AuthResponse2Fa(BaseModel):
     twofa_required: bool = True
-
-
-class TwoFaRequest(BaseModel):
-    enableTwoFa: bool
-    twofa_code: Optional[str]
-
-
-class TwoFaResponse(BaseModel):
-    twofasecret: str
