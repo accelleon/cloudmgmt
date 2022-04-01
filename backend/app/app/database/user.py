@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING, Union, Dict, Any, Optional
+from typing import Union, Dict, Any, Optional
 
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password, create_secret, verify_totp
 from app.database.base import Base, CRUDBase
-from app.schema.user import CreateUser, UpdateUser
+from app.schema.user import CreateUser, UpdateUser, UserBase
 
 
 class User(Base):
@@ -23,7 +23,7 @@ class User(Base):
         return f"User(id={self.id!r}, username={self.username!r}, password={self.password!r})"
 
 
-class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
+class CRUDUser(CRUDBase[User, CreateUser, UpdateUser, UserBase]):
     # Class overrides
     def update(
         self,

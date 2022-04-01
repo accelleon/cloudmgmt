@@ -4,7 +4,7 @@ import pyotp
 
 from app import database
 from app.core.security import verify_password
-from app.schema.user import CreateUser, UpdateUser
+from app.schema.user import CreateUser, UpdateUser, UserBase
 from app.tests.utils import random_lower_string
 
 
@@ -174,3 +174,26 @@ def test_disable_twofa(db: Session) -> None:
 
     assert not user.twofa_enabled
     assert not user.twofa_secret
+
+
+def test_filter_user(db: Session) -> None:
+    username = random_lower_string()
+    password = random_lower_string()
+    user_in = CreateUser(
+        username=username,
+        password=password,
+        first_name="",
+        last_name="",
+        is_admin=True,
+    )
+    user = database.user.create(db, obj_in=user_in)
+    filter = UserBase(username=username)
+    users, total = database.user.filter(db, filter=filter)
+    assert total == 1
+    assert jsonable_encoder(user) == jsonable_encoder(users[0])
+    filter = UserBase(
+        is_admin=True,
+    )
+    assert users
+    for user in users:
+        assert user.is_admin

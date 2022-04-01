@@ -1,4 +1,4 @@
-from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
+from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union, Tuple
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
@@ -23,10 +23,13 @@ ModelType = TypeVar("ModelType", bound=Base)
 # These must derive from BaseModel
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+FilterSchemaType = TypeVar("FilterSchemaType", bound=BaseModel)
 
 
 # Base class to derive CRUD implementations of DB items from
-class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
+class CRUDBase(
+    Generic[ModelType, CreateSchemaType, UpdateSchemaType, FilterSchemaType]
+):
     def __init__(self, model: Type[ModelType]):
         """
         CRUD object with default methods to Create, Read, Update, Delete (CRUD).
@@ -42,11 +45,34 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
     def get_multi(
         self,
         db: Session,
-        *,  # Skip unnamed parameters
-        offset: int = 0,
-        limit: int = 100
     ) -> List[ModelType]:
-        return db.query(self.model).offset(offset).limit(limit).all()
+        return db.query(self.model).all()
+
+    def filter(
+        self,
+        db: Session,
+        *,
+        filter: Optional[Union[FilterSchemaType, Dict[str, Any]]] = None,
+        offset: Optional[int] = None,
+        limit: Optional[int] = None,
+        sort: Optional[str] = None
+    ) -> Tuple[List[ModelType], int]:
+        query = db.query(self.model)
+        if filter:
+            filter_in = (
+                filter if isinstance(filter, dict) else filter.dict(exclude_unset=True)
+            )
+            for k, v in filter_in.items():
+                if hasattr(self.model, k) and v:
+                    query = query.filter(getattr(self.model, k) == v)
+        total = query.count()
+        if sort and hasattr(self.model, sort):
+            query = query.order_by(sort)
+        if offset:
+            query = query.offset(offset)
+        if limit:
+            query = query.limit(limit)
+        return query.all(), total
 
     def create(
         self, db: Session, *, obj_in: CreateSchemaType  # Skip unnamed parameters

@@ -5,7 +5,7 @@ from app.core.config import configs
 
 # Make sure all SQLAlchemy modules are import before initalizing DB
 # otherwise SQLAlchemy might explode with relationships
-from app.database import baseimport
+from app.database import baseimport  # noqa
 
 
 def init_db(db: Session) -> None:
