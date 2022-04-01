@@ -35,7 +35,7 @@ class User(UserBase):
     id: Optional[int] = None
     twofa_uri: Optional[str] = None
 
-    # Required by sqlalchemy
+    # TODO: We enable this but don't make use of it in the CRUD
     class Config:
         orm_mode = True
 
