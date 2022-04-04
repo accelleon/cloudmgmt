@@ -5,7 +5,7 @@ import pyotp
 from app.core.config import configs
 from app.core.security import create_secret
 from app.tests.utils.user import create_user_twofa
-from app.tests.utils import random_lower_string
+from app.tests.utils import random_password
 
 
 def test_login(client: TestClient) -> None:
@@ -23,7 +23,7 @@ def test_login(client: TestClient) -> None:
 def test_not_login(client: TestClient) -> None:
     login_data = {
         "username": configs.FIRST_USER_NAME,
-        "password": random_lower_string(),
+        "password": random_password(),
     }
     r = client.post(f"{configs.API_V1_STR}/login", json=login_data)
     js = r.json()

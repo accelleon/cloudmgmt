@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 import pyotp
 
-from app.tests.utils import random_lower_string
+from app.tests.utils import random_password, random_username, random_invalid_password
 from app.core.config import configs
 from app.tests.utils.user import (
     create_random_user,
@@ -36,8 +36,8 @@ def test_update_me(
     db: Session,
     client: TestClient,
 ) -> None:
-    username = random_lower_string()
-    new_pass = random_lower_string()
+    username = random_username()
+    new_pass = random_password()
     headers = auth_headers_username(db, client, username)
     update_data = {
         "password": new_pass,
