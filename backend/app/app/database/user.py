@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password, create_secret, verify_totp
 from app.database.base import Base, CRUDBase
-from app.schema.user import CreateUser, UpdateUser, UserBase
+from app.model import CreateUser, UpdateUser, UserBase
 
 
 class User(Base):

@@ -4,7 +4,7 @@ import pyotp
 
 from app import database
 from app.core.security import verify_password
-from app.schema.user import CreateUser, UpdateUser, UserBase
+from app.model.user import CreateUser, UpdateUser, UserBase
 from app.tests.utils import random_lower_string
 
 

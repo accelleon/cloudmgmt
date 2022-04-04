@@ -3,7 +3,7 @@ from typing import Any
 from fastapi import APIRouter, Request, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app import schema, database, model
+from app import database, model
 from app.api import core
 from app.core.security import create_uri
 
@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get(
     "/me",
-    response_model=schema.user.User,
+    response_model=model.User,
     responses={
         401: {"model": model.FailedResponse},
     },
@@ -27,7 +27,7 @@ def get_self(
 
 @router.post(
     "/me",
-    response_model=schema.user.User,
+    response_model=model.User,
     responses={
         401: {"model": model.FailedResponse},
         403: {"model": model.FailedResponse},
@@ -35,7 +35,7 @@ def get_self(
 )
 def update_self(
     *,
-    user_in: schema.UpdateUser,
+    user_in: model.UpdateUser,
     db: Session = Depends(core.get_db),
     user: database.User = Depends(core.get_current_user),
 ) -> Any:
@@ -51,7 +51,7 @@ def update_self(
             raise HTTPException(403, "Invalid TOTP code provided")
 
     newUser = database.user.update(db, db_obj=user, obj_in=user_in)
-    resp: schema.UserDB = newUser  # type: ignore
+    resp: model.UserDB = newUser  # type: ignore
 
     # Generate our URI if needed
     if user_in.twofa_enabled and newUser.twofa_secret_tmp:
@@ -91,12 +91,11 @@ def get_users(
     resp = model.UserSearchResponse(
         **(search.dict(exclude_unset=False)), results=users, total=total  # type: ignore
     )
+    params = search.dict(exclude_unset=False)
     if total > query.per_page * (query.page + 1):
-        params = search.dict(exclude_unset=False)
         params["page"] = search.page + 1
         resp.next = str(request.url.replace_query_params(**params))
     if query.page > 0:
-        params = search.dict(exclude_unset=False)
         params["page"] = search.page - 1
         resp.prev = str(request.url.replace_query_params(**params))
 
