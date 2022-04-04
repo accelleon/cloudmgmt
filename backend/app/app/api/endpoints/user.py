@@ -28,7 +28,6 @@ def get_self(
     "/me",
     response_model=model.User,
     responses={
-        400: {"model": model.FailedResponse},
         401: {"model": model.FailedResponse},
         403: {"model": model.FailedResponse},
         409: {"model": model.FailedResponse},
@@ -112,7 +111,6 @@ def get_users(
     status_code=201,
     response_model=model.User,
     responses={
-        400: {"model": model.FailedResponse},
         401: {"model": model.FailedResponse},
         403: {"model": model.FailedResponse},
         409: {"model": model.FailedResponse},
@@ -162,7 +160,6 @@ def get_user(
     "/{user_id}",
     response_model=model.User,
     responses={
-        400: {"model": model.FailedResponse},
         401: {"model": model.FailedResponse},
         403: {"model": model.FailedResponse},
         404: {"model": model.FailedResponse},
