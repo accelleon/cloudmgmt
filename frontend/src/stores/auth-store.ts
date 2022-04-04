@@ -1,12 +1,6 @@
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
-import { api } from 'boot/axios';
-
-export interface authPost {
-  username: string;
-  password: string;
-  twofa_code?: string;
-}
+import { AuthRequest, LoginService, OpenAPI } from '..';
 
 interface authState {
   token: string | null;
@@ -16,8 +10,8 @@ interface authState {
 export const useAuthStore = defineStore('auth', {
   state: () => {
     return {
-      token: (LocalStorage.getItem('auth_token')  || null),
-      authenticated: (LocalStorage.getItem('auth_token') ? true : false),
+      token: LocalStorage.getItem('auth_token') || null,
+      authenticated: LocalStorage.getItem('auth_token') ? true : false,
     } as authState;
   },
 
@@ -26,22 +20,25 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async login(data: authPost) {
-      await api.post('/login', data).then((resp) => {
-        const token = resp.data.access_token;
-        this.authenticated = true;
-        this.token = token;
-        LocalStorage.set('auth_token', token);
-        return Promise.resolve();
-      }).catch((err) => {
-        return Promise.reject(err.response);
-      });
+    async login(data: AuthRequest) {
+      await LoginService.loginApiV1LoginPost(data)
+        .then((resp) => {
+          const token = resp.access_token;
+          this.authenticated = true;
+          this.token = token;
+          OpenAPI.TOKEN = token;
+          LocalStorage.set('auth_token', token);
+          return Promise.resolve();
+        })
+        .catch((err) => {
+          return Promise.reject(err);
+        });
     },
 
     logout() {
       this.authenticated = false;
       this.token = null;
       LocalStorage.remove('auth_token');
-    }
-  }
+    },
+  },
 });

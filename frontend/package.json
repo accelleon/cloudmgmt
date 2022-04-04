@@ -6,6 +6,7 @@
   "author": "Anthony Wilkins <accelleon@live.com>",
   "private": true,
   "scripts": {
+    "generate-client": "openapi --input http://localhost:8000/api/v1/openapi.json --output ./src --client axios",
     "lint": "eslint --ext .js,.ts,.vue ./",
     "format": "prettier --write \"**/*.{js,ts,vue,scss,html,md,json}\" --ignore-path .gitignore",
     "test": "echo \"No test specified\" && exit 0"
@@ -28,6 +29,7 @@
     "eslint": "^8.10.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^8.5.0",
+    "openapi-typescript-codegen": "^0.20.1",
     "prettier": "^2.5.1",
     "vue-tsc": "^0.29.8"
   },

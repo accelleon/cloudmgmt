@@ -2,49 +2,46 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-toolbar-title>
-          Cloud Management
-        </q-toolbar-title>
+        <q-toolbar-title> Cloud Management </q-toolbar-title>
 
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-card square class="absolute-top full-width row" style="height: 150px">
         <div class="col-10 q-pa-lg text-h6">{{ user.fullname }}</div>
         <div class="col-2" align="right">
           <div class="q-pa-sm">
-            <q-btn
-              rounded
-              padding="none"
-              @click="pinned = !pinned"
-            >
+            <q-btn rounded padding="none" @click="pinned = !pinned">
               <q-icon
                 :name="pinned ? 'push_pin' : 'o_push_pin'"
                 :class="pinned ? '' : 'rotate-90'"
               />
-              <q-tooltip anchor="center right" self="center left" :offset="[10, 10]">
+              <q-tooltip
+                anchor="center right"
+                self="center left"
+                :offset="[10, 10]"
+              >
                 Pin/Unpin the navigation drawer.
               </q-tooltip>
             </q-btn>
           </div>
         </div>
-        <q-separator/>
+        <q-separator />
         <q-card-actions>
-          <q-btn
-            square
-            label="Profile"
-            icon="manage_accounts"
-          />
+          <q-btn square label="Profile" icon="manage_accounts" />
         </q-card-actions>
       </q-card>
 
-      <q-scroll-area style="height: calc(100% - 220px); margin-top: 150px; margin-bottom: 70px; border-right: 1px solid #ddd">
+      <q-scroll-area
+        style="
+          height: calc(100% - 220px);
+          margin-top: 150px;
+          margin-bottom: 70px;
+          border-right: 1px solid #ddd;
+        "
+      >
         <q-list padding>
           <q-item
             clickable
@@ -123,17 +120,12 @@
             </q-item-section>
             <q-item-section>Settings</q-item-section>
           </q-item>
-
         </q-list>
       </q-scroll-area>
 
       <div class="absolute-bottom justify-center row" style="height: 70px">
         <div class="column q-pa-lg">
-          <q-btn
-            square
-            label="Log out"
-            icon="logout"
-          />
+          <q-btn square label="Log out" icon="logout" />
         </div>
       </div>
     </q-drawer>
@@ -160,7 +152,7 @@ import { useUserStore } from 'src/stores/user-store';
 export default defineComponent({
   name: 'MainLayout',
 
-  setup () {
+  setup() {
     const leftDrawerOpen = ref(false);
     const pinned = ref(true);
     const link = ref('');
@@ -174,20 +166,20 @@ export default defineComponent({
       link,
       user,
       leftDrawerOpen,
-      toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
+      toggleLeftDrawer() {
+        leftDrawerOpen.value = !leftDrawerOpen.value;
       },
 
       enableTwoFa() {
         $q.dialog({
           component: TwoFaDialog,
-        })
+        });
       },
 
       async disableTwoFa() {
         await user.disableTwoFa();
-      }
-    }
-  }
+      },
+    };
+  },
 });
 </script>
