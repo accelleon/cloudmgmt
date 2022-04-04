@@ -19,7 +19,6 @@ router = APIRouter()
 )
 def get_self(
     *,
-    db: Session = Depends(core.get_db),
     user: database.User = Depends(core.get_current_user),
 ) -> Any:
     return user
@@ -29,8 +28,10 @@ def get_self(
     "/me",
     response_model=model.User,
     responses={
+        400: {"model": model.FailedResponse},
         401: {"model": model.FailedResponse},
         403: {"model": model.FailedResponse},
+        409: {"model": model.FailedResponse},
     },
 )
 def update_self(
@@ -44,6 +45,10 @@ def update_self(
     """
     if user_in.is_admin and not user.is_admin:
         raise HTTPException(403, "User may not perform this action")
+
+    if user_in.username is not None and user_in.username != user.username:
+        if database.user.get_by_username(db, username=user_in.username):
+            raise HTTPException(409, "Username already exists")
 
     # Are we trying to enable 2fa? If so ensure our first code is valid
     if user_in.twofa_enabled and user_in.twofa_code:
@@ -61,7 +66,7 @@ def update_self(
 
 
 @router.get(
-    "/",
+    "",
     response_model=model.UserSearchResponse,
     responses={
         401: {"model": model.FailedResponse},
@@ -100,3 +105,119 @@ def get_users(
         resp.prev = str(request.url.replace_query_params(**params))
 
     return resp
+
+
+@router.post(
+    "",
+    status_code=201,
+    response_model=model.User,
+    responses={
+        400: {"model": model.FailedResponse},
+        401: {"model": model.FailedResponse},
+        403: {"model": model.FailedResponse},
+        409: {"model": model.FailedResponse},
+    },
+)
+def create_user(
+    *,
+    user_in: model.CreateUser,
+    db: Session = Depends(core.get_db),
+    _: database.User = Depends(core.get_admin_user),
+) -> Any:
+    """
+    Create a new user.
+    """
+    if database.user.get_by_username(db, username=user_in.username):
+        raise HTTPException(status_code=409, detail="Username already exists")
+
+    newUser = database.user.create(db, obj_in=user_in)
+    return newUser
+
+
+@router.get(
+    "/{user_id}",
+    response_model=model.User,
+    responses={
+        401: {"model": model.FailedResponse},
+        403: {"model": model.FailedResponse},
+        404: {"model": model.FailedResponse},
+    },
+)
+def get_user(
+    *,
+    user_id: int,
+    db: Session = Depends(core.get_db),
+    _: database.User = Depends(core.get_admin_user),
+) -> Any:
+    """
+    Get a user by ID.
+    """
+    user = database.user.get(db, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+    return user
+
+
+@router.patch(
+    "/{user_id}",
+    response_model=model.User,
+    responses={
+        400: {"model": model.FailedResponse},
+        401: {"model": model.FailedResponse},
+        403: {"model": model.FailedResponse},
+        404: {"model": model.FailedResponse},
+        409: {"model": model.FailedResponse},
+    },
+)
+def update_user(
+    user_id: int,
+    *,
+    user_in: model.UpdateUser,
+    db: Session = Depends(core.get_db),
+    me: database.User = Depends(core.get_admin_user),
+) -> Any:
+    """
+    Update a user.
+    """
+    # Get user we're updating
+    user = database.user.get(db, user_id)
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    if user.id == me.id:
+        raise HTTPException(403, "Use the /users/me endpoint to modify self")
+
+    if user_in.username is not None and user_in.username != user.username:
+        if database.user.get_by_username(db, username=user_in.username):
+            raise HTTPException(409, "Username already exists")
+
+    # Cannot enable 2fa for another user
+    if user_in.twofa_enabled and not user.twofa_enabled:
+        raise HTTPException(403, "Cannot enable 2FA for another user")
+
+    newUser = database.user.update(db, db_obj=user, obj_in=user_in)
+    return newUser
+
+
+@router.delete(
+    "/{user_id}",
+    status_code=204,
+    responses={
+        401: {"model": model.FailedResponse},
+        403: {"model": model.FailedResponse},
+        404: {"model": model.FailedResponse},
+    },
+)
+def delete_user(
+    user_id: int,
+    *,
+    db: Session = Depends(core.get_db),
+    _: database.User = Depends(core.get_admin_user),
+) -> Any:
+    """
+    Delete a user.
+    """
+    # Get user we're deleting
+    user = database.user.delete(db, id=user_id)
+    if not user:
+        raise HTTPException(404, "User not found")

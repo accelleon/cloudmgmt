@@ -63,7 +63,7 @@ def test_enable_twofa(
     db: Session,
     client: TestClient,
 ) -> None:
-    username, password = create_random_user(db)
+    username, password, _ = create_random_user(db)
     headers = user_authenticate_headers(client, username, password)
     update_data: Dict[str, Union[str, bool]] = {
         "twofa_enabled": True,
@@ -155,3 +155,163 @@ def test_search_links(
     prevQ = parse_qs(prev.query)
     assert prevQ["page"][0] == "0"
     assert prevQ["per_page"][0] == "10"
+
+
+def test_search_not_admin(
+    db: Session,
+    client: TestClient,
+) -> None:
+    username, password, _ = create_random_user(db)
+    headers = user_authenticate_headers(client, username, password)
+    r = client.get(
+        f"{configs.API_V1_STR}/users",
+        headers=headers,
+        params={
+            "username": configs.FIRST_USER_NAME,
+            "page": 0,
+            "per_page": 10,
+        },
+    )
+    assert r.status_code == 403
+
+
+def test_create_user(
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    r = client.post(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        json={
+            "username": random_username(),
+            "password": random_password(),
+            "first_name": "",
+            "last_name": "",
+        },
+    )
+    assert r.status_code == 201
+    assert "id" in r.json()
+
+
+def test_create_duplicate(
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    username = random_username()
+    r = client.post(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        json={
+            "username": username,
+            "password": random_password(),
+            "first_name": "",
+            "last_name": "",
+        },
+    )
+    assert r.status_code == 201
+    r = client.post(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        json={
+            "username": username,
+            "password": random_password(),
+            "first_name": "",
+            "last_name": "",
+        },
+    )
+    assert r.status_code == 409
+
+
+def test_get_user(
+    db: Session,
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    username, _, id = create_random_user(db)
+    r = client.get(
+        f"{configs.API_V1_STR}/users/{id}",
+        headers=admin_token_headers,
+    )
+    assert r.status_code == 200
+    assert r.json()["username"] == username
+
+
+def test_create_invalid_password(
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    r = client.post(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        json={
+            "username": random_username(),
+            "password": random_invalid_password(),
+            "first_name": "",
+            "last_name": "",
+        },
+    )
+    assert r.status_code == 400
+
+
+def test_update_user(
+    db: Session,
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    username, _, id = create_random_user(db)
+    update_data = {
+        "first_name": "test",
+        "last_name": "test",
+    }
+    r = client.patch(
+        f"{configs.API_V1_STR}/users/{id}",
+        headers=admin_token_headers,
+        json=update_data,
+    )
+    assert r.status_code == 200
+    user = r.json()
+    assert user["first_name"] == "test"
+    assert user["last_name"] == "test"
+
+
+def test_no_update_self(
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    r = client.get(
+        f"{configs.API_V1_STR}/users/me",
+        headers=admin_token_headers,
+    )
+    user = r.json()
+    update_data = {
+        "first_name": "test",
+        "last_name": "test",
+    }
+    r = client.patch(
+        f"{configs.API_V1_STR}/users/{user['id']}",
+        headers=admin_token_headers,
+        json=update_data,
+    )
+    assert r.status_code == 403
+
+
+def test_delete_user(
+    db: Session,
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    username, _, id = create_random_user(db)
+    r = client.delete(
+        f"{configs.API_V1_STR}/users/{id}",
+        headers=admin_token_headers,
+    )
+    assert r.status_code == 204
+
+    r = client.get(
+        f"{configs.API_V1_STR}/users{id}",
+        headers=admin_token_headers,
+        params={
+            "username": username,
+        },
+    )
+    assert r.status_code == 404

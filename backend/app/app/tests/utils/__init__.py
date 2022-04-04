@@ -12,7 +12,10 @@ def random_password() -> str:
     while True:
         ret = "".join(
             random.choices(
-                string.ascii_lowercase + string.ascii_uppercase + string.digits + "@$!%*?&",
+                string.ascii_lowercase
+                + string.ascii_uppercase
+                + string.digits
+                + "@$!%*?&",
                 k=32,
             )
         )

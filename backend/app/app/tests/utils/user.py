@@ -29,7 +29,7 @@ def admin_user_headers(client: TestClient) -> Dict[str, str]:
     )
 
 
-def create_random_user(db: Session) -> Tuple[str, str]:
+def create_random_user(db: Session) -> Tuple[str, str, int]:
     username = random_username()
     password = random_password()
     user_in = CreateUser(
@@ -38,12 +38,12 @@ def create_random_user(db: Session) -> Tuple[str, str]:
         first_name="",
         last_name="",
     )
-    database.user.create(db, obj_in=user_in)
-    return username, password
+    user = database.user.create(db, obj_in=user_in)
+    return username, password, user.id
 
 
 def create_user_twofa(db: Session) -> Tuple[str, str, str]:
-    username, password = create_random_user(db)
+    username, password, _ = create_random_user(db)
     # Do some hackery to get a user in the right state
     update_data = UpdateUser(twofa_enabled=True)
     user = database.user.get_by_username(db, username=username)
@@ -57,7 +57,7 @@ def create_user_twofa(db: Session) -> Tuple[str, str, str]:
 
 
 def auth_headers_random(client: TestClient, db: Session) -> Dict[str, str]:
-    username, password = create_random_user(db)
+    username, password, _ = create_random_user(db)
     return user_authenticate_headers(
         client=client, username=username, password=password
     )
