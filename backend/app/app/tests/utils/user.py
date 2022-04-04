@@ -7,7 +7,7 @@ import pyotp
 from app import database
 from app.core.config import configs
 from app.model.user import CreateUser, UpdateUser
-from app.tests.utils import random_lower_string
+from app.tests.utils import random_username, random_password
 
 
 def user_authenticate_headers(
@@ -30,8 +30,8 @@ def admin_user_headers(client: TestClient) -> Dict[str, str]:
 
 
 def create_random_user(db: Session) -> Tuple[str, str]:
-    username = random_lower_string()
-    password = random_lower_string()
+    username = random_username()
+    password = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
@@ -68,7 +68,7 @@ def auth_headers_username(
     client: TestClient,
     username: str,
 ) -> Dict[str, str]:
-    password = random_lower_string()
+    password = random_password()
     user = database.user.get_by_username(db, username=username)
     if not user:
         create = CreateUser(
