@@ -110,7 +110,7 @@ class CRUDBase(
         db.refresh(db_obj)
         return db_obj
 
-    def remove(
+    def delete(
         self, db: Session, *, id: int  # Skip unnamed parameters
     ) -> Optional[ModelType]:
         obj = db.query(self.model).get(id)
