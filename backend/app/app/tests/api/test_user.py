@@ -129,7 +129,10 @@ def test_search_user(
     assert resp["results"][0]["username"] == configs.FIRST_USER_NAME
 
 
-def test_search_links(admin_token_headers: Dict[str, str], client: TestClient) -> None:
+def test_search_links(
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
     r = client.get(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,

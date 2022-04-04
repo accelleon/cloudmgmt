@@ -6,8 +6,7 @@ import pyotp
 
 from app import database
 from app.core.config import configs
-from app.database.user import User
-from app.schema.user import CreateUser, UpdateUser
+from app.model.user import CreateUser, UpdateUser
 from app.tests.utils import random_lower_string
 
 
