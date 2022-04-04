@@ -250,7 +250,7 @@ def test_create_invalid_password(
             "last_name": "",
         },
     )
-    assert r.status_code == 400
+    assert r.status_code == 422
 
 
 def test_update_user(
