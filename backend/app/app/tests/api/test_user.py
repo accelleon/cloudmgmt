@@ -11,7 +11,6 @@ from app.tests.utils.user import (
     create_random_user,
     create_user_twofa,
     user_authenticate_headers,
-    auth_headers_username,
 )
 
 
@@ -36,15 +35,18 @@ def test_update_me(
     db: Session,
     client: TestClient,
 ) -> None:
-    username = random_username()
     new_pass = random_password()
-    headers = auth_headers_username(db, client, username)
+    username, password, _ = create_random_user(db)
+    headers = user_authenticate_headers(client, username, password)
     update_data = {
+        "old_password": password,
         "password": new_pass,
     }
     r = client.post(f"{configs.API_V1_STR}/users/me", headers=headers, json=update_data)
     user = r.json()
     # Don't update things we didn't ask to
+    print(r.json())
+    assert r.status_code == 200
     assert user["username"] == username
 
     login_data = {
@@ -57,6 +59,20 @@ def test_update_me(
     assert r.status_code == 200
     assert "access_token" in js
     assert js["access_token"]
+
+
+def test_update_wrong_pass(
+    db: Session,
+    client: TestClient,
+) -> None:
+    username, password, _ = create_random_user(db)
+    headers = user_authenticate_headers(client, username, password)
+    update_data = {
+        "old_password": random_password(),
+        "password": random_password(),
+    }
+    r = client.post(f"{configs.API_V1_STR}/users/me", headers=headers, json=update_data)
+    assert r.status_code == 403
 
 
 def test_enable_twofa(

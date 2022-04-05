@@ -1,5 +1,5 @@
 from typing import Optional, List
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, root_validator, validator
 
 from app.core.validators import validate_password, validate_username, validate_twofa
 from .common import SearchQueryBase, SearchResponse
@@ -35,15 +35,27 @@ class CreateUser(UserBase):
 class UpdateUser(UserBase):
     password: Optional[str] = None
     twofa_enabled: Optional[bool] = None
-    twofa_code: Optional[str] = None
 
     @validator("password")
     def validate_password(cls, v):
         return validate_password(v)
 
+
+# Request sent to update your own user
+class UpdateSelf(UpdateUser):
+    old_password: Optional[str] = None
+    twofa_code: Optional[str] = None
+
     @validator("twofa_code")
     def validate_twofa_code(cls, v):
         return validate_twofa(v)
+
+    @root_validator
+    def validate_old_password(cls, values):
+        old, new = values.get("old_password"), values.get("password")
+        if new and not old:
+            raise ValueError("Old password is required when changing password")
+        return values
 
 
 # DB specific things we *can* expose to the API

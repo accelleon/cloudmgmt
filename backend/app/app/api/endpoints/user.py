@@ -35,7 +35,7 @@ def get_self(
 )
 def update_self(
     *,
-    user_in: model.UpdateUser,
+    user_in: model.UpdateSelf,
     db: Session = Depends(core.get_db),
     user: database.User = Depends(core.get_current_user),
 ) -> Any:
@@ -44,6 +44,11 @@ def update_self(
     """
     if user_in.is_admin and not user.is_admin:
         raise HTTPException(403, "User may not perform this action")
+
+    if user_in.old_password and not database.user.authenticate_password(
+        db, username=user.username, password=user_in.old_password
+    ):
+        raise HTTPException(403, "Incorrect password")
 
     if user_in.username is not None and user_in.username != user.username:
         if database.user.get_by_username(db, username=user_in.username):
@@ -90,6 +95,8 @@ def get_users(
         offset=query.per_page * query.page,
         limit=query.per_page,
         sort=query.sort,
+        order=query.order,
+        exclude=[user.id],
     )
     search = model.common.SearchQueryBase.parse_obj(query)
     resp = model.UserSearchResponse(
