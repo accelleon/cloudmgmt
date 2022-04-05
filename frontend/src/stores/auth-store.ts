@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
-import { AuthRequest, LoginService, OpenAPI } from '..';
+import { AuthRequest, LoginService } from '..';
 
 interface authState {
   token: string | null;
@@ -21,12 +21,11 @@ export const useAuthStore = defineStore('auth', {
 
   actions: {
     async login(data: AuthRequest) {
-      await LoginService.loginApiV1LoginPost(data)
+      await LoginService.login(data)
         .then((resp) => {
           const token = resp.access_token;
           this.authenticated = true;
           this.token = token;
-          OpenAPI.TOKEN = token;
           LocalStorage.set('auth_token', token);
           return Promise.resolve();
         })

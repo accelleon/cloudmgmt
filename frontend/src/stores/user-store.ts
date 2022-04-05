@@ -19,7 +19,7 @@ export const useUserStore = defineStore('user', {
       if (!auth.isAuthenticated) {
         return Promise.reject('User not authenticated');
       }
-      await UserService.getSelfApiV1UsersMeGet()
+      await UserService.getSelf()
         .then((resp) => {
           this.user = resp;
           return Promise.resolve();
@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', {
       // If we don't have a passcode, we need to get the
       // URI from the API and open the TwoFa Dialog
       if (!passcode) {
-        return await UserService.updateSelfApiV1UsersMePost({
+        return await UserService.updateSelf({
           twofa_enabled: true,
         })
           .then((user) => {
@@ -53,7 +53,7 @@ export const useUserStore = defineStore('user', {
             return Promise.reject(err.body?.message || err.message);
           });
       } else {
-        await UserService.updateSelfApiV1UsersMePost({
+        await UserService.updateSelf({
           twofa_enabled: true,
           twofa_code: passcode,
         })
@@ -74,13 +74,30 @@ export const useUserStore = defineStore('user', {
     },
 
     async disableTwoFa() {
-      await UserService.updateSelfApiV1UsersMePost({
+      await UserService.updateSelf({
         twofa_enabled: false,
       })
         .then((user) => {
           if (user.twofa_enabled) {
             return Promise.reject(
               'Successful response but failed to disable 2FA'
+            );
+          }
+        })
+        .catch((err) => {
+          return Promise.reject(err.body?.message || err.message);
+        });
+    },
+
+    async changePassword(oldPassword: string, newPassword: string) {
+      await UserService.updateSelf({
+        old_password: oldPassword,
+        password: newPassword,
+      })
+        .then((user) => {
+          if (!user.id) {
+            return Promise.reject(
+              'Successful response but failed to change password'
             );
           }
         })
