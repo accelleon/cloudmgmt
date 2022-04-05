@@ -55,7 +55,9 @@ class CRUDBase(
         filter: Optional[Union[FilterSchemaType, Dict[str, Any]]] = None,
         offset: Optional[int] = None,
         limit: Optional[int] = None,
-        sort: Optional[str] = None
+        sort: Optional[str] = None,
+        order: Optional[str] = "asc",
+        exclude: Optional[List[int]] = None,
     ) -> Tuple[List[ModelType], int]:
         query = db.query(self.model)
         if filter:
@@ -65,9 +67,12 @@ class CRUDBase(
             for k, v in filter_in.items():
                 if hasattr(self.model, k) and v:
                     query = query.filter(getattr(self.model, k) == v)
+        if exclude:
+            query = query.filter(~self.model.id.in_(exclude))
         total = query.count()
         if sort and hasattr(self.model, sort):
-            query = query.order_by(sort)
+            attr = getattr(self.model, sort)
+            query = query.order_by(attr.desc() if order == "desc" else attr.asc())
         if offset:
             query = query.offset(offset)
         if limit:
@@ -91,7 +96,7 @@ class CRUDBase(
         db: Session,
         *,  # Skip unnamed parameters
         db_obj: ModelType,
-        obj_in: Union[UpdateSchemaType, Dict[str, Any]]
+        obj_in: Union[UpdateSchemaType, Dict[str, Any]],
     ) -> ModelType:
         # Convert the object we're updating to a dict
         obj_data = jsonable_encoder(db_obj)
