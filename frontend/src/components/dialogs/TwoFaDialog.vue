@@ -81,9 +81,9 @@ export default defineComponent({
       codeRef,
       code,
 
-      async onShow(_evt) {
+      onShow(_evt) {
         // Our first call gives us our URI
-        await store
+        store
           .enableTwoFa()
           .then((twofa_uri) => {
             if (!twofa_uri) {
@@ -100,20 +100,23 @@ export default defineComponent({
           .catch((err) => {
             $q.notify({
               type: 'negative',
-              message: err.body?.message || err,
+              message: err.body?.detail || err,
             });
             onDialogCancel();
           });
       },
 
-      async onSubmit() {
+      onSubmit() {
         codeRef.value.validate();
 
         if (!codeRef.value.hasError) {
-          await store
+          store
             .enableTwoFa(code.value)
             .then(() => {
-              // Successful close dialog
+              $q.notify({
+                type: 'positive',
+                message: '2FA enabled',
+              });
               onDialogOK();
             })
             .catch((err) => {
@@ -130,7 +133,7 @@ export default defineComponent({
         // If we didn't finish enabling 2fa send a disable
         // to clear temp secret
         if (!store.user.twofa_enabled) {
-          await store.disableTwoFa();
+          store.disableTwoFa();
         }
         onDialogHide();
       },

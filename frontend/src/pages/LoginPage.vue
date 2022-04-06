@@ -2,7 +2,7 @@
   <q-page class="window-height windows-width row justify-center items-center">
     <div class="column">
       <div class="row">
-        <login-card v-if="!twofa" @submit="login" />
+        <login-card v-if="!twofa" @submit="login" style="max-width: 400px" />
         <two-fa-card v-else @submit="login" @cancel="cancel" />
       </div>
     </div>
@@ -51,7 +51,7 @@ export default defineComponent({
         await store
           .login(data)
           .then(() => {
-            router.push(route.query.next || 'main');
+            router.push(route.query.next || '/');
           })
           .catch((err) => {
             if (err.status == 403 && err.body.twofa_required) {
@@ -63,7 +63,7 @@ export default defineComponent({
               $q.loading.hide();
               $q.notify({
                 type: 'negative',
-                message: err.body?.message || err.message,
+                message: err.body?.detail || err.message,
               });
             }
           });

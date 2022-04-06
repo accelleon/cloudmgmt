@@ -5,9 +5,10 @@
     </q-card-section>
 
     <q-separator />
-    <q-card-section>
-      <q-form class="q-gutter-md" @submit="onSubmit">
+    <q-card-section class="q-pa-none">
+      <q-form @submit="onSubmit" class="q-px-sm q-pt-md">
         <q-input
+          class="q-my-md full-width"
           ref="nameRef"
           square
           filled
@@ -16,16 +17,21 @@
           label="Username"
           autofocus
           lazy-rules
-          :rules="[ val => val && val.length > 0 || 'Username cannot be empty']"
+          :rules="[
+            (val) => (val && val.length > 0) || 'Username cannot be empty',
+          ]"
         />
         <q-input
+          class="q-my-md full-width"
           ref="passRef"
           square
           filled
           v-model="pass"
           label="Password"
           lazy-rules
-          :rules="[ val => val && val.length > 0 || 'Password cannot be empty']"
+          :rules="[
+            (val) => (val && val.length > 0) || 'Password cannot be empty',
+          ]"
           :type="isPwd ? 'password' : 'text'"
         >
           <template v-slot:append>
@@ -38,7 +44,7 @@
         </q-input>
       </q-form>
     </q-card-section>
-    <q-card-actions vertical>
+    <q-card-actions class="q-pb-md">
       <q-btn
         unelevated
         color="light-green-7"
@@ -50,6 +56,13 @@
     </q-card-actions>
   </q-card>
 </template>
+
+<style lang="scss">
+.q-card {
+  width: 400px;
+  margin: auto;
+}
+</style>
 
 <script>
 import { defineComponent, ref } from 'vue';
@@ -74,16 +87,16 @@ export default defineComponent({
       passRef,
 
       onSubmit() {
-        nameRef.value.validate()
-        passRef.value.validate()
+        nameRef.value.validate();
+        passRef.value.validate();
         if (!nameRef.value.hasError && !passRef.value.hasError) {
           emit('submit', {
             username: name.value,
-            password: pass.value
+            password: pass.value,
           });
         }
-      }
-    }
-  }
-})
+      },
+    };
+  },
+});
 </script>

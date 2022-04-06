@@ -26,12 +26,11 @@ export const useUserStore = defineStore('user', {
         })
         .catch((err) => {
           this.user = {} as User;
-          return Promise.reject(err.body?.message || err.message);
+          return Promise.reject(err.body?.detail || err.message);
         });
     },
 
     async enableTwoFa(passcode?: string) {
-      await this.getUser();
       if (!this.user.id) {
         return Promise.reject('User not authenticated');
       }
@@ -50,10 +49,10 @@ export const useUserStore = defineStore('user', {
             return Promise.resolve(`${user.twofa_uri}`);
           })
           .catch((err) => {
-            return Promise.reject(err.body?.message || err.message);
+            return Promise.reject(err.body?.detail || err.message);
           });
       } else {
-        await MeService.updateSelf({
+        return await MeService.updateSelf({
           twofa_enabled: true,
           twofa_code: passcode,
         })
@@ -68,13 +67,13 @@ export const useUserStore = defineStore('user', {
             return Promise.resolve();
           })
           .catch((err) => {
-            return Promise.reject(err.body?.message || err.message);
+            return Promise.reject(err.body?.detail || err.message);
           });
       }
     },
 
     async disableTwoFa() {
-      await MeService.updateSelf({
+      return await MeService.updateSelf({
         twofa_enabled: false,
       })
         .then((user) => {
@@ -83,9 +82,10 @@ export const useUserStore = defineStore('user', {
               'Successful response but failed to disable 2FA'
             );
           }
+          this.user = user;
         })
         .catch((err) => {
-          return Promise.reject(err.body?.message || err.message);
+          return Promise.reject(err.body?.detail || err.message);
         });
     },
 
@@ -102,7 +102,7 @@ export const useUserStore = defineStore('user', {
           }
         })
         .catch((err) => {
-          return Promise.reject(err.body?.message || err.message);
+          return Promise.reject(err.body?.detail || err.message);
         });
     },
   },

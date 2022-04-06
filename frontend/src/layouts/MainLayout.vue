@@ -13,7 +13,7 @@
         <div class="col-10 q-pa-lg text-h6">{{ user.fullname }}</div>
         <div class="col-2" align="right">
           <div class="q-pa-sm">
-            <q-btn rounded padding="none" @click="pinned = !pinned">
+            <q-btn flat rounded padding="none" @click="pinned = !pinned">
               <q-icon
                 :name="pinned ? 'push_pin' : 'o_push_pin'"
                 :class="pinned ? '' : 'rotate-90'"
@@ -27,11 +27,60 @@
               </q-tooltip>
             </q-btn>
           </div>
+          <div class="q-pa-sm absolute-bottom">
+            <q-btn-dropdown
+              flat
+              rounded
+              padding="none"
+              dropdown-icon="manage_accounts"
+              no-icon-animation
+              auto-close
+            >
+              <template v-slot:label>
+                <q-tooltip
+                  anchor="center right"
+                  self="center left"
+                  :offset="[10, 10]"
+                >
+                  Manage profile.
+                </q-tooltip>
+              </template>
+
+              <q-list>
+                <q-item clickable @click="changePassword">
+                  <q-item-section avatar>
+                    <q-icon name="lock" size="md" />
+                  </q-item-section>
+                  <q-item-section>Change Password</q-item-section>
+                </q-item>
+                <q-item>
+                  <q-item-section avatar>
+                    <q-icon name="pin" size="md" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>2FA</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-toggle
+                      v-model="twofa"
+                      checked-icon="check"
+                      unchecked-icon="clear"
+                      color="green"
+                      @update:model-value="onTwofaChange"
+                    />
+                  </q-item-section>
+                </q-item>
+                <q-item clickable @click="logout">
+                  <q-item-section avatar>
+                    <q-icon name="exit_to_app" size="md" />
+                  </q-item-section>
+                  <q-item-section>Logout</q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+          </div>
         </div>
         <q-separator />
-        <q-card-actions>
-          <q-btn square label="Profile" icon="manage_accounts" />
-        </q-card-actions>
       </q-card>
 
       <q-scroll-area
@@ -39,7 +88,6 @@
           height: calc(100% - 220px);
           margin-top: 150px;
           margin-bottom: 70px;
-          border-right: 1px solid #ddd;
         "
       >
         <q-list padding>
@@ -72,6 +120,7 @@
           <q-item
             clickable
             v-ripple
+            to="/users"
             :active="link === 'users'"
             @click="link = 'users'"
             active-class="my-menu-link"
@@ -130,7 +179,7 @@
       </div>
     </q-drawer>
 
-    <q-page-container>
+    <q-page-container class="container-fluid">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -144,10 +193,13 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
-import TwoFaDialog from 'src/components/TwoFaDialog.vue';
 import { useUserStore } from 'src/stores/user-store';
+import TwoFaDialog from 'src/components/dialogs/TwoFaDialog.vue';
+import ChangePasswordDialog from 'src/components/dialogs/ChangePasswordDialog.vue';
+import { useAuthStore } from 'src/stores/auth-store';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -157,27 +209,78 @@ export default defineComponent({
     const pinned = ref(true);
     const link = ref('');
     const $q = useQuasar();
+    const $router = useRouter();
     const user = useUserStore();
 
-    user.getUser();
+    const twofa = ref(false);
+
+    onMounted(async () => {
+      await user.getUser();
+      twofa.value = user.user.twofa_enabled!;
+    });
+
+    async function enableTwofa() {
+      $q.dialog({
+        title: 'Enable Two-Factor Authentication',
+        component: TwoFaDialog,
+      }).onOk(() => {
+        twofa.value = true;
+      });
+    }
+
+    async function disableTwofa() {
+      // Confirm disabling two-factor authentication.
+      $q.dialog({
+        title: 'Disable Two-Factor Authentication',
+        message: 'Are you sure you want to disable two-factor authentication?',
+        color: 'negative',
+      }).onOk(async () => {
+        user
+          .disableTwoFa()
+          .then(() => {
+            $q.notify({
+              message: 'Two-Factor Authentication disabled.',
+              color: 'positive',
+              icon: 'check',
+            });
+            twofa.value = false;
+          })
+          .catch(() => {
+            $q.notify({
+              message: 'Two-Factor Authentication could not be disabled.',
+              color: 'negative',
+              icon: 'error',
+            });
+          });
+      });
+    }
 
     return {
       pinned,
       link,
       user,
+      twofa,
       leftDrawerOpen,
-      toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value;
-      },
 
-      enableTwoFa() {
+      changePassword: () => {
         $q.dialog({
-          component: TwoFaDialog,
+          component: ChangePasswordDialog,
+          title: 'Change Password',
         });
       },
 
-      async disableTwoFa() {
-        await user.disableTwoFa();
+      logout: () => {
+        useAuthStore().logout();
+        $router.push('/login');
+      },
+
+      onTwofaChange: (value: any, _evt: any) => {
+        if (value) {
+          enableTwofa();
+        } else {
+          disableTwofa();
+        }
+        twofa.value = user.user.twofa_enabled!;
       },
     };
   },
