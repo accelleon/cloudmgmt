@@ -16,4 +16,5 @@ export type { UserSearchResponse } from './models/UserSearchResponse';
 export type { ValidationError } from './models/ValidationError';
 
 export { LoginService } from './services/LoginService';
+export { MeService } from './services/MeService';
 export { UserService } from './services/UserService';

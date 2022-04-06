@@ -3,7 +3,6 @@
 /* eslint-disable */
 import type { CreateUser } from '../models/CreateUser';
 import type { SearchOrder } from '../models/SearchOrder';
-import type { UpdateSelf } from '../models/UpdateSelf';
 import type { UpdateUser } from '../models/UpdateUser';
 import type { User } from '../models/User';
 import type { UserSearchResponse } from '../models/UserSearchResponse';
@@ -13,43 +12,6 @@ import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 
 export class UserService {
-  /**
-   * Get Self
-   * @returns User Successful Response
-   * @throws ApiError
-   */
-  public static getSelf(): CancelablePromise<User> {
-    return __request(OpenAPI, {
-      method: 'GET',
-      url: '/api/v1/users/me',
-      errors: {
-        401: `Unauthorized`,
-      },
-    });
-  }
-
-  /**
-   * Update Self
-   * Update own user.
-   * @param requestBody
-   * @returns User Successful Response
-   * @throws ApiError
-   */
-  public static updateSelf(requestBody: UpdateSelf): CancelablePromise<User> {
-    return __request(OpenAPI, {
-      method: 'POST',
-      url: '/api/v1/users/me',
-      body: requestBody,
-      mediaType: 'application/json',
-      errors: {
-        401: `Unauthorized`,
-        403: `Forbidden`,
-        409: `Conflict`,
-        422: `Validation Error`,
-      },
-    });
-  }
-
   /**
    * Get Users
    * Get a list of users filtered by query.

@@ -55,6 +55,8 @@ class UpdateSelf(UpdateUser):
         old, new = values.get("old_password"), values.get("password")
         if new and not old:
             raise ValueError("Old password is required when changing password")
+        if new and new == old:
+            raise ValueError("Old password and new password cannot be the same")
         return values
 
 

@@ -1,139 +1,28 @@
-from typing import Dict, Union
+from typing import Dict
 from urllib.parse import urlparse, parse_qs
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-import pyotp
 
 from app.tests.utils import random_password, random_username, random_invalid_password
 from app.core.config import configs
 from app.tests.utils.user import (
     create_random_user,
-    create_user_twofa,
     user_authenticate_headers,
 )
 
 
-def test_get_me(client: TestClient) -> None:
-    login_data = {
-        "username": configs.FIRST_USER_NAME,
-        "password": configs.FIRST_USER_PASS,
-    }
-    r = client.post(f"{configs.API_V1_STR}/login", json=login_data)
-    token = r.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-    r = client.get(f"{configs.API_V1_STR}/users/me", headers=headers)
-    user = r.json()
-    # Got the right user?
-    assert user["username"] == login_data["username"]
-    assert user["is_admin"]
-    # Not leaking data
-    assert "password" not in user
-
-
-def test_update_me(
-    db: Session,
-    client: TestClient,
-) -> None:
-    new_pass = random_password()
-    username, password, _ = create_random_user(db)
-    headers = user_authenticate_headers(client, username, password)
-    update_data = {
-        "old_password": password,
-        "password": new_pass,
-    }
-    r = client.post(f"{configs.API_V1_STR}/users/me", headers=headers, json=update_data)
-    user = r.json()
-    # Don't update things we didn't ask to
-    print(r.json())
-    assert r.status_code == 200
-    assert user["username"] == username
-
-    login_data = {
-        "username": username,
-        "password": new_pass,
-    }
-    r = client.post(f"{configs.API_V1_STR}/login", json=login_data)
-    js = r.json()
-    # Ensure new password is accepted
-    assert r.status_code == 200
-    assert "access_token" in js
-    assert js["access_token"]
-
-
-def test_update_wrong_pass(
-    db: Session,
-    client: TestClient,
-) -> None:
-    username, password, _ = create_random_user(db)
-    headers = user_authenticate_headers(client, username, password)
-    update_data = {
-        "old_password": random_password(),
-        "password": random_password(),
-    }
-    r = client.post(f"{configs.API_V1_STR}/users/me", headers=headers, json=update_data)
-    assert r.status_code == 403
-
-
-def test_enable_twofa(
-    db: Session,
-    client: TestClient,
-) -> None:
-    username, password, _ = create_random_user(db)
-    headers = user_authenticate_headers(client, username, password)
-    update_data: Dict[str, Union[str, bool]] = {
-        "twofa_enabled": True,
-    }
-    r = client.post(f"{configs.API_V1_STR}/users/me", headers=headers, json=update_data)
-    user = r.json()
-    # Make sure update was successful, received a secret and 2fa isn't marked enabled yet
-    assert r.status_code == 200
-    assert "twofa_uri" in user
-    assert user["twofa_uri"]
-
-    uri = urlparse(user["twofa_uri"])
-    secret = parse_qs(uri.query)["secret"][0]
-
-    # Generate a 2fa response code and send again
-    totp = pyotp.TOTP(secret)
-    update_data = {"twofa_enabled": True, "twofa_code": totp.now()}
-    r = client.post(f"{configs.API_V1_STR}/users/me", headers=headers, json=update_data)
-    user = r.json()
-    # Make sure update was successful, twofa *was* enabled and we wiped the secret
-    assert r.status_code == 200
-    assert user["twofa_enabled"]
-    assert not user["twofa_uri"]
-
-
-def test_disable_twofa(
-    db: Session,
-    client: TestClient,
-) -> None:
-    username, password, secret = create_user_twofa(db)
-    headers = user_authenticate_headers(
-        client, username, password, pyotp.TOTP(secret).now()
-    )
-    update_data = {
-        "twofa_enabled": False,
-    }
-    r = client.post(f"{configs.API_V1_STR}/users/me", headers=headers, json=update_data)
-    user = r.json()
-    # Make sure update was successful and 2fa was disabled
-    assert r.status_code == 200
-    assert not user["twofa_enabled"]
-    # Try normal login
-    headers = user_authenticate_headers(client, username, password)
-
-
 def test_search_user(
+    db: Session,
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
+    username, _, _ = create_random_user(db)
     r = client.get(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         params={
-            "username": configs.FIRST_USER_NAME,
+            "username": username,
             "page": 0,
             "per_page": 10,
         },
@@ -142,7 +31,7 @@ def test_search_user(
         print(r.json())
     resp = r.json()
     assert resp["total"] == 1
-    assert resp["results"][0]["username"] == configs.FIRST_USER_NAME
+    assert resp["results"][0]["username"] == username
 
 
 def test_search_links(
@@ -295,7 +184,7 @@ def test_no_update_self(
     client: TestClient,
 ) -> None:
     r = client.get(
-        f"{configs.API_V1_STR}/users/me",
+        f"{configs.API_V1_STR}/me",
         headers=admin_token_headers,
     )
     user = r.json()

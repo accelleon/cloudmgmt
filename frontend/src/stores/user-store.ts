@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { useAuthStore } from './auth-store';
-import { User, UserService } from '..';
+import { User, MeService } from '..';
 
 export const useUserStore = defineStore('user', {
   state: () => {
@@ -19,7 +19,7 @@ export const useUserStore = defineStore('user', {
       if (!auth.isAuthenticated) {
         return Promise.reject('User not authenticated');
       }
-      await UserService.getSelf()
+      await MeService.getSelf()
         .then((resp) => {
           this.user = resp;
           return Promise.resolve();
@@ -39,7 +39,7 @@ export const useUserStore = defineStore('user', {
       // If we don't have a passcode, we need to get the
       // URI from the API and open the TwoFa Dialog
       if (!passcode) {
-        return await UserService.updateSelf({
+        return await MeService.updateSelf({
           twofa_enabled: true,
         })
           .then((user) => {
@@ -53,7 +53,7 @@ export const useUserStore = defineStore('user', {
             return Promise.reject(err.body?.message || err.message);
           });
       } else {
-        await UserService.updateSelf({
+        await MeService.updateSelf({
           twofa_enabled: true,
           twofa_code: passcode,
         })
@@ -74,7 +74,7 @@ export const useUserStore = defineStore('user', {
     },
 
     async disableTwoFa() {
-      await UserService.updateSelf({
+      await MeService.updateSelf({
         twofa_enabled: false,
       })
         .then((user) => {
@@ -90,7 +90,7 @@ export const useUserStore = defineStore('user', {
     },
 
     async changePassword(oldPassword: string, newPassword: string) {
-      await UserService.updateSelf({
+      await MeService.updateSelf({
         old_password: oldPassword,
         password: newPassword,
       })
