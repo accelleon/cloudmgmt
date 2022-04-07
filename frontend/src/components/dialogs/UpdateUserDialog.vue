@@ -86,6 +86,7 @@
                   v-model="confirmPassword"
                   label="Confirm Password"
                   lazy-rules
+                  :disable="!password"
                   :type="isPwd1 ? 'text' : 'password'"
                   :rules="confirm_rules"
                 >
@@ -104,7 +105,15 @@
                   v-model="twofaEnabled"
                   label="Two-Factor Authentication Enabled"
                   :disable="!$props.user.twofa_enabled"
-                />
+                >
+                  <q-tooltip
+                    v-if="!$props.user.twofa_enabled"
+                    anchor="bottom left"
+                    self="center left"
+                  >
+                    Cannot enable 2FA for another user.
+                  </q-tooltip>
+                </q-checkbox>
               </q-form>
             </q-tab-panel>
             <q-tab-panel name="permissions">
@@ -173,11 +182,15 @@ export default defineComponent({
       }
     });
 
-    const confirm_rules = computed(() => [
-      (val: string) =>
-        (password.value && val && val.length) || 'Password is required',
-      (val: string) => val === password.value || 'Passwords do not match',
-    ]);
+    const confirm_rules = computed(() => {
+      if (password.value) {
+        return [
+          (val: string) => val === password.value || 'Passwords do not match',
+        ];
+      } else {
+        return [(val: string) => true];
+      }
+    });
 
     const pwd_rules = computed(() => {
       if (password.value) {
