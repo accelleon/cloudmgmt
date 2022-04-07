@@ -3,7 +3,6 @@
     <div class="q-pa-xl">
       <q-table
         class="user-table"
-        title="Users"
         row-key="id"
         binary-state-sort
         virtual-scroll
@@ -14,11 +13,80 @@
         :loading="loading"
         @request="onRequest"
       >
+        <template v-slot:top-left>
+          <div class="row">
+            <q-input
+              style="width: 25vw"
+              v-model="filter.name"
+              clearable
+              dense
+              flat
+              hide-underline
+              placeholder="Search"
+              debounce="500"
+              type="search"
+              @update:model-value="onSearch"
+            >
+              <template v-slot:prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+            <q-btn-dropdown
+              dropdown-icon="filter_list"
+              flat
+              auto-close
+              @hide="onSearch"
+            >
+              <q-list>
+                <q-item>
+                  <q-item-section avatar>
+                    <q-toggle
+                      v-model="filterBy.is_admin"
+                      flat
+                      dense
+                      @update:model-value="onSearch"
+                    />
+                  </q-item-section>
+                  <q-item-section>Administrator</q-item-section>
+                  <q-item-section side>
+                    <q-checkbox
+                      v-model="filter.is_admin"
+                      flat
+                      dense
+                      @update:model-value="onSearch"
+                    />
+                  </q-item-section>
+                </q-item>
+                <q-item>
+                  <q-item-section avatar>
+                    <q-toggle
+                      v-model="filterBy.twofa_enabled"
+                      flat
+                      dense
+                      @update:model-value="onSearch"
+                    />
+                  </q-item-section>
+                  <q-item-section>2FA</q-item-section>
+                  <q-item-section side>
+                    <q-checkbox
+                      v-model="filter.twofa_enabled"
+                      flat
+                      dense
+                      @update:model-value="onSearch"
+                    />
+                  </q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+          </div>
+        </template>
+
         <template v-slot:top-right>
           <q-btn icon="add" @click="onAdd">
             <q-tooltip> Add User </q-tooltip>
           </q-btn>
         </template>
+
         <template v-slot:body-cell-is_admin="props">
           <q-td :props="props">
             <q-icon
@@ -145,6 +213,12 @@ const columns = [
   },
 ];
 
+interface Filter {
+  name?: string;
+  is_admin: boolean;
+  twofa_enabled: boolean;
+}
+
 export default defineComponent({
   name: 'UsersPage',
 
@@ -152,7 +226,15 @@ export default defineComponent({
     const $q = useQuasar();
 
     const users = ref<User[]>();
-    const filter = ref('');
+    const filter = ref({
+      name: '',
+      is_admin: false,
+      twofa_enabled: false,
+    } as Filter);
+    const filterBy = ref({
+      is_admin: false,
+      twofa_enabled: false,
+    });
     const loading = ref(false);
     const pagination = ref({
       sortBy: 'username',
@@ -162,30 +244,46 @@ export default defineComponent({
       rowsNumber: 20,
     });
 
-    const onRequest = async (props: any) => {
+    const onRequest = (props: any) => {
       const { page, rowsPerPage, sortBy, descending } = props.pagination;
 
       loading.value = true;
-      const { results, total } = await UserService.getUsers(
+      UserService.getUsers(
+        filter.value.name,
         undefined,
         undefined,
-        undefined,
-        undefined,
+        filterBy.value.is_admin ? filter.value.is_admin : undefined,
+        filterBy.value.twofa_enabled ? filter.value.twofa_enabled : undefined,
         page - 1,
         rowsPerPage,
         sortBy,
         descending ? SearchOrder.DESC : SearchOrder.ASC
-      );
-      users.value = results;
-
-      pagination.value.rowsNumber = total;
-      pagination.value.page = page;
-      pagination.value.rowsPerPage = rowsPerPage;
-      pagination.value.sortBy = sortBy;
-      pagination.value.descending = descending;
-
-      loading.value = false;
+      )
+        .then(({ results, total }) => {
+          pagination.value.rowsNumber = total;
+          pagination.value.page = page;
+          pagination.value.rowsPerPage = rowsPerPage;
+          pagination.value.sortBy = sortBy;
+          pagination.value.descending = descending;
+          loading.value = false;
+          users.value = results;
+          return Promise.resolve();
+        })
+        .catch((err) => {
+          loading.value = false;
+          $q.notify({
+            color: 'negative',
+            message: err.message?.body || err.message,
+          });
+          return Promise.reject(err);
+        });
     };
+
+    onMounted(() => {
+      onRequest({
+        pagination: pagination.value,
+      });
+    });
 
     const onDelete = async (props: any) => {
       const { id, username } = props;
@@ -239,21 +337,25 @@ export default defineComponent({
       });
     };
 
-    onMounted(() => {
+    const onSearch = (value: any) => {
+      if (value === 'string' || value === 'null') filter.value.name = value;
       onRequest({
         pagination: pagination.value,
       });
-    });
+    };
 
     return {
       users,
       columns,
       loading,
       pagination,
+      filter,
+      filterBy,
       onRequest,
       onDelete,
       onEdit,
       onAdd,
+      onSearch,
     };
   },
 });
