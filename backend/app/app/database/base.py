@@ -66,7 +66,10 @@ class CRUDBase(
             )
             for k, v in filter_in.items():
                 if hasattr(self.model, k) and v:
-                    query = query.filter(getattr(self.model, k) == v)
+                    if type(v) is str:
+                        query = query.filter(getattr(self.model, k).ilike(f"%{v}%"))
+                    else:
+                        query = query.filter(getattr(self.model, k) == v)
         if exclude:
             query = query.filter(~self.model.id.in_(exclude))
         total = query.count()

@@ -34,6 +34,47 @@ def test_search_user(
     assert resp["results"][0]["username"] == username
 
 
+def test_partial_search(
+    db: Session,
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    username, _, id = create_random_user(db)
+    r = client.get(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        params={
+            "username": username[:6],
+            "page": 0,
+            "per_page": 10,
+        },
+    )
+    assert r.status_code == 200
+    json = r.json()
+    usernames = [u["username"] for u in json["results"]]
+    assert json["total"]
+    assert username in usernames
+
+
+def test_search_admins(
+    db: Session,
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    r = client.get(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        params={
+            "is_admin": True,
+            "page": 0,
+            "per_page": 10,
+        },
+    )
+    assert r.status_code == 200
+    for u in r.json()["results"]:
+        assert u["is_admin"]
+
+
 def test_search_links(
     admin_token_headers: Dict[str, str],
     client: TestClient,
