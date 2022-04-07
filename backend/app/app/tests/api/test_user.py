@@ -54,6 +54,7 @@ def test_partial_search(
     usernames = [u["username"] for u in json["results"]]
     assert json["total"]
     assert username in usernames
+    assert configs.FIRST_USER_NAME not in usernames
 
 
 def test_search_admins(
