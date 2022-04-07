@@ -269,6 +269,8 @@ export default defineComponent({
 
       username,
       usernameRef,
+      confirmPassword,
+      confirmRef,
       password,
       passwordRef,
       firstName,
