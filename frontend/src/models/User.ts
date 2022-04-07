@@ -7,7 +7,7 @@ export type User = {
     first_name?: string;
     last_name?: string;
     is_admin?: boolean;
-    id?: number;
     twofa_enabled?: boolean;
+    id?: number;
     twofa_uri?: string;
 };

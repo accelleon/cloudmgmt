@@ -7,6 +7,6 @@ export type CreateUser = {
     first_name: string;
     last_name: string;
     is_admin?: boolean;
-    password: string;
     twofa_enabled?: null;
+    password: string;
 };

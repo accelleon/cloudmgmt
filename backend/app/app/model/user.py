@@ -10,6 +10,7 @@ class UserBase(BaseModel):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     is_admin: Optional[bool] = None
+    twofa_enabled: Optional[bool] = None
 
 
 # Request sent to DB to create a user
@@ -34,7 +35,6 @@ class CreateUser(UserBase):
 # Request sent to DB to update a user
 class UpdateUser(UserBase):
     password: Optional[str] = None
-    twofa_enabled: Optional[bool] = None
 
     @validator("password")
     def validate_password(cls, v):
@@ -63,7 +63,6 @@ class UpdateSelf(UpdateUser):
 # DB specific things we *can* expose to the API
 class User(UserBase):
     id: Optional[int] = None
-    twofa_enabled: Optional[bool] = None
     twofa_uri: Optional[str] = None
 
     # TODO: We enable this but don't make use of it in the CRUD
