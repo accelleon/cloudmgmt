@@ -65,7 +65,7 @@ class CRUDBase(
                 filter if isinstance(filter, dict) else filter.dict(exclude_unset=True)
             )
             for k, v in filter_in.items():
-                if hasattr(self.model, k) and v:
+                if hasattr(self.model, k) and v is not None:
                     if type(v) is str:
                         query = query.filter(getattr(self.model, k).ilike(f"%{v}%"))
                     else:

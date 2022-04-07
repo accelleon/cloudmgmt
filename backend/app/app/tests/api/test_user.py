@@ -57,7 +57,6 @@ def test_partial_search(
 
 
 def test_search_admins(
-    db: Session,
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
@@ -73,6 +72,24 @@ def test_search_admins(
     assert r.status_code == 200
     for u in r.json()["results"]:
         assert u["is_admin"]
+
+
+def test_search_not_admins(
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    r = client.get(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        params={
+            "is_admin": False,
+            "page": 0,
+            "per_page": 10,
+        },
+    )
+    assert r.status_code == 200
+    for u in r.json()["results"]:
+        assert not u["is_admin"]
 
 
 def test_search_links(
