@@ -1,12 +1,12 @@
 <template>
   <q-card square bordered class="q-pa-lg shadow-1">
-    <q-card-section>
-      <div class="text-h5">Cloud Management</div>
-    </q-card-section>
+    <q-form @submit="onSubmit">
+      <q-card-section>
+        <div class="text-h5">Cloud Management</div>
+      </q-card-section>
 
-    <q-separator />
-    <q-card-section class="q-pa-none">
-      <q-form @submit="onSubmit" class="q-px-sm q-pt-md">
+      <q-separator />
+      <q-card-section>
         <q-input
           class="q-my-md full-width"
           ref="nameRef"
@@ -22,7 +22,7 @@
           ]"
         />
         <q-input
-          class="q-my-md full-width"
+          class="q-mt-md full-width"
           ref="passRef"
           square
           filled
@@ -42,18 +42,18 @@
             />
           </template>
         </q-input>
-      </q-form>
-    </q-card-section>
-    <q-card-actions class="q-pb-md">
-      <q-btn
-        unelevated
-        color="light-green-7"
-        size="lg"
-        class="full-width"
-        label="Login"
-        @click="onSubmit"
-      />
-    </q-card-actions>
+      </q-card-section>
+      <q-card-actions>
+        <q-btn
+          unelevated
+          color="light-green-7"
+          size="lg"
+          class="full-width"
+          label="Login"
+          type="submit"
+        />
+      </q-card-actions>
+    </q-form>
   </q-card>
 </template>
 

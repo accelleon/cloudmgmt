@@ -4,11 +4,12 @@
       <div class="text-h5">Authenticator Code</div>
     </q-card-section>
 
-    <q-separator/>
+    <q-separator />
 
     <q-card-section>
-      <q-form class="q-gutter-md" @submit="onSubmit">
+      <q-form class="q-my-md" @submit="onSubmit">
         <q-input
+          class="full-width"
           ref="codeRef"
           square
           filled
@@ -18,11 +19,13 @@
           autofocus
           mask="######"
           lazy-rules
-          :rules="[ val => val && val.length == 6 || 'Code must be 6 digits']"
+          :rules="[
+            (val) => (val && val.length == 6) || 'Code must be 6 digits',
+          ]"
         />
       </q-form>
     </q-card-section>
-    
+
     <q-card-actions align="right">
       <q-btn color="primary" label="Cancel" @click="$emit('cancel')" />
       <q-btn color="primary" label="Submit" @click="onSubmit" />
@@ -52,8 +55,8 @@ export default defineComponent({
             twofa_code: code.value,
           });
         }
-      }
-    }
-  }
-})
+      },
+    };
+  },
+});
 </script>

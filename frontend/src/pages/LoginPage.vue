@@ -1,8 +1,8 @@
 <template>
   <q-page class="window-height windows-width row justify-center items-center">
     <div class="column">
-      <div class="row">
-        <login-card v-if="!twofa" @submit="login" style="max-width: 400px" />
+      <div class="row" style="max-width: 400px">
+        <login-card v-if="!twofa" @submit="login" />
         <two-fa-card v-else @submit="login" @cancel="cancel" />
       </div>
     </div>
