@@ -1,11 +1,11 @@
-from typing import TYPE_CHECKING, Union, Dict, Any, Optional
+from typing import Union, Dict, Any, Optional
 
 from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password, create_secret, verify_totp
 from app.database.base import Base, CRUDBase
-from app.schema.user import CreateUser, UpdateUser
+from app.model import CreateUser, UpdateUser, UserBase
 
 
 class User(Base):
@@ -23,7 +23,7 @@ class User(Base):
         return f"User(id={self.id!r}, username={self.username!r}, password={self.password!r})"
 
 
-class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
+class CRUDUser(CRUDBase[User, CreateUser, UpdateUser, UserBase]):
     # Class overrides
     def update(
         self,
@@ -55,10 +55,10 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser]):
                 # We're modifying the user after successfully verifying the first OTP code
                 update_data["twofa_secret"] = db_obj.twofa_secret_tmp
                 update_data["twofa_secret_tmp"] = None
-            else:
-                # We're disabling 2fa
-                update_data["twofa_secret"] = None
-                update_data["twofa_secret_tmp"] = None
+        if "twofa_enabled" in update_data and not update_data["twofa_enabled"]:
+            # We're disabling 2fa
+            update_data["twofa_secret"] = None
+            update_data["twofa_secret_tmp"] = None
 
         # Call our super
         return super().update(db, db_obj=db_obj, obj_in=update_data)

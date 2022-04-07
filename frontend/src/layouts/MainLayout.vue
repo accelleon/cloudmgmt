@@ -2,119 +2,287 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
-
-        <q-toolbar-title>
-          Quasar App
-        </q-toolbar-title>
+        <q-toolbar-title> Cloud Management </q-toolbar-title>
 
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
-      <q-list>
-        <q-item-label
-          header
-        >
-          Essential Links
-        </q-item-label>
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
+      <q-card square class="absolute-top full-width row" style="height: 150px">
+        <div class="col-10 q-pa-lg text-h6">{{ user.fullname }}</div>
+        <div class="col-2" align="right">
+          <div class="q-pa-sm">
+            <q-btn flat rounded padding="none" @click="pinned = !pinned">
+              <q-icon
+                :name="pinned ? 'push_pin' : 'o_push_pin'"
+                :class="pinned ? '' : 'rotate-90'"
+              />
+              <q-tooltip
+                anchor="center right"
+                self="center left"
+                :offset="[10, 10]"
+              >
+                Pin/Unpin the navigation drawer.
+              </q-tooltip>
+            </q-btn>
+          </div>
+          <div class="q-pa-sm absolute-bottom">
+            <q-btn-dropdown
+              flat
+              rounded
+              padding="none"
+              dropdown-icon="manage_accounts"
+              no-icon-animation
+              auto-close
+            >
+              <template v-slot:label>
+                <q-tooltip
+                  anchor="center right"
+                  self="center left"
+                  :offset="[10, 10]"
+                >
+                  Manage profile.
+                </q-tooltip>
+              </template>
 
-        <EssentialLink
-          v-for="link in essentialLinks"
-          :key="link.title"
-          v-bind="link"
-        />
-      </q-list>
+              <q-list>
+                <q-item clickable @click="changePassword">
+                  <q-item-section avatar>
+                    <q-icon name="lock" size="md" />
+                  </q-item-section>
+                  <q-item-section>Change Password</q-item-section>
+                </q-item>
+                <q-item>
+                  <q-item-section avatar>
+                    <q-icon name="pin" size="md" />
+                  </q-item-section>
+                  <q-item-section>
+                    <q-item-label>2FA</q-item-label>
+                  </q-item-section>
+                  <q-item-section side>
+                    <q-toggle
+                      v-model="twofa"
+                      checked-icon="check"
+                      unchecked-icon="clear"
+                      color="green"
+                      @update:model-value="onTwofaChange"
+                    />
+                  </q-item-section>
+                </q-item>
+                <q-item clickable @click="logout">
+                  <q-item-section avatar>
+                    <q-icon name="exit_to_app" size="md" />
+                  </q-item-section>
+                  <q-item-section>Logout</q-item-section>
+                </q-item>
+              </q-list>
+            </q-btn-dropdown>
+          </div>
+        </div>
+        <q-separator />
+      </q-card>
+
+      <q-scroll-area
+        style="
+          height: calc(100% - 220px);
+          margin-top: 150px;
+          margin-bottom: 70px;
+        "
+      >
+        <q-list padding>
+          <q-item
+            clickable
+            v-ripple
+            :active="link === 'billing'"
+            @click="link = 'billing'"
+            active-class="my-menu-link"
+          >
+            <q-item-section avatar>
+              <q-icon name="receipt_long" />
+            </q-item-section>
+            <q-item-section>Billing</q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            :active="link === 'purge'"
+            @click="link = 'purge'"
+            active-class="my-menu-link"
+          >
+            <q-item-section avatar>
+              <q-icon name="delete_sweep" />
+            </q-item-section>
+            <q-item-section>Purge</q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            to="/users"
+            :active="link === 'users'"
+            @click="link = 'users'"
+            active-class="my-menu-link"
+          >
+            <q-item-section avatar>
+              <q-icon name="manage_accounts" />
+            </q-item-section>
+            <q-item-section>Users</q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            :active="link === 'groups'"
+            @click="link = 'groups'"
+            active-class="my-menu-link"
+          >
+            <q-item-section avatar>
+              <q-icon name="groups" />
+            </q-item-section>
+            <q-item-section>Groups</q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            :active="link === 'accounts'"
+            @click="link = 'accounts'"
+            active-class="my-menu-link"
+          >
+            <q-item-section avatar>
+              <q-icon name="cloud" />
+            </q-item-section>
+            <q-item-section>Accounts</q-item-section>
+          </q-item>
+
+          <q-item
+            clickable
+            v-ripple
+            :active="link === 'settings'"
+            @click="link = 'settings'"
+            active-class="my-menu-link"
+          >
+            <q-item-section avatar>
+              <q-icon name="settings" />
+            </q-item-section>
+            <q-item-section>Settings</q-item-section>
+          </q-item>
+        </q-list>
+      </q-scroll-area>
+
+      <div class="absolute-bottom justify-center row" style="height: 70px">
+        <div class="column q-pa-lg">
+          <q-btn square label="Log out" icon="logout" />
+        </div>
+      </div>
     </q-drawer>
 
-    <q-page-container>
+    <q-page-container class="container-fluid">
       <router-view />
     </q-page-container>
   </q-layout>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue';
-import EssentialLink from 'components/EssentialLink.vue';
-import { api } from 'boot/axios';
+<style lang="scss">
+.my-menu-link {
+  color: black;
+  background: #fde08e;
+}
+</style>
 
-const linksList = [
-  {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev'
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev'
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
-  }
-];
+<script lang="ts">
+import { defineComponent, ref, onMounted } from 'vue';
+import { useQuasar } from 'quasar';
+import { useUserStore } from 'src/stores/user-store';
+import TwoFaDialog from 'src/components/dialogs/TwoFaDialog.vue';
+import ChangePasswordDialog from 'src/components/dialogs/ChangePasswordDialog.vue';
+import { useAuthStore } from 'src/stores/auth-store';
+import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'MainLayout',
 
-  components: {
-    EssentialLink
-  },
+  setup() {
+    const leftDrawerOpen = ref(false);
+    const pinned = ref(true);
+    const link = ref('');
+    const $q = useQuasar();
+    const $router = useRouter();
+    const user = useUserStore();
 
-  setup () {
-    const leftDrawerOpen = ref(false)
+    const twofa = ref(false);
 
-    const asdf = api.get('users/me');
-    console.log(asdf);
+    onMounted(async () => {
+      await user.getUser();
+      twofa.value = user.user.twofa_enabled!;
+    });
+
+    async function enableTwofa() {
+      $q.dialog({
+        title: 'Enable Two-Factor Authentication',
+        component: TwoFaDialog,
+      }).onOk(() => {
+        twofa.value = true;
+      });
+    }
+
+    async function disableTwofa() {
+      // Confirm disabling two-factor authentication.
+      $q.dialog({
+        title: 'Disable Two-Factor Authentication',
+        message: 'Are you sure you want to disable two-factor authentication?',
+        color: 'negative',
+      }).onOk(async () => {
+        user
+          .disableTwoFa()
+          .then(() => {
+            $q.notify({
+              message: 'Two-Factor Authentication disabled.',
+              color: 'positive',
+              icon: 'check',
+            });
+            twofa.value = false;
+          })
+          .catch(() => {
+            $q.notify({
+              message: 'Two-Factor Authentication could not be disabled.',
+              color: 'negative',
+              icon: 'error',
+            });
+          });
+      });
+    }
 
     return {
-      essentialLinks: linksList,
+      pinned,
+      link,
+      user,
+      twofa,
       leftDrawerOpen,
-      toggleLeftDrawer () {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      }
-    }
-  }
+
+      changePassword: () => {
+        $q.dialog({
+          component: ChangePasswordDialog,
+          title: 'Change Password',
+        });
+      },
+
+      logout: () => {
+        useAuthStore().logout();
+        $router.push('/login');
+      },
+
+      onTwofaChange: (value: any, _evt: any) => {
+        if (value) {
+          enableTwofa();
+        } else {
+          disableTwofa();
+        }
+        twofa.value = user.user.twofa_enabled!;
+      },
+    };
+  },
 });
 </script>

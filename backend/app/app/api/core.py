@@ -1,13 +1,13 @@
 from typing import Generator, Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import sessionmaker
 
-from app import database, schema
+from app import database, model
 from app.core import security
 from app.core.config import configs
 from app.database.session import SessionLocal
@@ -34,7 +34,7 @@ def get_current_user(
 ) -> database.User:
     try:
         payload = jwt.decode(token, configs.SECRET_KEY, algorithms=[security.ALGORITHM])
-        token_data = schema.TokenPayload(**payload)
+        token_data = model.TokenPayload(**payload)
     except (jwt.JWTError, ValidationError):
         raise HTTPException(status_code=401, detail="Must be authenticated")
     user = database.user.get(db, id=token_data.sub)

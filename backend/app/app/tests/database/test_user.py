@@ -4,13 +4,13 @@ import pyotp
 
 from app import database
 from app.core.security import verify_password
-from app.schema.user import CreateUser, UpdateUser
-from app.tests.utils import random_lower_string
+from app.model.user import CreateUser, UpdateUser, UserBase, UpdateSelf
+from app.tests.utils import random_username, random_password
 
 
 def test_create_user(db: Session) -> None:
-    username = random_lower_string()
-    password = random_lower_string()
+    username = random_username()
+    password = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
@@ -22,8 +22,8 @@ def test_create_user(db: Session) -> None:
 
 
 def test_password_auth(db: Session) -> None:
-    username = random_lower_string()
-    password = random_lower_string()
+    username = random_username()
+    password = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
@@ -39,15 +39,15 @@ def test_password_auth(db: Session) -> None:
 
 
 def test_not_password_auth(db: Session) -> None:
-    username = random_lower_string()
-    password = random_lower_string()
+    username = random_username()
+    password = random_password()
     user = database.user.authenticate_password(db, username=username, password=password)
     assert user is None
 
 
 def test_user_is_admin(db: Session) -> None:
-    username = random_lower_string()
-    password = random_lower_string()
+    username = random_username()
+    password = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
@@ -60,8 +60,8 @@ def test_user_is_admin(db: Session) -> None:
 
 
 def test_user_not_is_admin(db: Session) -> None:
-    username = random_lower_string()
-    password = random_lower_string()
+    username = random_username()
+    password = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
@@ -73,8 +73,8 @@ def test_user_not_is_admin(db: Session) -> None:
 
 
 def test_get_user(db: Session) -> None:
-    username = random_lower_string()
-    password = random_lower_string()
+    username = random_username()
+    password = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
@@ -89,9 +89,9 @@ def test_get_user(db: Session) -> None:
 
 
 def test_update_user(db: Session) -> None:
-    username = random_lower_string()
-    password = random_lower_string()
-    name = random_lower_string()
+    username = random_username()
+    password = random_password()
+    name = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
@@ -99,7 +99,7 @@ def test_update_user(db: Session) -> None:
         last_name=name,
         is_admin=True,
     )
-    new_password = random_lower_string()
+    new_password = random_password()
     user = database.user.create(db, obj_in=user_in)
     user_in_update = UpdateUser(
         password=new_password,
@@ -117,8 +117,8 @@ def test_update_user(db: Session) -> None:
 
 
 def test_enable_twofa(db: Session) -> None:
-    username = random_lower_string()
-    password = random_lower_string()
+    username = random_username()
+    password = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
@@ -139,7 +139,7 @@ def test_enable_twofa(db: Session) -> None:
     totp = pyotp.TOTP(user.twofa_secret_tmp)
     # Fail if we don't accept a 2fa code
     assert database.user.authenticate_twofa(db, user=user, otp=totp.now())
-    update_data = UpdateUser(twofa_enabled=True, twofa_code=totp.now())
+    update_data = UpdateSelf(twofa_enabled=True, twofa_code=totp.now())
     user2 = database.user.update(db, db_obj=user, obj_in=update_data)
     # Now we fail if we don't mark 2fa enabled, remove the tmp secret and set the secret
     assert user2.twofa_enabled
@@ -152,8 +152,8 @@ def test_enable_twofa(db: Session) -> None:
 
 
 def test_disable_twofa(db: Session) -> None:
-    username = random_lower_string()
-    password = random_lower_string()
+    username = random_username()
+    password = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
@@ -174,3 +174,26 @@ def test_disable_twofa(db: Session) -> None:
 
     assert not user.twofa_enabled
     assert not user.twofa_secret
+
+
+def test_filter_user(db: Session) -> None:
+    username = random_username()
+    password = random_password()
+    user_in = CreateUser(
+        username=username,
+        password=password,
+        first_name="",
+        last_name="",
+        is_admin=True,
+    )
+    user = database.user.create(db, obj_in=user_in)
+    filter = UserBase(username=username)
+    users, total = database.user.filter(db, filter=filter)
+    assert total == 1
+    assert jsonable_encoder(user) == jsonable_encoder(users[0])
+    filter = UserBase(
+        is_admin=True,
+    )
+    assert users
+    for user in users:
+        assert user.is_admin

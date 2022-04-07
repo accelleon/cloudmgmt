@@ -1,11 +1,11 @@
 from sqlalchemy.orm import Session
 
-from app import schema, database
+from app import database, model
 from app.core.config import configs
 
 # Make sure all SQLAlchemy modules are import before initalizing DB
 # otherwise SQLAlchemy might explode with relationships
-from app.database import baseimport
+from app.database import baseimport  # noqa
 
 
 def init_db(db: Session) -> None:
@@ -16,7 +16,7 @@ def init_db(db: Session) -> None:
     # Create our first user if it doesn't exist yet
     user = database.user.get_by_username(db, username=configs.FIRST_USER_NAME)
     if not user:
-        user_in = schema.CreateUser(
+        user_in = model.CreateUser(
             username=configs.FIRST_USER_NAME,
             password=configs.FIRST_USER_PASS,
             first_name="",

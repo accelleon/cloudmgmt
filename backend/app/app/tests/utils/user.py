@@ -6,9 +6,8 @@ import pyotp
 
 from app import database
 from app.core.config import configs
-from app.database.user import User
-from app.schema.user import CreateUser, UpdateUser
-from app.tests.utils import random_lower_string
+from app.model.user import CreateUser, UpdateUser, UpdateSelf
+from app.tests.utils import random_username, random_password
 
 
 def user_authenticate_headers(
@@ -30,26 +29,26 @@ def admin_user_headers(client: TestClient) -> Dict[str, str]:
     )
 
 
-def create_random_user(db: Session) -> Tuple[str, str]:
-    username = random_lower_string()
-    password = random_lower_string()
+def create_random_user(db: Session) -> Tuple[str, str, int]:
+    username = random_username()
+    password = random_password()
     user_in = CreateUser(
         username=username,
         password=password,
         first_name="",
         last_name="",
     )
-    database.user.create(db, obj_in=user_in)
-    return username, password
+    user = database.user.create(db, obj_in=user_in)
+    return username, password, user.id
 
 
 def create_user_twofa(db: Session) -> Tuple[str, str, str]:
-    username, password = create_random_user(db)
+    username, password, _ = create_random_user(db)
     # Do some hackery to get a user in the right state
-    update_data = UpdateUser(twofa_enabled=True)
+    update_data = UpdateSelf(twofa_enabled=True)
     user = database.user.get_by_username(db, username=username)
     user = database.user.update(db=db, db_obj=user, obj_in=update_data)  # type: ignore
-    update_data = UpdateUser(
+    update_data = UpdateSelf(
         twofa_enabled=True,
         twofa_code=pyotp.TOTP(user.twofa_secret_tmp).now(),  # type: ignore
     )
@@ -58,7 +57,7 @@ def create_user_twofa(db: Session) -> Tuple[str, str, str]:
 
 
 def auth_headers_random(client: TestClient, db: Session) -> Dict[str, str]:
-    username, password = create_random_user(db)
+    username, password, _ = create_random_user(db)
     return user_authenticate_headers(
         client=client, username=username, password=password
     )
@@ -69,7 +68,7 @@ def auth_headers_username(
     client: TestClient,
     username: str,
 ) -> Dict[str, str]:
-    password = random_lower_string()
+    password = random_password()
     user = database.user.get_by_username(db, username=username)
     if not user:
         create = CreateUser(
