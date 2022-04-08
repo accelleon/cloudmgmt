@@ -1,7 +1,10 @@
-from typing import List
 from enum import Enum
+from typing import TYPE_CHECKING, List
 
-from pydantic import BaseModel, Json
+from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from .account import Account
 
 
 class IaasType(Enum):
@@ -9,20 +12,16 @@ class IaasType(Enum):
     PAAS = "PAAS"
 
 
-class IaasOption(BaseModel):
-    name: str
-    type: str
-    secret: bool
-
-
-class CreateIaas(BaseModel):
+class IaasDesc(BaseModel):
     name: str
     type: IaasType
-    parameters: List[IaasOption]
+    params: List[str]
 
 
-class Iaas(CreateIaas):
+class Iaas(IaasDesc):
     id: int
+
+    accounts: 'List[Account]'
 
     class Config:
         orm_mode = True
