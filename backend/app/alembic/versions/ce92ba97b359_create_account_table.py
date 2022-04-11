@@ -31,9 +31,10 @@ def upgrade():
     op.create_table(
         "account",
         sa.Column("id", sa.Integer, primary_key=True),
-        sa.Column("name", sa.String, index=True, unique=True, nullable=False),
+        sa.Column("name", sa.String, index=True, nullable=False),
         sa.Column("iaas_id", sa.Integer, sa.ForeignKey("iaas.id"), nullable=False),
         sa.Column("data", sa.JSON, nullable=False),
+        sa.Index("iaas_id", "name", unique=True),
     )
 
 

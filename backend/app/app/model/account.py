@@ -1,13 +1,14 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 from pydantic import BaseModel
 
+from .common import SearchQueryBase, SearchResponse
 from .iaas import Iaas
 
 
 class AccountFilter(BaseModel):
-    name: Optional[str]
-    iaas: Optional[str]
+    name: Optional[str] = None
+    iaas: Optional[str] = None
 
 
 class CreateAccount(BaseModel):
@@ -16,13 +17,13 @@ class CreateAccount(BaseModel):
     data: Dict[str, str]
 
 
-class UpdateAccount(AccountFilter):
+class UpdateAccount(BaseModel):
     name: Optional[str] = None
-    data: Optional[Dict[str, str]]
+    data: Optional[Dict[str, str]] = None
 
 
 class Account(BaseModel):
-    id: Optional[int]
+    id: Optional[int] = None
     name: str
     iaas: Iaas
     data: Dict[str, str]
@@ -31,4 +32,9 @@ class Account(BaseModel):
         orm_mode = True
 
 
-Iaas.update_forward_refs(Account=Account)
+class AccountSearchRequest(SearchQueryBase, AccountFilter):
+    sort: str = "name"
+
+
+class AccountSearchResponse(SearchResponse):
+    results: List[Account]

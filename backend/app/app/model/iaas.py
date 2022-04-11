@@ -1,10 +1,9 @@
 from enum import Enum
-from typing import TYPE_CHECKING, List
+from typing import List, Optional
 
 from pydantic import BaseModel
 
-if TYPE_CHECKING:
-    from .account import Account
+from .common import SearchQueryBase, SearchResponse
 
 
 class IaasType(Enum):
@@ -21,7 +20,18 @@ class IaasDesc(BaseModel):
 class Iaas(IaasDesc):
     id: int
 
-    accounts: 'List[Account]'
-
     class Config:
         orm_mode = True
+
+
+class IaasQuery(BaseModel):
+    name: Optional[str] = None
+    type: Optional[IaasType] = None
+
+
+class IaasFilter(SearchQueryBase, IaasQuery):
+    sort: str = "name"
+
+
+class IaasSearchResponse(SearchResponse):
+    results: List[Iaas]
