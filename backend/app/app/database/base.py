@@ -2,7 +2,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union, Tup
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, Query
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 
 
@@ -52,6 +52,7 @@ class CRUDBase(
         self,
         db: Session,
         *,
+        query: Optional[Query] = None,
         filter: Optional[Union[FilterSchemaType, Dict[str, Any]]] = None,
         offset: Optional[int] = None,
         limit: Optional[int] = None,
@@ -59,7 +60,7 @@ class CRUDBase(
         order: Optional[str] = "asc",
         exclude: Optional[List[int]] = None,
     ) -> Tuple[List[ModelType], int]:
-        query = db.query(self.model)
+        query = query if query else db.query(self.model)
         if filter:
             filter_in = (
                 filter if isinstance(filter, dict) else filter.dict(exclude_unset=True)
