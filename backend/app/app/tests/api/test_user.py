@@ -39,7 +39,7 @@ def test_partial_search(
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    username, _, id = create_random_user(db)
+    username, _, _ = create_random_user(db)
     r = client.get(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
@@ -102,7 +102,7 @@ def test_search_links(
         headers=admin_token_headers,
         params={
             "page": 1,
-            "per_page": 10,
+            "per_page": 2,
         },
     )
     resp = r.json()
@@ -113,12 +113,12 @@ def test_search_links(
     next = urlparse(resp["next"])
     nextQ = parse_qs(next.query)
     assert nextQ["page"][0] == "2"
-    assert nextQ["per_page"][0] == "10"
+    assert nextQ["per_page"][0] == "2"
 
     prev = urlparse(resp["prev"])
     prevQ = parse_qs(prev.query)
     assert prevQ["page"][0] == "0"
-    assert prevQ["per_page"][0] == "10"
+    assert prevQ["per_page"][0] == "2"
 
 
 def test_search_not_admin(
@@ -210,6 +210,23 @@ def test_create_invalid_password(
         json={
             "username": random_username(),
             "password": random_invalid_password(),
+            "first_name": "",
+            "last_name": "",
+        },
+    )
+    assert r.status_code == 422
+
+
+def test_create_invalid_username(
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    r = client.post(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+        json={
+            "username": "asdfa$",
+            "password": random_password(),
             "first_name": "",
             "last_name": "",
         },

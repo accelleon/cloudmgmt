@@ -22,7 +22,6 @@ class CloudFactory:
     def get_client(account: Account) -> Type[ProviderBase]:
         try:
             client_cls = getattr(controllers, account.iaas.name)
-            print(client_cls)
             return client_cls.parse_obj(account.data)
         except AttributeError:
             raise ValueError(f"Unknown iaas: {account.iaas.name}")
