@@ -74,7 +74,7 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
         order: Optional[str] = "asc",
         exclude: Optional[List[int]] = None,
     ) -> Tuple[List[Account], int]:
-        if filter:
+        if filter and filter.iaas:
             query = db.query(Account).join(Iaas).filter(Iaas.name == filter.iaas)
             filter.iaas = None
         return super().filter(
