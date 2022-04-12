@@ -2,7 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type UpdateSelf = {
+export type UpdateMe = {
     username?: string;
     first_name?: string;
     last_name?: string;
