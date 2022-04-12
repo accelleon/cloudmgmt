@@ -54,6 +54,11 @@ def test_get_one(
     assert "name" in js
     assert "type" in js
     assert "params" in js
+    assert "accounts" in js
+    # Check the relationship
+    assert js["accounts"]
+    assert "id" in js["accounts"][0]
+    assert "name" in js["accounts"][0]
 
 
 def test_iaas_get_one_not_found(
