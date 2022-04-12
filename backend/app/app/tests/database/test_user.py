@@ -4,7 +4,8 @@ import pyotp
 
 from app import database
 from app.core.security import verify_password
-from app.model.user import CreateUser, UpdateUser, UserBase, UpdateSelf
+from app.model.user import CreateUser, UpdateUser, UserFilter
+from app.model.me import UpdateMe
 from app.tests.utils import random_username, random_password
 
 
@@ -139,7 +140,7 @@ def test_enable_twofa(db: Session) -> None:
     totp = pyotp.TOTP(user.twofa_secret_tmp)
     # Fail if we don't accept a 2fa code
     assert database.user.authenticate_twofa(db, user=user, otp=totp.now())
-    update_data = UpdateSelf(twofa_enabled=True, twofa_code=totp.now())
+    update_data = UpdateMe(twofa_enabled=True, twofa_code=totp.now())
     user2 = database.user.update(db, db_obj=user, obj_in=update_data)
     # Now we fail if we don't mark 2fa enabled, remove the tmp secret and set the secret
     assert user2.twofa_enabled
@@ -187,11 +188,11 @@ def test_filter_user(db: Session) -> None:
         is_admin=True,
     )
     user = database.user.create(db, obj_in=user_in)
-    filter = UserBase(username=username)
+    filter = UserFilter(username=username)
     users, total = database.user.filter(db, filter=filter)
     assert total == 1
     assert jsonable_encoder(user) == jsonable_encoder(users[0])
-    filter = UserBase(
+    filter = UserFilter(
         is_admin=True,
     )
     assert users

@@ -18,13 +18,13 @@ router = APIRouter()
     },
 )
 def get_providers(
-    query: model.IaasFilter = Depends(),
+    query: model.IaasSearchRequest = Depends(),
     *,
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_admin_user),
     request: Request,
 ) -> Any:
-    filter = model.IaasQuery.parse_obj(query)
+    filter = model.IaasFilter.parse_obj(query)
     search = model.common.SearchQueryBase.parse_obj(query)
 
     providers, total = database.iaas.filter(

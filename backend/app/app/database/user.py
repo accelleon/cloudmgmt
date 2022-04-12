@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password, verify_password, create_secret, verify_totp
 from app.database.base import Base, CRUDBase
-from app.model import CreateUser, UpdateUser, UserBase
+from app.model import CreateUser, UpdateUser, UserFilter
 
 
 class User(Base):
@@ -23,7 +23,7 @@ class User(Base):
         return f"User(id={self.id!r}, username={self.username!r}, password={self.password!r})"
 
 
-class CRUDUser(CRUDBase[User, CreateUser, UpdateUser, UserBase]):
+class CRUDUser(CRUDBase[User, CreateUser, UpdateUser, UserFilter]):
     # Class overrides
     def update(
         self,

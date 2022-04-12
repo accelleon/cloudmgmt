@@ -1,14 +1,23 @@
 from enum import Enum
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from pydantic import BaseModel
 
 from .common import SearchQueryBase, SearchResponse
 
 
+if TYPE_CHECKING:
+    from .account import _Account
+
+
 class IaasType(Enum):
     IAAS = "IAAS"
     PAAS = "PAAS"
+
+
+class IaasFilter(BaseModel):
+    name: Optional[str] = None
+    type: Optional[IaasType] = None
 
 
 class IaasDesc(BaseModel):
@@ -17,21 +26,21 @@ class IaasDesc(BaseModel):
     params: List[str]
 
 
-class Iaas(IaasDesc):
+# Avoid recursion on cyclic models
+class _Iaas(IaasDesc):
     id: int
 
     class Config:
         orm_mode = True
 
 
-class IaasQuery(BaseModel):
-    name: Optional[str] = None
-    type: Optional[IaasType] = None
+class Iaas(_Iaas):
+    accounts: List["_Account"]
 
 
-class IaasFilter(SearchQueryBase, IaasQuery):
+class IaasSearchRequest(SearchQueryBase, IaasFilter):
     sort: str = "name"
 
 
-class IaasSearchResponse(SearchResponse):
-    results: List[Iaas]
+class IaasSearchResponse(SearchResponse[Iaas]):
+    pass

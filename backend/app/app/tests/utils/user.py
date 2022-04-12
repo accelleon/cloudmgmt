@@ -6,7 +6,8 @@ import pyotp
 
 from app import database
 from app.core.config import configs
-from app.model.user import CreateUser, UpdateUser, UpdateSelf
+from app.model.user import CreateUser, UpdateUser
+from app.model.me import UpdateMe
 from app.tests.utils import random_username, random_password
 
 
@@ -45,10 +46,10 @@ def create_random_user(db: Session) -> Tuple[str, str, int]:
 def create_user_twofa(db: Session) -> Tuple[str, str, str]:
     username, password, _ = create_random_user(db)
     # Do some hackery to get a user in the right state
-    update_data = UpdateSelf(twofa_enabled=True)
+    update_data = UpdateMe(twofa_enabled=True)
     user = database.user.get_by_username(db, username=username)
     user = database.user.update(db=db, db_obj=user, obj_in=update_data)  # type: ignore
-    update_data = UpdateSelf(
+    update_data = UpdateMe(
         twofa_enabled=True,
         twofa_code=pyotp.TOTP(user.twofa_secret_tmp).now(),  # type: ignore
     )

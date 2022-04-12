@@ -1,10 +1,11 @@
-from typing import Optional, TypeVar, Any, List
+from typing import Optional, TypeVar, List, Generic
 from enum import Enum
 
 from pydantic import BaseModel
+from pydantic.generics import GenericModel
 
 
-FilterType = TypeVar("FilterType", bound="BaseModel")
+RespType = TypeVar("RespType", bound="BaseModel")
 
 
 class SearchOrder(str, Enum):
@@ -19,8 +20,8 @@ class SearchQueryBase(BaseModel):
     order: SearchOrder = SearchOrder.ASC
 
 
-class SearchResponse(BaseModel):
-    results: List[Any]
+class SearchResponse(GenericModel, Generic[RespType]):
+    results: List[RespType]
     page: int
     per_page: int
     total: int

@@ -18,7 +18,7 @@ router = APIRouter()
     },
 )
 def get_users(
-    query: model.UserFilter = Depends(),
+    query: model.UserSearchRequest = Depends(),
     *,
     db: Session = Depends(core.get_db),
     user: database.User = Depends(core.get_admin_user),
@@ -28,7 +28,7 @@ def get_users(
     Get a list of users filtered by query.
     """
 
-    filter = model.UserBase.parse_obj(query)
+    filter = model.UserFilter.parse_obj(query)
     users, total = database.user.filter(
         db,
         filter=filter,

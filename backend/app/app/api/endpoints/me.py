@@ -26,7 +26,7 @@ def get_self(
 
 @router.post(
     "",
-    response_model=model.User,
+    response_model=model.UpdateMeResponse,
     responses={
         401: {"model": model.FailedResponse},
         403: {"model": model.FailedResponse},
@@ -35,7 +35,7 @@ def get_self(
 )
 def update_self(
     *,
-    user_in: model.UpdateSelf,
+    user_in: model.UpdateMe,
     db: Session = Depends(core.get_db),
     user: database.User = Depends(core.get_current_user),
 ) -> Any:

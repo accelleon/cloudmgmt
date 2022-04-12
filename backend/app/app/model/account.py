@@ -1,9 +1,9 @@
-from typing import Optional, Dict, List
+from typing import Optional, Dict
 
 from pydantic import BaseModel
 
 from .common import SearchQueryBase, SearchResponse
-from .iaas import Iaas
+from .iaas import Iaas, _Iaas
 
 
 class AccountFilter(BaseModel):
@@ -22,19 +22,27 @@ class UpdateAccount(BaseModel):
     data: Optional[Dict[str, str]] = None
 
 
-class Account(BaseModel):
+# To avoid the recursion on cyclic models
+class _Account(BaseModel):
     id: Optional[int] = None
     name: str
-    iaas: Iaas
+    iaas_id: int
     data: Dict[str, str]
 
     class Config:
         orm_mode = True
 
 
+class Account(_Account):
+    iaas: _Iaas
+
+
 class AccountSearchRequest(SearchQueryBase, AccountFilter):
     sort: str = "name"
 
 
-class AccountSearchResponse(SearchResponse):
-    results: List[Account]
+class AccountSearchResponse(SearchResponse[Account]):
+    pass
+
+
+Iaas.update_forward_refs(_Account=_Account)
