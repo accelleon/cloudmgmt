@@ -3,7 +3,7 @@ from typing import List, Dict, Any, TypeVar, Type
 
 from pydantic import BaseModel, SecretStr
 
-from app.model.iaas import IaasType
+from app.model.iaas import IaasType, IaasParam
 
 
 class ProviderBase(BaseModel, ABC):
@@ -14,4 +14,9 @@ class ProviderBase(BaseModel, ABC):
     @staticmethod
     @abstractmethod
     def type() -> IaasType:
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def params() -> List[IaasParam]:
         pass

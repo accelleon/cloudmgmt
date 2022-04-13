@@ -28,6 +28,7 @@ def init_db(db: Session) -> None:
 
     iaasFactory = CloudFactory.get_providers()
     for provider in iaasFactory:
-        if database.iaas.get_by_name(db, name=provider.name):
+        if iaas := database.iaas.get_by_name(db, name=provider.name):
+            database.iaas.update(db, db_obj=iaas, obj_in=provider)
             continue
         database.iaas.create(db, obj_in=provider)

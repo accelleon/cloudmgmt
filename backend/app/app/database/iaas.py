@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Optional
 
-from sqlalchemy import Column, Integer, String, ARRAY, Enum
+from sqlalchemy import Column, Integer, String, JSON, Enum
 from sqlalchemy.orm import Session, relationship
 
 from .base import Base, CRUDBase
@@ -14,7 +14,7 @@ class Iaas(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, unique=True, nullable=False)
     type = Column(Enum(IaasType), nullable=False)
-    params = Column(ARRAY(String), nullable=False)
+    params = Column(JSON, nullable=False)
 
     accounts = relationship("Account", back_populates="iaas")
 

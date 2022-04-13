@@ -1,7 +1,7 @@
 from enum import Enum
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 
 from .common import SearchQueryBase, SearchResponse
 
@@ -15,6 +15,19 @@ class IaasType(Enum):
     PAAS = "PAAS"
 
 
+class IaasParam(BaseModel):
+    key: str
+    label: str
+    type: Literal["string", "choice", "secret"] = "string"
+    choices: Optional[List[str]] = None
+
+    @root_validator()
+    def validator(cls, values):
+        if values.get("type") == "choice" and not values.get("choices"):
+            raise ValueError("choices must be provided for choice type")
+        return values
+
+
 class IaasFilter(BaseModel):
     name: Optional[str] = None
     type: Optional[IaasType] = None
@@ -23,7 +36,7 @@ class IaasFilter(BaseModel):
 class IaasDesc(BaseModel):
     name: str
     type: IaasType
-    params: List[str]
+    params: List[IaasParam]
 
 
 # Avoid recursion on cyclic models

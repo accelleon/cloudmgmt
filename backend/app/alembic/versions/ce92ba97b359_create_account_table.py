@@ -25,7 +25,7 @@ def upgrade():
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("name", sa.String, index=True, unique=True, nullable=False),
         sa.Column("type", sa.Enum(IaasType), nullable=False),
-        sa.Column("params", sa.ARRAY(sa.String), nullable=False),
+        sa.Column("params", sa.JSON, nullable=False),
     )
 
     op.create_table(

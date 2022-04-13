@@ -13,7 +13,7 @@ class CloudFactory:
         # Return names of all classes in controllers
         return [
             IaasDesc(
-                name=x[0], type=x[1].type(), params=[y for y in x[1].__fields__.keys()]
+                name=x[0], type=x[1].type(), params=x[1].params(),
             )
             for x in inspect.getmembers(controllers, inspect.isclass)
         ]
