@@ -1,7 +1,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { UpdateSelf } from '../models/UpdateSelf';
+import type { UpdateMe } from '../models/UpdateMe';
+import type { UpdateMeResponse } from '../models/UpdateMeResponse';
 import type { User } from '../models/User';
 
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -29,12 +30,12 @@ export class MeService {
      * Update Self
      * Update own user.
      * @param requestBody
-     * @returns User Successful Response
+     * @returns UpdateMeResponse Successful Response
      * @throws ApiError
      */
     public static updateSelf(
-        requestBody: UpdateSelf,
-    ): CancelablePromise<User> {
+        requestBody: UpdateMe,
+    ): CancelablePromise<UpdateMeResponse> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/me',

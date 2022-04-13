@@ -90,86 +90,14 @@
           margin-bottom: 70px;
         "
       >
-        <q-list padding>
-          <q-item
-            clickable
-            v-ripple
-            :active="link === 'billing'"
-            @click="link = 'billing'"
-            active-class="my-menu-link"
-          >
-            <q-item-section avatar>
-              <q-icon name="receipt_long" />
-            </q-item-section>
-            <q-item-section>Billing</q-item-section>
-          </q-item>
-
-          <q-item
-            clickable
-            v-ripple
-            :active="link === 'purge'"
-            @click="link = 'purge'"
-            active-class="my-menu-link"
-          >
-            <q-item-section avatar>
-              <q-icon name="delete_sweep" />
-            </q-item-section>
-            <q-item-section>Purge</q-item-section>
-          </q-item>
-
-          <q-item
-            clickable
-            v-ripple
-            to="/users"
-            :active="link === 'users'"
-            @click="link = 'users'"
-            active-class="my-menu-link"
-          >
-            <q-item-section avatar>
-              <q-icon name="manage_accounts" />
-            </q-item-section>
-            <q-item-section>Users</q-item-section>
-          </q-item>
-
-          <q-item
-            clickable
-            v-ripple
-            :active="link === 'groups'"
-            @click="link = 'groups'"
-            active-class="my-menu-link"
-          >
-            <q-item-section avatar>
-              <q-icon name="groups" />
-            </q-item-section>
-            <q-item-section>Groups</q-item-section>
-          </q-item>
-
-          <q-item
-            clickable
-            v-ripple
-            :active="link === 'accounts'"
-            @click="link = 'accounts'"
-            active-class="my-menu-link"
-          >
-            <q-item-section avatar>
-              <q-icon name="cloud" />
-            </q-item-section>
-            <q-item-section>Accounts</q-item-section>
-          </q-item>
-
-          <q-item
-            clickable
-            v-ripple
-            :active="link === 'settings'"
-            @click="link = 'settings'"
-            active-class="my-menu-link"
-          >
-            <q-item-section avatar>
-              <q-icon name="settings" />
-            </q-item-section>
-            <q-item-section>Settings</q-item-section>
-          </q-item>
-        </q-list>
+        <q-tabs vertical inline-label stretch>
+          <q-route-tab icon="receipt_long" label="Billing" to="#" />
+          <q-route-tab icon="delete_sweep" label="Purge" to="#" />
+          <q-route-tab icon="manage_accounts" label="Users" to="/users" />
+          <q-route-tab icon="groups" label="Groups" to="#" />
+          <q-route-tab icon="cloud" label="Accounts" to="/accounts" />
+          <q-route-tab icon="settings" label="Settings" to="#" />
+        </q-tabs>
       </q-scroll-area>
 
       <div class="absolute-bottom justify-center row" style="height: 70px">
@@ -184,13 +112,6 @@
     </q-page-container>
   </q-layout>
 </template>
-
-<style lang="scss">
-.my-menu-link {
-  color: black;
-  background: #fde08e;
-}
-</style>
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';

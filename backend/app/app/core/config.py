@@ -2,7 +2,7 @@ import secrets
 from typing import Any, Dict, List, Optional, Union
 
 from urllib.parse import quote_plus
-from pydantic import AnyHttpUrl, BaseSettings, HttpUrl, PostgresDsn, validator
+from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
 
 
 class Configs(BaseSettings):

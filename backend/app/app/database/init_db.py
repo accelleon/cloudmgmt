@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from app import database, model
 from app.core.config import configs
+from app.cloud import CloudFactory
 
 # Make sure all SQLAlchemy modules are import before initalizing DB
 # otherwise SQLAlchemy might explode with relationships
@@ -24,3 +25,10 @@ def init_db(db: Session) -> None:
             is_admin=True,
         )
         user = database.user.create(db, obj_in=user_in)
+
+    iaasFactory = CloudFactory.get_providers()
+    for provider in iaasFactory:
+        if iaas := database.iaas.get_by_name(db, name=provider.name):
+            database.iaas.update(db, db_obj=iaas, obj_in=provider)
+            continue
+        database.iaas.create(db, obj_in=provider)

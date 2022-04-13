@@ -1,0 +1,8 @@
+[run]
+omit = 
+    # Omit tests
+    app/tests/*
+    # Omit initialization only stuff
+    app/database/baseimport.py
+    app/database/init_db.py
+    app/init_data.py
