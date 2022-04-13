@@ -76,7 +76,10 @@ def create_account(
     if database.account.get_by_name(db, name=account.name, iaas=account.iaas):
         raise HTTPException(status_code=409, detail="Account name already exists")
 
-    newAccount = database.account.create(db, obj_in=account)
+    try:
+        newAccount = database.account.create(db, obj_in=account)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
     return newAccount
 
 
@@ -127,10 +130,14 @@ def update_account(
         raise HTTPException(status_code=404, detail="Account not found")
 
     if new.name is not None and new.name != account.name:
+        print(new.name, account.name)
         if database.account.get_by_name(db, name=account.name, iaas=account.iaas.name):
             raise HTTPException(status_code=409, detail="Account name already exists")
 
-    updatedAccount = database.account.update(db, db_obj=account, obj_in=new)
+    try:
+        updatedAccount = database.account.update(db, db_obj=account, obj_in=new)
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=str(e))
     return updatedAccount
 
 
