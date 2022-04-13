@@ -5,6 +5,7 @@
 export type { _Account } from './models/_Account';
 export type { _Iaas } from './models/_Iaas';
 export type { Account } from './models/Account';
+export type { AccountData } from './models/AccountData';
 export type { AccountSearchResponse } from './models/AccountSearchResponse';
 export type { AuthRequest } from './models/AuthRequest';
 export type { AuthResponse2Fa } from './models/AuthResponse2Fa';
@@ -14,6 +15,7 @@ export type { CreateUser } from './models/CreateUser';
 export type { FailedResponse } from './models/FailedResponse';
 export type { HTTPValidationError } from './models/HTTPValidationError';
 export type { Iaas } from './models/Iaas';
+export { IaasParam } from './models/IaasParam';
 export type { IaasSearchResponse } from './models/IaasSearchResponse';
 export { IaasType } from './models/IaasType';
 export { SearchOrder } from './models/SearchOrder';

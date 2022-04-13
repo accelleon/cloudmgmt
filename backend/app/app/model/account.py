@@ -1,7 +1,8 @@
-from typing import Optional, Dict
+from typing import NewType, Optional, Dict, Type
 
-from pydantic import BaseModel
+from pydantic import BaseModel, create_model
 
+from app.cloud.factory import CloudFactory
 from .common import SearchQueryBase, SearchResponse
 from .iaas import Iaas, _Iaas
 
@@ -22,12 +23,16 @@ class UpdateAccount(BaseModel):
     data: Optional[Dict[str, str]] = None
 
 
+# Generate a data model that'll filter out secrets
+AccountData = create_model('AccountData', **CloudFactory._get_pub_fields())
+
+
 # To avoid the recursion on cyclic models
 class _Account(BaseModel):
     id: Optional[int] = None
     name: str
     iaas_id: int
-    data: Dict[str, str]
+    data: AccountData  # type: ignore
 
     class Config:
         orm_mode = True

@@ -25,7 +25,7 @@ def test_create_delete(
     assert js["name"] == name
     assert js["iaas"]["name"] == "Jelastic"
     assert js["iaas"]["type"] == "PAAS"
-    assert js["data"] == {"endpoint": "http://test.com/", "api_key": "test"}
+    assert js["data"] == {"endpoint": "http://test.com/"}
     r = client.delete(
         f"{configs.API_V1_STR}/accounts/{js['id']}", headers=admin_token_headers
     )
@@ -90,7 +90,7 @@ def test_get_accounts(
     r = client.get(f"{configs.API_V1_STR}/accounts", headers=admin_token_headers)
     assert r.status_code == 200
     js = r.json()
-    assert len(js["results"]) == 0
+    assert js["results"]
 
 
 def test_filter_accounts(
@@ -102,7 +102,7 @@ def test_filter_accounts(
     )
     assert r.status_code == 200
     js = r.json()
-    assert len(js["results"]) == 0
+    assert js["results"]
     for account in js["results"]:
         assert account["iaas"]["type"] == "PAAS"
 
@@ -173,7 +173,7 @@ def test_update(
     js = r.json()
     assert js["id"] == acct["id"]
     assert js["name"] == name
-    assert js["data"] == {"endpoint": "http://test.com/", "api_key": "test2"}
+    assert js["data"] == {"endpoint": "http://test.com/"}
 
 
 def test_update_duplicate(
