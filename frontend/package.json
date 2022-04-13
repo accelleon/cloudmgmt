@@ -12,25 +12,27 @@
     "test": "echo \"No test specified\" && exit 0"
   },
   "dependencies": {
-    "@quasar/extras": "^1.13.3",
-    "axios": "^0.21.1",
-    "core-js": "^3.6.5",
-    "pinia": "^2.0.11",
+    "@quasar/extras": "^1.13.5",
+    "axios": "^0.21.4",
+    "core-js": "^3.21.1",
+    "lodash": "^4.17.21",
+    "pinia": "^2.0.13",
     "qrious": "^4.0.2",
-    "quasar": "^2.6.0",
+    "quasar": "^2.6.6",
     "vue": "^3.0.0",
-    "vue-router": "^4.0.0"
+    "vue-router": "^4.0.14"
   },
   "devDependencies": {
-    "@quasar/app-webpack": "^3.4.4",
-    "@types/node": "^12.20.21",
-    "@typescript-eslint/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/parser": "^5.10.0",
-    "eslint": "^8.10.0",
-    "eslint-config-prettier": "^8.1.0",
-    "eslint-plugin-vue": "^8.5.0",
+    "@quasar/app-webpack": "^3.5.1",
+    "@types/lodash": "^4.14.181",
+    "@types/node": "^12.20.47",
+    "@typescript-eslint/eslint-plugin": "^5.19.0",
+    "@typescript-eslint/parser": "^5.19.0",
+    "eslint": "^8.13.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-vue": "^8.6.0",
     "openapi-typescript-codegen": "^0.20.1",
-    "prettier": "^2.5.1",
+    "prettier": "^2.6.2",
     "vue-tsc": "^0.29.8"
   },
   "browserslist": [
