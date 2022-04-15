@@ -9,7 +9,7 @@ class BillingResponse(BaseModel):
     start_date: datetime
     end_date: datetime
     total: float
-    balance: float
+    balance: Optional[float]
 
 
 class IaasType(Enum):

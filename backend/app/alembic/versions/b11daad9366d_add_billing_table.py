@@ -26,7 +26,7 @@ def upgrade():
         sa.Column("start_date", sa.DateTime(timezone=True), nullable=False),
         sa.Column("end_date", sa.DateTime(timezone=True), nullable=False),
         sa.Column("total", sa.Float, nullable=False),
-        sa.Column("balance", sa.Float, nullable=False),
+        sa.Column("balance", sa.Float, nullable=True),
         sa.Index("idx_billing_end_date", "end_date", postgresql_using="brin"),
         sa.UniqueConstraint("account_id", "start_date", "end_date"),
     )
