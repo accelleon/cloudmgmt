@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 
 from app import database, model
 from app.core.config import configs
-from app.cloud import CloudFactory
+from pycloud import CloudFactory
 
 # Make sure all SQLAlchemy modules are import before initalizing DB
 # otherwise SQLAlchemy might explode with relationships

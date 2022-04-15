@@ -2,7 +2,7 @@ from typing import Dict
 
 from fastapi.testclient import TestClient
 
-from app.cloud import CloudFactory
+from pycloud import CloudFactory
 from app.core.config import configs
 from app.model.iaas import IaasType
 
@@ -46,9 +46,9 @@ def test_get_one(
     client: TestClient,
     admin_token_headers: Dict[str, str],
 ) -> None:
-    r = client.get(
-        f"{configs.API_V1_STR}/providers/1", headers=admin_token_headers
-    )
+    r = client.get(f"{configs.API_V1_STR}/providers", headers=admin_token_headers)
+    js = r.json()
+    r = client.get(f"{configs.API_V1_STR}/providers/{js['results'][0]['id']}", headers=admin_token_headers)
     assert r.status_code == 200
     js = r.json()
     assert "name" in js

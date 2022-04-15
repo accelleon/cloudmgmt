@@ -16,7 +16,7 @@ def test_create_delete(
         json={
             "name": name,
             "iaas": "Jelastic",
-            "data": {"endpoint": "http://test.com/", "api_key": "test"},
+            "data": {"endpoint": "Layershift", "api_key": "test"},
         },
         headers=admin_token_headers,
     )
@@ -25,7 +25,7 @@ def test_create_delete(
     assert js["name"] == name
     assert js["iaas"]["name"] == "Jelastic"
     assert js["iaas"]["type"] == "PAAS"
-    assert js["data"] == {"endpoint": "http://test.com/"}
+    assert js["data"] == {"endpoint": "Layershift"}
     r = client.delete(
         f"{configs.API_V1_STR}/accounts/{js['id']}", headers=admin_token_headers
     )
@@ -42,7 +42,7 @@ def test_create_wrong_iaas(
         json={
             "name": name,
             "iaas": "asdf",
-            "data": {"endpoint": "http://test.com/", "api_key": "test"},
+            "data": {"endpoint": "Layershift", "api_key": "test"},
         },
         headers=admin_token_headers,
     )
@@ -59,7 +59,7 @@ def test_create_duplicate(
         json={
             "name": name,
             "iaas": "Jelastic",
-            "data": {"endpoint": "http://test.com/", "api_key": "test"},
+            "data": {"endpoint": "Layershift", "api_key": "test"},
         },
         headers=admin_token_headers,
     )
@@ -70,7 +70,7 @@ def test_create_duplicate(
         json={
             "name": name,
             "iaas": "Jelastic",
-            "data": {"endpoint": "http://test.com/", "api_key": "test"},
+            "data": {"endpoint": "Layershift", "api_key": "test"},
         },
         headers=admin_token_headers,
     )
@@ -118,7 +118,7 @@ def test_get_id(
         json={
             "name": name,
             "iaas": "Jelastic",
-            "data": {"endpoint": "http://test.com/", "api_key": "test"},
+            "data": {"endpoint": "Layershift", "api_key": "test"},
         },
         headers=admin_token_headers,
     )
@@ -155,7 +155,7 @@ def test_update(
         json={
             "name": name,
             "iaas": "Jelastic",
-            "data": {"endpoint": "http://test.com/", "api_key": "test"},
+            "data": {"endpoint": "Layershift", "api_key": "test"},
         },
         headers=admin_token_headers,
     )
@@ -165,7 +165,7 @@ def test_update(
     r = client.patch(
         f"{configs.API_V1_STR}/accounts/{acct['id']}",
         json={
-            "data": {"endpoint": "http://test.com/", "api_key": "test2"},
+            "data": {"endpoint": "Layershift", "api_key": "test2"},
         },
         headers=admin_token_headers,
     )
@@ -173,7 +173,7 @@ def test_update(
     js = r.json()
     assert js["id"] == acct["id"]
     assert js["name"] == name
-    assert js["data"] == {"endpoint": "http://test.com/"}
+    assert js["data"] == {"endpoint": "Layershift"}
 
 
 def test_update_duplicate(
@@ -188,7 +188,7 @@ def test_update_duplicate(
         json={
             "name": name,
             "iaas": "Jelastic",
-            "data": {"endpoint": "http://test.com/", "api_key": "test"},
+            "data": {"endpoint": "Layershift", "api_key": "test"},
         },
         headers=admin_token_headers,
     )
@@ -201,7 +201,7 @@ def test_update_duplicate(
         json={
             "name": name2,
             "iaas": "Jelastic",
-            "data": {"endpoint": "http://test.com/", "api_key": "test"},
+            "data": {"endpoint": "Layershift", "api_key": "test"},
         },
         headers=admin_token_headers,
     )
@@ -211,7 +211,7 @@ def test_update_duplicate(
         f"{configs.API_V1_STR}/accounts/{acct['id']}",
         json={
             "name": name2,
-            "data": {"endpoint": "http://test.com/", "api_key": "test2"},
+            "data": {"endpoint": "Layershift", "api_key": "test2"},
         },
         headers=admin_token_headers,
     )
@@ -227,7 +227,7 @@ def test_no_exist(
     r = client.patch(
         f"{configs.API_V1_STR}/accounts/186165135841",
         json={
-            "data": {"endpoint": "http://test.com/", "api_key": "test2"},
+            "data": {"endpoint": "Layershift", "api_key": "test2"},
         },
         headers=admin_token_headers,
     )

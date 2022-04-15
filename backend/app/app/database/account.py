@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session, relationship, Query
 from .base import Base, CRUDBase
 from .iaas import Iaas  # noqa
 from app.model.account import AccountFilter, CreateAccount, UpdateAccount
-from app.cloud import CloudFactory
+from pycloud import CloudFactory
 
 
 class Account(Base):
@@ -34,31 +34,20 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
             iaas=dbIaas,
         )  # type: ignore
         # This'll chuck a ValidationException if the data is invalid
-        CloudFactory.get_client(db_obj)  # type: ignore
+        CloudFactory.validate_client(dbIaas.name, obj_in.data)
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
         return db_obj
 
     def update(self, db: Session, *, db_obj: Account, obj_in: UpdateAccount) -> Account:
-        if obj_in.data is not None:
+        if obj_in.data is not None and db_obj.data != obj_in.data:
             # If we updated any portion of the data, validate it
             for k, v in db_obj.data.items():  # type: ignore
                 if k not in obj_in.data:
                     obj_in.data[k] = v
 
-            # Bit of a hack but the below assignment `db_obj.iaas`
-            # dirties the iaas relationship, so we need to roll it back
-            # TODO: Possibly change get_client to take a model instead of a DB object
-            with db.begin_nested():
-                tmp_obj = Account(
-                    name=db_obj.name,
-                    data=obj_in.data,
-                    iaas=db_obj.iaas,
-                )  # type: ignore
-                # This'll chuck a ValidationException if the data is invalid
-                CloudFactory.get_client(tmp_obj)  # type: ignore
-                db.rollback()
+            CloudFactory.validate_client(db_obj.iaas.name, obj_in.data)
 
         return super().update(db, db_obj=db_obj, obj_in=obj_in)
 

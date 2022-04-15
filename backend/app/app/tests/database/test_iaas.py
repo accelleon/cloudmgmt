@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.database import iaas
-from app.cloud.factory import CloudFactory
+from pycloud.factory import CloudFactory
 
 
 def test_iaas_exists(

@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
 from app import database
-from app.model.account import Account, AccountFilter, CreateAccount, UpdateAccount
+from app.model.account import AccountFilter, CreateAccount, UpdateAccount
 from app.tests.utils import random_username
 
 
@@ -15,7 +15,7 @@ def test_create_delete(
     data = CreateAccount(
         name=random_username(),
         iaas="Jelastic",
-        data={"endpoint": "https://test.com/", "api_key": "test"},
+        data={"endpoint": "Layershift", "api_key": "test"},
     )
     acct = database.account.create(db, obj_in=data)
     assert acct.name == data.name
@@ -37,7 +37,7 @@ def test_create_missing_param(
     data = CreateAccount(
         name=random_username(),
         iaas="Jelastic",
-        data={"endpoint": "https://test.com/"},
+        data={"endpoint": "Layershift"},
     )
     with pytest.raises(ValueError):
         database.account.create(db, obj_in=data)
@@ -49,7 +49,7 @@ def test_create_wrong_iaas(
     data = CreateAccount(
         name="test",
         iaas="Potato",
-        data={"endpoint": "https://test.com/", "api_key": "test"},
+        data={"endpoint": "Layershift", "api_key": "test"},
     )
     with pytest.raises(ValueError):
         database.account.create(db, obj_in=data)
@@ -63,7 +63,7 @@ def test_create_duplicate(
     data = CreateAccount(
         name=random_username(),
         iaas="Jelastic",
-        data={"endpoint": "https://test.com/", "api_key": "test"},
+        data={"endpoint": "Layershift", "api_key": "test"},
     )
     _ = database.account.create(db, obj_in=data)
     with pytest.raises(IntegrityError):
@@ -79,7 +79,7 @@ def test_filter_iaas(
     data = CreateAccount(
         name=random_username(),
         iaas="Jelastic",
-        data={"endpoint": "https://test.com/", "api_key": "test"},
+        data={"endpoint": "Layershift", "api_key": "test"},
     )
     _ = database.account.create(db, obj_in=data)
 
@@ -97,7 +97,7 @@ def test_filter_name(
     data = CreateAccount(
         name=random_username(),
         iaas="Jelastic",
-        data={"endpoint": "https://test.com/", "api_key": "test"},
+        data={"endpoint": "Layershift", "api_key": "test"},
     )
     _ = database.account.create(db, obj_in=data)
 
@@ -114,13 +114,13 @@ def test_update(
     data = CreateAccount(
         name=random_username(),
         iaas="Jelastic",
-        data={"endpoint": "https://test.com/", "api_key": "test"},
+        data={"endpoint": "Layershift", "api_key": "test"},
     )
     acct = database.account.create(db, obj_in=data)
 
     data2 = UpdateAccount(
         name=random_username(),
-        data={"endpoint": "https://test.com/", "api_key": "test2"},
+        data={"endpoint": "Layershift", "api_key": "test2"},
     )
     acct = database.account.update(db, db_obj=acct, obj_in=data2)
     assert acct.name != data.name
@@ -134,18 +134,18 @@ def test_update_duplicate(
     data = CreateAccount(
         name=random_username(),
         iaas="Jelastic",
-        data={"endpoint": "https://test.com/", "api_key": "test"},
+        data={"endpoint": "Layershift", "api_key": "test"},
     )
     acct = database.account.create(db, obj_in=data)
-    data2 = CreateAccount(
+    data = CreateAccount(
         name=random_username(),
         iaas="Jelastic",
-        data={"endpoint": "https://test.com/", "api_key": "test2"},
+        data={"endpoint": "Layershift", "api_key": "test2"},
     )
-    database.account.create(db, obj_in=data2)
+    database.account.create(db, obj_in=data)
     data2 = UpdateAccount(
-        name=data2.name,
-        data={"endpoint": "https://test.com/", "api_key": "test2"},
+        name=data.name,
+        data={"endpoint": "Layershift", "api_key": "test2"},
     )
     with pytest.raises(IntegrityError):
         database.account.update(db, db_obj=acct, obj_in=data2)
