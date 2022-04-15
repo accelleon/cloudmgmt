@@ -1,18 +1,14 @@
 from typing import TYPE_CHECKING, List, Dict, Literal
-from datetime import datetime
 
-from pydantic import BaseModel, HttpUrl, SecretStr
-from dateutil.relativedelta import relativedelta
+from pydantic import BaseModel, AnyHttpUrl, validator
 
 from pycloud.base import PaasBase
-from pycloud.models import IaasParam
-
-if TYPE_CHECKING:
-    from app.model.billing import CreateBillingPeriod
+from pycloud.models import IaasParam, BillingResponse
+from pycloud.utils import current_month_date_range
 
 
 class Endpoint(BaseModel):
-    endpoint: HttpUrl
+    endpoint: AnyHttpUrl
     currency: Literal["USD", "EUR", "GBP"]
 
 
@@ -30,12 +26,16 @@ endpoints = {
 
 class Jelastic(PaasBase):
     endpoint: str
-    api_key: SecretStr
-    _endpoint = None
+    api_key: str
+
+    @validator("endpoint")
+    def validate_endpoint(cls, v):
+        if v not in endpoints:
+            raise ValueError(f"Unknown endpoint: {v}")
+        return v
 
     @staticmethod
     def params() -> List[IaasParam]:
-
         return [
             # TODO: Change this to names of providers and not urls and currency
             IaasParam(
@@ -43,6 +43,7 @@ class Jelastic(PaasBase):
                 label="Endpoint",
                 type="choice",
                 choices=[k for k in endpoints.keys()],
+                readonly=True,
             ),
             IaasParam(key="api_key", label="API Key", type="secret"),
         ]
@@ -53,14 +54,10 @@ class Jelastic(PaasBase):
 
     def __init__(self, **kwargs):  # type: ignore
         super().__init__(**kwargs)
-        self._endpoint = endpoints[self.endpoint]
+        self._base = endpoints[self.endpoint].endpoint
 
-    async def get_current_billing(self) -> "CreateBillingPeriod":
-        # Some date magic
-        # Just first of this month, Start is inclusive
-        first_day = datetime.today().replace(day=1)
-        # This increments month by 1 and sets day to 1, End is exclusive
-        last_day = datetime.today() + relativedelta(months=1, day=1)
+    def get_current_billing(self) -> BillingResponse:
+        first_day, last_day = current_month_date_range()
         data = {
             # This is a generic appid for all jelastic apps, use global or "no" environment
             "appid": "1dd8d191d38fff45e62564fcf67fdcd6",
@@ -70,8 +67,8 @@ class Jelastic(PaasBase):
             "period": "MONTH",
         }
         resp = self._session.get(
-            "/1.0/billing/account/rest/getaccountbillinghistorybyperiod",
-            json=data,
+            self.url("/1.0/billing/account/rest/getaccountbillinghistorybyperiod"),
+            params=data,
         )
         js = resp.json()
         total = 0.0
@@ -81,12 +78,12 @@ class Jelastic(PaasBase):
             "session": self.api_key,
         }
         resp = self._session.get(
-            "/1.0/billing/account/rest/getaccount",
-            json=data,
+            self.url("/1.0/billing/account/rest/getaccount"),
+            params=data,
         )
         js = resp.json()
-        return CreateBillingPeriod(
-            account_id=self._id,
+        print(js)
+        return BillingResponse(
             start_date=first_day,
             end_date=last_day,
             total=total,

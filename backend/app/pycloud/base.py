@@ -1,17 +1,20 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, List, Dict
-from pydantic import BaseModel
+from typing import TYPE_CHECKING, List, Dict, Optional
+
+from pydantic import BaseModel, AnyHttpUrl
 from requests import Session
+from urllib.parse import urljoin
 
-from .models import IaasType, IaasParam
+from .models import IaasType, IaasParam, BillingResponse
 
-if TYPE_CHECKING:
-    from app.model.billing import CreateBillingPeriod
+
+session: Optional[Session] = None
 
 
 class ProviderBase(BaseModel, ABC):
     _session: Session
     _id: int
+    _base: AnyHttpUrl
 
     class Config:
         underscore_attrs_are_private = True
@@ -31,13 +34,19 @@ class ProviderBase(BaseModel, ABC):
     def check_params(cls, data: Dict[str, str]) -> None:
         pass
 
-    def __init__(self, id: int = 0, **kwargs):  # type: ignore
+    def url(self, path: str) -> str:
+        return urljoin(self._base, path)
+
+    def __init__(self, **kwargs):  # type: ignore
         super().__init__(**kwargs)
-        self._id = id
-        self._session = Session()
+        global session
+        if not session:
+            session = Session()
+            session.headers.update({"Content-Type": "application/json"})
+        self._session = session
 
     @abstractmethod
-    async def get_current_billing(self) -> "CreateBillingPeriod":
+    def get_current_billing(self) -> BillingResponse:
         pass
 
 

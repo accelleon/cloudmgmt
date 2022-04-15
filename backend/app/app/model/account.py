@@ -1,10 +1,13 @@
-from typing import NewType, Optional, Dict, Type
+from typing import TYPE_CHECKING, Optional, Dict, List
 
-from pydantic import BaseModel, create_model
+from pydantic import BaseModel
 
-from app.cloud.factory import CloudFactory
+from pycloud.factory import CloudFactory
 from .common import SearchQueryBase, SearchResponse
 from .iaas import Iaas, _Iaas
+
+if TYPE_CHECKING:
+    from .billing import _BillingPeriod
 
 
 class AccountFilter(BaseModel):
@@ -23,8 +26,7 @@ class UpdateAccount(BaseModel):
     data: Optional[Dict[str, str]] = None
 
 
-# Generate a data model that'll filter out secrets
-AccountData = create_model('AccountData', **CloudFactory._get_pub_fields())
+AccountData = CloudFactory.get_pub_data_model()
 
 
 # To avoid the recursion on cyclic models
@@ -40,6 +42,7 @@ class _Account(BaseModel):
 
 class Account(_Account):
     iaas: _Iaas
+    #bills: List["_BillingPeriod"]
 
 
 class AccountSearchRequest(SearchQueryBase, AccountFilter):

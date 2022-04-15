@@ -4,3 +4,4 @@ from app.database.base import Base  # noqa
 from app.database.user import User  # noqa
 from app.database.iaas import Iaas  # noqa
 from app.database.account import Account  # noqa
+from app.database.billing import Billing  # noqa

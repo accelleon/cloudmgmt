@@ -25,7 +25,7 @@ def test_create_delete(
     assert acct.iaas.name == iaas.name  # Check our relationships
     iaas = database.iaas.get_by_name(db, name="Jelastic")
     assert iaas
-    assert data.name in [a.name for a in iaas.accounts]
+    assert data.name in [a.name for a in iaas.accounts]  # type: ignore
 
     database.account.delete(db, id=acct.id)
     assert database.account.get(db, id=acct.id) is None

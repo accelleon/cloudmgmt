@@ -44,6 +44,7 @@ class CloudFactory:
         except (AttributeError):
             raise ValueError(f"Unknown iaas: {iaas}")
 
-    def get_client(self, iaas: str, data: Dict[str, str]) -> ProviderBase:
+    @staticmethod
+    def get_client(iaas: str, data: Dict[str, str]) -> ProviderBase:
         client_cls = getattr(controllers, iaas)
         return client_cls(**data)

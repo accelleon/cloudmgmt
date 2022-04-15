@@ -1,4 +1,4 @@
-from typing import Union, Optional, Tuple, List
+from typing import TYPE_CHECKING, Union, Optional, Tuple, List
 
 from sqlalchemy import Column, Integer, String, JSON, ForeignKey
 from sqlalchemy.orm import Session, relationship, Query
@@ -8,6 +8,9 @@ from .iaas import Iaas  # noqa
 from app.model.account import AccountFilter, CreateAccount, UpdateAccount
 from pycloud import CloudFactory
 
+if TYPE_CHECKING:
+    from .billing import Billing  # noqa
+
 
 class Account(Base):
     id = Column(Integer, primary_key=True, index=True)
@@ -16,6 +19,7 @@ class Account(Base):
     data = Column(JSON, nullable=False)
 
     iaas = relationship("Iaas", back_populates="accounts")
+    bills = relationship("Billing", back_populates="account")
 
     def __repr__(self):
         return f"Account(id={self.id!r}, name={self.name!r}, iaas_id={self.iaas_id!r}, data={self.data!r})"
