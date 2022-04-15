@@ -10,6 +10,8 @@ export type { AccountSearchResponse } from './models/AccountSearchResponse';
 export type { AuthRequest } from './models/AuthRequest';
 export type { AuthResponse2Fa } from './models/AuthResponse2Fa';
 export type { AuthResponseOk } from './models/AuthResponseOk';
+export type { BillingPeriod } from './models/BillingPeriod';
+export type { BillingSearchResponse } from './models/BillingSearchResponse';
 export type { CreateAccount } from './models/CreateAccount';
 export type { CreateUser } from './models/CreateUser';
 export type { FailedResponse } from './models/FailedResponse';
@@ -28,6 +30,7 @@ export type { UserSearchResponse } from './models/UserSearchResponse';
 export type { ValidationError } from './models/ValidationError';
 
 export { AccountService } from './services/AccountService';
+export { BillingService } from './services/BillingService';
 export { LoginService } from './services/LoginService';
 export { MeService } from './services/MeService';
 export { ProviderService } from './services/ProviderService';

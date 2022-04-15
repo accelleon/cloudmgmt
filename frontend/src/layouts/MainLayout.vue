@@ -91,8 +91,8 @@
         "
       >
         <q-tabs vertical inline-label stretch>
-          <q-route-tab icon="receipt_long" label="Billing" to="#" />
-          <q-route-tab icon="delete_sweep" label="Purge" to="#" />
+          <q-route-tab icon="receipt_long" label="Billing" to="/billing" />
+          <!-- <q-route-tab icon="delete_sweep" label="Purge" to="#" /> -->
           <q-route-tab icon="manage_accounts" label="Users" to="/users" />
           <q-route-tab icon="groups" label="Groups" to="#" />
           <q-route-tab icon="cloud" label="Accounts" to="/accounts" />

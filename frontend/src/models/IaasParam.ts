@@ -7,6 +7,7 @@ export type IaasParam = {
     label: string;
     type?: IaasParam.type;
     choices?: Array<string>;
+    readonly?: boolean;
 };
 
 export namespace IaasParam {

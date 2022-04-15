@@ -2,13 +2,13 @@
   <q-page>
     <div class="q-pa-xl">
       <q-table
-        class="acct-table"
+        class="billing-table"
         row-key="id"
         binary-state-sort
         virtual-scroll
         :virtual-scroll-sticky-size-start="48"
         v-model:pagination="pagination"
-        :rows="accts"
+        :rows="bills"
         :columns="columns"
         :loading="loading"
         @request="onRequest"
@@ -50,7 +50,7 @@
                       flat
                       dense
                       :options="iaas"
-                      @update:model-value="onSearch(null)"
+                      @update:model-value="onSearch()"
                     />
                   </q-item-section>
                 </q-item>
@@ -59,12 +59,19 @@
           </div>
         </template>
 
-        <template v-slot:top-right>
-          <q-btn icon="add" @click="onAdd">
-            <q-tooltip> Add Account </q-tooltip>
-          </q-btn>
+        <template v-slot:body-cell-start_date="props">
+          <q-td :props="props">
+            {{ utc_to_local(props.row.start_date) }}
+          </q-td>
         </template>
 
+        <template v-slot:body-cell-end_date="props">
+          <q-td :props="props">
+            {{ utc_to_local(props.row.end_date) }}
+          </q-td>
+        </template>
+
+        <!--
         <template v-slot:body-cell-action="props">
           <q-td :props="props">
             <q-btn-dropdown dropdown-icon="more_vert" flat auto-close>
@@ -85,13 +92,14 @@
             </q-btn-dropdown>
           </q-td>
         </template>
+-->
       </q-table>
     </div>
   </q-page>
 </template>
 
 <style lang="scss">
-.acct-table {
+.billing-table {
   height: calc(100vh - 160px);
 
   .q-table__top,
@@ -115,60 +123,100 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, PropType } from 'vue';
+import { defineComponent, ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
-import { AccountService } from '..';
-import { ProviderService } from '..';
-import { Account } from '../models/Account';
-import { Iaas } from '../models/Iaas';
-import { SearchOrder } from '../models/SearchOrder';
-import NewAccountDialog from 'src/components/dialogs/NewAccountDialog.vue';
-import UpdateAccountDialog from 'src/components/dialogs/UpdateAccountDialog.vue';
+import { BillingService } from 'src/services/BillingService';
+import { BillingPeriod } from 'src/models/BillingPeriod';
+import { SearchOrder } from 'src/models/SearchOrder';
+import { Account } from 'src/models/Account';
 
 const columns = [
-  {
-    name: 'name',
-    required: true,
-    label: 'Name',
-    align: 'left',
-    sortable: true,
-    field: 'name',
-  },
   {
     name: 'iaas',
     required: true,
     label: 'Provider',
     align: 'left',
     sortable: true,
-    field: (row: any) => row.iaas.name,
+    field: (row: any) => row.account.iaas.name,
   },
   {
-    name: 'action',
-    label: '',
+    name: 'account',
+    required: true,
+    label: 'Account',
+    align: 'left',
+    sortable: true,
+    field: (row: any) => row.account.name,
+  },
+  {
+    name: 'start_date',
+    required: true,
+    label: 'Start Date',
+    align: 'left',
+    sortable: true,
+    field: 'start_date',
+  },
+  {
+    name: 'end_date',
+    required: true,
+    label: 'End Date',
+    align: 'left',
+    sortable: true,
+    field: 'end_date',
+  },
+  {
+    name: 'total',
+    required: true,
+    label: 'Total',
     align: 'right',
-    sortable: false,
-    field: 'action',
+    sortable: true,
+    field: 'total',
+  },
+  {
+    name: 'balance',
+    required: false,
+    label: 'Balance',
+    align: 'right',
+    sortable: true,
+    field: 'balance',
   },
 ];
 
 interface Filter {
-  name?: string;
+  acct?: string;
   iaas?: string;
 }
 
+function utc_to_local(utc_datetime: string) {
+  // remove milliseconds
+  utc_datetime = utc_datetime.replace(/\.\d+Z/, 'Z');
+
+  // convert to date
+  const datetime = new Date(utc_datetime);
+
+  // convert to local datetime
+  const local_datetime = new Date(
+    datetime.getTime() + datetime.getTimezoneOffset() * 60000
+  );
+
+  // format local datetime
+  return local_datetime.toISOString().slice(0, 10);
+}
+
 export default defineComponent({
-  name: 'AccountsPage',
+  name: 'BillingPage',
 
   setup() {
     const $q = useQuasar();
 
-    const accts = ref<Account[]>();
+    const bills = ref<BillingPeriod[]>();
     const iaas = ref<string[]>();
+    const acct = ref<Account[]>();
     const filter = ref({
-      name: '',
+      acct: '',
       iaas: '',
     } as Filter);
     const filterBy = ref({
+      acct: false,
       iaas: false,
     });
     const loading = ref(false);
@@ -176,8 +224,8 @@ export default defineComponent({
       sortBy: 'name',
       descending: false,
       page: 1,
-      rowsPerPage: 20,
-      rowsNumber: 20,
+      rowsPerPage: 0,
+      rowsNumber: 10,
     });
 
     const onRequest = (props: any) => {
@@ -185,22 +233,25 @@ export default defineComponent({
 
       loading.value = true;
 
-      return AccountService.getAccounts(
-        filter.value.name,
+      return BillingService.getBilling(
         filterBy.value.iaas ? filter.value.iaas : undefined,
+        filterBy.value.acct ? filter.value.acct : undefined,
+        undefined,
+        undefined,
         page - 1,
         rowsPerPage,
         sortBy,
         descending ? SearchOrder.DESC : SearchOrder.ASC
       )
         .then(({ results, total }) => {
-          iaas.value = [...new Set(results.map((a) => a.iaas.name))];
+          acct.value = [...new Set(results.map((b) => b.account))];
+          iaas.value = [...new Set(results.map((a) => a.account.iaas.name))];
           pagination.value.rowsNumber = total;
           pagination.value.page = page;
           pagination.value.rowsPerPage = rowsPerPage;
           pagination.value.sortBy = sortBy;
           pagination.value.descending = descending;
-          accts.value = results;
+          bills.value = results;
         })
         .catch((err) => {
           $q.notify({
@@ -218,76 +269,22 @@ export default defineComponent({
       onRequest({ pagination: pagination.value });
     });
 
-    const onDelete = (props: any) => {
-      const { id, name } = props;
-      $q.dialog({
-        title: 'Delete Account',
-        message: `Are you sure you want to delete ${name}?`,
-        color: 'negative',
-      }).onOk(() => {
-        loading.value = true;
-        AccountService.deleteAccount(id)
-          .then(() => {
-            loading.value = false;
-            $q.notify({
-              color: 'positive',
-              textColor: 'white',
-              message: `${name} deleted`,
-            });
-            onRequest({ pagination: pagination.value });
-          })
-          .catch((err) => {
-            loading.value = false;
-            $q.notify({
-              color: 'negative',
-              textColor: 'white',
-              message: err.body?.detail || err.message,
-            });
-          });
-      });
-    };
-
-    const onEdit = (props: any) => {
-      $q.dialog({
-        title: 'Edit Account',
-        component: UpdateAccountDialog,
-        componentProps: {
-          old: { ...props },
-        },
-      }).onOk(() => {
-        onRequest({
-          pagination: pagination.value,
-        });
-      });
-    };
-
-    const onAdd = () => {
-      $q.dialog({
-        title: 'New Account',
-        component: NewAccountDialog,
-      }).onOk((acct: Account) => {
-        onRequest({ pagination: pagination.value });
-      });
-    };
-
-    const onSearch = (value: any) => {
-      if (value === 'string' || value === 'null') filter.value.name = value;
+    const onSearch = () => {
       onRequest({ pagination: pagination.value });
     };
 
     return {
-      accts,
       columns,
+      bills,
+      iaas,
+      acct,
       filter,
       filterBy,
       loading,
-      iaas,
       pagination,
       onRequest,
-      onDelete,
-      onEdit,
-      onAdd,
       onSearch,
+      utc_to_local,
     };
   },
 });
