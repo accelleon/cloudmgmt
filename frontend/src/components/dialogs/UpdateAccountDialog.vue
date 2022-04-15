@@ -59,6 +59,7 @@
                       filled
                       square
                       :label="param.label"
+                      :readonly="param.readonly"
                     />
                     <q-select
                       v-if="param.type === 'choice'"
@@ -68,6 +69,7 @@
                       square
                       :label="param.label"
                       :options="param.choices"
+                      :readonly="param.readonly"
                     />
                   </div>
                 </div>
