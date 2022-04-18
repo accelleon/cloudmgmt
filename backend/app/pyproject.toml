@@ -17,7 +17,7 @@ psycopg2-binary = "^2.9.3"
 uvicorn = "^0.17.6"
 ovh = "^1.0.0"
 boto3 = "^1.21.38"
-celery = {extras = ["redis"], version = "^5.2.6"}
+celery = {extras = ["pytest", "redis"], version = "^5.2.6"}
 python-dateutil = "^2.8.2"
 requests-cache = {extras = ["redis"], version = "^0.9.3"}
 

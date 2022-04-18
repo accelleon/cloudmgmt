@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import configs
 from app.database.session import SessionLocal
-from app.main import app
+from app.api_main import app
 from app.tests.utils.user import auth_headers_random, admin_user_headers
 
 
@@ -29,3 +29,8 @@ def admin_token_headers(client: TestClient) -> Dict[str, str]:
 @pytest.fixture(scope="module")
 def user_token_headers(client: TestClient, db: Session) -> Dict[str, str]:
     return auth_headers_random(client=client, db=db)
+
+
+@pytest.fixture(scope="session")
+def celery_config():
+    return {"broker_url": "redis://", "result_backend": "redis://"}

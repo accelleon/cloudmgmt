@@ -3,16 +3,15 @@ from typing import Dict
 from fastapi.testclient import TestClient
 
 from app.core.config import configs
-from app.tests.utils import random_username
 
 
 def test_get_billing(
     client: TestClient,
-    user_token_headers: Dict[str, str]
+    user_token_headers: Dict[str, str],
 ):
     r = client.get(
         f"{configs.API_V1_STR}/billing",
-        headers=user_token_headers
+        headers=user_token_headers,
     )
     assert r.status_code == 200
     js = r.json()

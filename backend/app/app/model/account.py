@@ -1,13 +1,10 @@
-from typing import TYPE_CHECKING, Optional, Dict, List
+from typing import Optional, Dict
 
 from pydantic import BaseModel
 
 from pycloud.factory import CloudFactory
 from .common import SearchQueryBase, SearchResponse
 from .iaas import Iaas, _Iaas
-
-if TYPE_CHECKING:
-    from .billing import _BillingPeriod
 
 
 class AccountFilter(BaseModel):
@@ -29,6 +26,16 @@ class UpdateAccount(BaseModel):
 AccountData = CloudFactory.get_pub_data_model()
 
 
+# HACK: FastAPI by default uses exclude_none=False
+# override the dict() method to exclude None values
+def dict_none(self, *args, **kwargs):
+    kwargs["exclude_none"] = True
+    return BaseModel.dict(self, *args, **kwargs)
+
+
+setattr(AccountData, "dict", dict_none)
+
+
 # To avoid the recursion on cyclic models
 class _Account(BaseModel):
     id: Optional[int] = None
@@ -43,7 +50,6 @@ class _Account(BaseModel):
 
 class Account(_Account):
     iaas: _Iaas
-    # bills: List["_BillingPeriod"]
 
 
 class AccountSearchRequest(SearchQueryBase, AccountFilter):

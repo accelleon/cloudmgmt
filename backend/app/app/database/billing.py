@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Union, Optional, Tuple, List, Dict
 
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Float, asc, desc
@@ -24,7 +25,7 @@ class Billing(Base):
     account = relationship("Account", back_populates="bills")
 
     def __repr__(self):
-        return f"Billing(id={self.id!r}, account_id={self.account_id!r}, start_date={self.start_date!r}, end_date={self.end_date!r}, total={self.total!r}, balance={self.balance!r})"
+        return f"Billing(id={self.id!r}, account_id={self.account_id!r}, start_date={self.start_date!r}, end_date={self.end_date!r}, total={self.total!r}, balance={self.balance!r})"  # noqa
 
 
 class BillingCRUD(
@@ -58,11 +59,11 @@ class BillingCRUD(
             if filter.end_date:
                 query = query.filter(Billing.end_date < filter.end_date)  # type: ignore
         op = asc if order == "asc" else desc
-        if sort == 'iaas':
-            query = query.join(Account).join(Iaas).order_by(op(Iaas.name))
+        if sort == "iaas":
+            query = query.join(Account).join(Iaas).order_by(op(Iaas.name))  # type: ignore
             sort = None
-        if sort == 'account':
-            query = query.join(Account).order_by(op(Account.name))
+        if sort == "account":
+            query = query.join(Account).order_by(op(Account.name))  # type: ignore
             sort = None
         return super().filter(
             db,
@@ -73,6 +74,20 @@ class BillingCRUD(
             sort=sort,
             order=order,
             exclude=exclude,
+        )
+
+    def get_by_period(
+        self,
+        db: Session,
+        *,
+        account_id: int,
+        start_date: datetime,
+        end_date: datetime,
+    ) -> Optional[Billing]:
+        return db.scalar(Billing).filter(
+            Billing.account_id == account_id,
+            Billing.start_date == start_date,
+            Billing.end_date == end_date,
         )
 
 

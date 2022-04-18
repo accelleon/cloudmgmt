@@ -48,17 +48,15 @@ def test_get_one(
 ) -> None:
     r = client.get(f"{configs.API_V1_STR}/providers", headers=admin_token_headers)
     js = r.json()
-    r = client.get(f"{configs.API_V1_STR}/providers/{js['results'][0]['id']}", headers=admin_token_headers)
+    r = client.get(
+        f"{configs.API_V1_STR}/providers/{js['results'][0]['id']}",
+        headers=admin_token_headers,
+    )
     assert r.status_code == 200
     js = r.json()
     assert "name" in js
     assert "type" in js
     assert "params" in js
-    assert "accounts" in js
-    # Check the relationship
-    assert js["accounts"]
-    assert "id" in js["accounts"][0]
-    assert "name" in js["accounts"][0]
 
 
 def test_iaas_get_one_not_found(
