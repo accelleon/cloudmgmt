@@ -34,6 +34,7 @@ class _Account(BaseModel):
     id: Optional[int] = None
     name: str
     iaas_id: int
+    currency: str
     data: AccountData  # type: ignore
 
     class Config:
@@ -42,7 +43,7 @@ class _Account(BaseModel):
 
 class Account(_Account):
     iaas: _Iaas
-    #bills: List["_BillingPeriod"]
+    # bills: List["_BillingPeriod"]
 
 
 class AccountSearchRequest(SearchQueryBase, AccountFilter):

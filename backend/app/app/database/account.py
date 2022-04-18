@@ -16,6 +16,7 @@ class Account(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, unique=True, nullable=False)
     iaas_id = Column(Integer, ForeignKey("iaas.id"), nullable=False)
+    currency = Column(String(length=3), nullable=False)
     data = Column(JSON, nullable=False)
 
     iaas = relationship("Iaas", back_populates="accounts")
@@ -38,7 +39,7 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
             iaas=dbIaas,
         )  # type: ignore
         # This'll chuck a ValidationException if the data is invalid
-        CloudFactory.validate_client(dbIaas.name, obj_in.data)
+        db_obj.currency = CloudFactory.get_client(dbIaas.name, obj_in.data).currency()  # type: ignore
         db.add(db_obj)
         db.commit()
         db.refresh(db_obj)
@@ -51,7 +52,7 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
                 if k not in obj_in.data:
                     obj_in.data[k] = v
 
-            CloudFactory.validate_client(db_obj.iaas.name, obj_in.data)
+            CloudFactory.get_client(db_obj.iaas.name, obj_in.data)
 
         return super().update(db, db_obj=db_obj, obj_in=obj_in)
 

@@ -11,6 +11,13 @@ class BillingResponse(BaseModel):
     total: float
     balance: Optional[float]
 
+    @root_validator()
+    def round_floats(cls, values):
+        values["total"] = round(values["total"], 2)
+        if "balance" in values and values["balance"]:
+            values["balance"] = round(values["balance"], 2)
+        return values
+
 
 class IaasType(Enum):
     IAAS = "IAAS"

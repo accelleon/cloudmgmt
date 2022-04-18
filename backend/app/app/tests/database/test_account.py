@@ -21,6 +21,7 @@ def test_create_delete(
     assert acct.name == data.name
     assert acct.iaas_id == iaas.id
     assert acct.data == data.data
+    assert acct.currency == "GBP"
 
     assert acct.iaas.name == iaas.name  # Check our relationships
     iaas = database.iaas.get_by_name(db, name="Jelastic")

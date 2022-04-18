@@ -29,10 +29,8 @@ class ProviderBase(BaseModel, ABC):
     def params() -> List[IaasParam]:
         pass
 
-    @classmethod
-    @abstractmethod
-    def check_params(cls, data: Dict[str, str]) -> None:
-        pass
+    def currency(self) -> str:
+        return "USD"
 
     def url(self, path: str) -> str:
         return urljoin(self._base, path)

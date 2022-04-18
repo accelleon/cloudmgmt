@@ -25,6 +25,7 @@ def test_create_delete(
     assert js["name"] == name
     assert js["iaas"]["name"] == "Jelastic"
     assert js["iaas"]["type"] == "PAAS"
+    assert js["currency"] == "GBP"
     assert js["data"] == {"endpoint": "Layershift"}
     r = client.delete(
         f"{configs.API_V1_STR}/accounts/{js['id']}", headers=admin_token_headers

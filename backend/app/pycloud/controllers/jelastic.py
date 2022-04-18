@@ -48,9 +48,8 @@ class Jelastic(PaasBase):
             IaasParam(key="api_key", label="API Key", type="secret"),
         ]
 
-    @classmethod
-    def check_params(cls, data: Dict[str, str]) -> None:
-        cls(**data)
+    def currency(self) -> str:
+        return endpoints[self.endpoint].currency
 
     def __init__(self, **kwargs):  # type: ignore
         super().__init__(**kwargs)

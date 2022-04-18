@@ -71,6 +71,18 @@
           </q-td>
         </template>
 
+        <template v-slot:body-cell-total="props">
+          <q-td :props="props">
+            {{ num_to_cur(props.row.total, props.row.account.currency) }}
+          </q-td>
+        </template>
+
+        <template v-slot:body-cell-balance="props">
+          <q-td :props="props">
+            {{ num_to_cur(props.row.balance, props.row.account.currency) }}
+          </q-td>
+        </template>
+
         <!--
         <template v-slot:body-cell-action="props">
           <q-td :props="props">
@@ -202,6 +214,13 @@ function utc_to_local(utc_datetime: string) {
   return local_datetime.toISOString().slice(0, 10);
 }
 
+function num_to_cur(num: number, currency: string) {
+  return num.toLocaleString('en-US', {
+    style: 'currency',
+    currency,
+  });
+}
+
 export default defineComponent({
   name: 'BillingPage',
 
@@ -285,6 +304,7 @@ export default defineComponent({
       onRequest,
       onSearch,
       utc_to_local,
+      num_to_cur,
     };
   },
 });
