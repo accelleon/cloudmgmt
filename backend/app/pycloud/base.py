@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, List, Dict, Optional
+from typing import List, Dict, Optional, Type
 
 from pydantic import BaseModel, AnyHttpUrl
 from requests import Session
@@ -15,6 +15,7 @@ class ProviderBase(BaseModel, ABC):
     _session: Session
     _id: int
     _base: AnyHttpUrl
+    _headers: Dict[str, str] = {}
 
     class Config:
         underscore_attrs_are_private = True
@@ -40,8 +41,13 @@ class ProviderBase(BaseModel, ABC):
         global session
         if not session:
             session = Session()
-            session.headers.update({"Content-Type": "application/json"})
         self._session = session
+        self._headers.update(
+            {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            }
+        )
 
     @abstractmethod
     def get_current_billing(self) -> BillingResponse:

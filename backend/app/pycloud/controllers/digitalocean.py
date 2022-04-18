@@ -1,36 +1,45 @@
 from typing import List
-from datetime import datetime
 
 from pycloud.base import IaasBase
 from pycloud.models import IaasParam, BillingResponse
 from pycloud.utils import current_month_date_range
+from pycloud import exc
 
 
 class DigitalOcean(IaasBase):
-    token: str
+    api_key: str
 
     @staticmethod
     def params() -> List[IaasParam]:
         return [
-            IaasParam(key="token", label="Token", type="secret"),
+            IaasParam(key="api_key", label="Token", type="secret"),
         ]
 
     def __init__(self, **data):
         super().__init__(**data)
-        self._session.headers.update({"Authorization": f"Bearer {self.token}"})
-        self._base = "https://api.digitalocean.com/v2"  # type: ignore
+        self._headers.update({"Authorization": f"Bearer {self.api_key}"})
+        self._base = "https://api.digitalocean.com/"  # type: ignore
 
     def get_current_billing(self) -> BillingResponse:
         """
         Returns the current billing for the current month.
         """
         r = self._session.get(
-            self.url("/customers/my/balance"),
+            self.url("/v2/customers/my/balance"),
+            headers=self._headers,
         )
+        if r.status_code == 401:
+            raise exc.AuthorizationError(
+                "Invalid API key. Please check your DigitalOcean API key."
+            )
+        if not r.ok:
+            raise exc.UnknownError(
+                "Failed to get DigitalOcean billing: {}".format(r.text)
+            )
         js = r.json()
         start, end = current_month_date_range()
         return BillingResponse(
-            total=js['month_to_date_usage'],
+            total=js["month_to_date_usage"],
             balance=None,
             start_date=start,
             end_date=end,

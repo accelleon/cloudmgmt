@@ -1,10 +1,11 @@
-from typing import TYPE_CHECKING, List, Dict, Literal
+from typing import List, Literal
 
 from pydantic import BaseModel, AnyHttpUrl, validator
 
 from pycloud.base import PaasBase
 from pycloud.models import IaasParam, BillingResponse
 from pycloud.utils import current_month_date_range
+from pycloud import exc
 
 
 class Endpoint(BaseModel):
@@ -68,8 +69,17 @@ class Jelastic(PaasBase):
         resp = self._session.get(
             self.url("/1.0/billing/account/rest/getaccountbillinghistorybyperiod"),
             params=data,
+            headers=self._headers,
         )
         js = resp.json()
+        # Jelastic always returns 200, check internal result non-zero
+        if js["result"]:
+            if js["result"] == 702:
+                raise exc.AuthorizationError(
+                    "Invalid API key. Please check your API key and try again."
+                )
+            else:
+                raise exc.UnknownError(f"Unknown error. {js['result']}: {js['error']}")
         total = 0.0
         [total := total + i["cost"] for i in js["array"]]
         data = {
@@ -79,9 +89,16 @@ class Jelastic(PaasBase):
         resp = self._session.get(
             self.url("/1.0/billing/account/rest/getaccount"),
             params=data,
+            headers=self._headers,
         )
         js = resp.json()
-        print(js)
+        if js["result"]:
+            if js["result"] == 702:
+                raise exc.AuthorizationError(
+                    "Invalid API key. Please check your API key and try again."
+                )
+            else:
+                raise exc.UnknownError(f"Unknown error. {js['result']}: {js['error']}")
         return BillingResponse(
             start_date=first_day,
             end_date=last_day,

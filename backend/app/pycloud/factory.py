@@ -37,14 +37,6 @@ class CloudFactory:
         return create_model("AccountData", **fields)  # type: ignore
 
     @staticmethod
-    def validate_client(iaas: str, data: Dict[str, str]) -> None:
-        try:
-            client_cls: ProviderBase = getattr(controllers, iaas)
-            client_cls.check_params(data)
-        except (AttributeError):
-            raise ValueError(f"Unknown iaas: {iaas}")
-
-    @staticmethod
     def get_client(iaas: str, data: Dict[str, str]) -> ProviderBase:
         client_cls = getattr(controllers, iaas)
         return client_cls(**data)
