@@ -31,13 +31,14 @@ class Amazon(IaasBase):
             aws_secret_access_key=self.secret_key,
         )
 
-    def get_current_billing(self) -> BillingResponse:
+    async def get_current_billing(self) -> BillingResponse:
         """
         Returns the current billing for the current month.
         """
         start, end = current_month_date_range()
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_cost_and_usage
         try:
+            # TODO: Wrap in async call
             resp = self._client.get_cost_and_usage(
                 TimePeriod={
                     "Start": start.strftime("%Y-%m-%d"),

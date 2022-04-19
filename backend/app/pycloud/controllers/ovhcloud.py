@@ -40,13 +40,14 @@ class OVHCloud(IaasBase):
             consumer_key=self.consumer_key,
         )
 
-    def get_current_billing(self) -> BillingResponse:
+    async def get_current_billing(self) -> BillingResponse:
         """
         Returns the current billing for the current month.
         """
         start, end = current_month_date_range()
 
         try:
+            # TODO: Wrap in async call
             bills = self._client.get("/me/bill")
         except ovh.exceptions.InvalidCredential:
             raise exc.AuthorizationError("Invalid consumer key")

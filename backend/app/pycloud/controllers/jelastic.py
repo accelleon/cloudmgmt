@@ -56,7 +56,7 @@ class Jelastic(PaasBase):
         super().__init__(**kwargs)
         self._base = endpoints[self.endpoint].endpoint
 
-    def get_current_billing(self) -> BillingResponse:
+    async def get_current_billing(self) -> BillingResponse:
         first_day, last_day = current_month_date_range()
         data = {
             # This is a generic appid for all jelastic apps, use global or "no" environment
@@ -66,7 +66,7 @@ class Jelastic(PaasBase):
             "endtime": last_day.strftime("%Y-%m-%d 00:00:00"),
             "period": "MONTH",
         }
-        resp = self._session.get(
+        resp = await self._session.get(
             self.url("/1.0/billing/account/rest/getaccountbillinghistorybyperiod"),
             params=data,
             headers=self._headers,
@@ -86,7 +86,7 @@ class Jelastic(PaasBase):
             "appid": "1dd8d191d38fff45e62564fcf67fdcd6",
             "session": self.api_key,
         }
-        resp = self._session.get(
+        resp = await self._session.get(
             self.url("/1.0/billing/account/rest/getaccount"),
             params=data,
             headers=self._headers,

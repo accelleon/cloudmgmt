@@ -20,11 +20,11 @@ class DigitalOcean(IaasBase):
         self._headers.update({"Authorization": f"Bearer {self.api_key}"})
         self._base = "https://api.digitalocean.com/"  # type: ignore
 
-    def get_current_billing(self) -> BillingResponse:
+    async def get_current_billing(self) -> BillingResponse:
         """
         Returns the current billing for the current month.
         """
-        r = self._session.get(
+        r = await self._session.get(
             self.url("/v2/customers/my/balance"),
             headers=self._headers,
         )
@@ -32,7 +32,7 @@ class DigitalOcean(IaasBase):
             raise exc.AuthorizationError(
                 "Invalid API key. Please check your DigitalOcean API key."
             )
-        if not r.ok:
+        if r.status_code != 200:
             raise exc.UnknownError(
                 "Failed to get DigitalOcean billing: {}".format(r.text)
             )

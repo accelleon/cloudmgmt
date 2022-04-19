@@ -1,18 +1,18 @@
 from abc import ABC, abstractmethod
-from typing import List, Dict, Optional, Type
+from typing import List, Dict, Optional
 
 from pydantic import BaseModel, AnyHttpUrl
-from requests import Session
+from httpx import AsyncClient
 from urllib.parse import urljoin
 
 from .models import IaasType, IaasParam, BillingResponse
 
 
-session: Optional[Session] = None
+session: Optional[AsyncClient] = None
 
 
 class ProviderBase(BaseModel, ABC):
-    _session: Session
+    _session: AsyncClient
     _id: int
     _base: AnyHttpUrl
     _headers: Dict[str, str] = {}
@@ -36,11 +36,11 @@ class ProviderBase(BaseModel, ABC):
     def url(self, path: str) -> str:
         return urljoin(self._base, path)
 
-    def __init__(self, **kwargs):  # type: ignore
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
         global session
         if not session:
-            session = Session()
+            session = AsyncClient()
         self._session = session
         self._headers.update(
             {
@@ -50,7 +50,7 @@ class ProviderBase(BaseModel, ABC):
         )
 
     @abstractmethod
-    def get_current_billing(self) -> BillingResponse:
+    async def get_current_billing(self) -> BillingResponse:
         pass
 
 

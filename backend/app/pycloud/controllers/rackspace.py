@@ -22,11 +22,11 @@ class Rackspace(IaasBase):
         super().__init__(**data)
         self._base = "https://billing.api.rackspacecloud.com/"  # type: ignore
 
-    def get_current_billing(self) -> BillingResponse:
+    async def get_current_billing(self) -> BillingResponse:
         """
         Returns the current billing for the current month.
         """
-        resp = self._session.post(
+        resp = await self._session.post(
             "https://identity.api.rackspacecloud.com/v2.0/tokens",
             headers=self._headers,
             json={
@@ -38,7 +38,7 @@ class Rackspace(IaasBase):
                 },
             },
         )
-        if not resp.ok:
+        if resp.status_code != 200:
             if resp.status_code == 401:
                 raise exc.AuthorizationError(
                     "Invalid API key. Please check your Rackspace API key."
@@ -51,11 +51,11 @@ class Rackspace(IaasBase):
         token = js["access"]["token"]["id"]
         self._headers.update({"X-Auth-Token": token})
 
-        resp = self._session.get(
+        resp = await self._session.get(
             self.url("/v2/accounts/{ran}/estimated_charges".format(ran=self.ran)),
             headers=self._headers,
         )
-        if not resp.ok:
+        if not resp.status_code != 200:
             if resp.status_code == 401:
                 raise exc.AuthorizationError(
                     "Invalid API key. Please check your Rackspace API key."

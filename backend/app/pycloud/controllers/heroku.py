@@ -25,16 +25,16 @@ class Heroku(PaasBase):
             }
         )
 
-    def get_current_billing(self) -> BillingResponse:
+    async def get_current_billing(self) -> BillingResponse:
         """
         Returns the current billing for the current month.
         """
-        resp = self._session.get(
+        resp = await self._session.get(
             self.url("/account/invoices"),
             headers=self._headers,
         )
 
-        if not resp.ok:
+        if resp.status_code != 200:
             if resp.status_code == 401:
                 raise exc.AuthorizationError(
                     "Invalid API key. Please check your Heroku API key."

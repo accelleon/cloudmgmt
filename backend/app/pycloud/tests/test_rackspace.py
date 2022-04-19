@@ -4,7 +4,8 @@ from pycloud import CloudFactory
 from pycloud.exc import AuthorizationError, UnknownError
 
 
-def test_billing() -> None:
+@pytest.mark.asyncio
+async def test_billing() -> None:
     client = CloudFactory.get_client(
         "Rackspace",
         {
@@ -14,14 +15,15 @@ def test_billing() -> None:
         },
     )
 
-    bill = client.get_current_billing()
+    bill = await client.get_current_billing()
     assert bill.start_date
     assert bill.end_date
     assert bill.total > 0
     assert bill.balance is None
 
 
-def test_wrong_cred() -> None:
+@pytest.mark.asyncio
+async def test_wrong_cred() -> None:
     client = CloudFactory.get_client(
         "Rackspace",
         {
@@ -32,10 +34,11 @@ def test_wrong_cred() -> None:
     )
 
     with pytest.raises(AuthorizationError):
-        client.get_current_billing()
+        await client.get_current_billing()
 
 
-def test_wrong_ran() -> None:
+@pytest.mark.asyncio
+async def test_wrong_ran() -> None:
     client = CloudFactory.get_client(
         "Rackspace",
         {
@@ -46,4 +49,4 @@ def test_wrong_ran() -> None:
     )
 
     with pytest.raises(UnknownError):
-        client.get_current_billing()
+        await client.get_current_billing()
