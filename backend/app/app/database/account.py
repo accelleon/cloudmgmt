@@ -22,7 +22,7 @@ class Account(Base):
     data: JSON = Column(JSON, nullable=False)
 
     iaas = relationship("Iaas", lazy="selectin")
-    bills = relationship("Billing", back_populates="account", lazy="noload")
+    bills = relationship("Billing", back_populates="account", lazy="selectin")
 
     def __repr__(self):
         return f"Account(id={self.id!r}, name={self.name!r}, iaas_id={self.iaas_id!r}, data={self.data!r})"

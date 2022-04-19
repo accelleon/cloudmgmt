@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from app.model.common import SearchQueryBase, SearchResponse
 
 from pycloud.models import BillingResponse
-from .account import _Account
+from .account import Account
 
 
 class BillingPeriodFilter(BaseModel):
@@ -32,7 +32,7 @@ class _BillingPeriod(CreateBillingPeriod):
 
 
 class BillingPeriod(_BillingPeriod):
-    account: _Account
+    account: Account
 
 
 class BillingSearchRequest(SearchQueryBase, BillingPeriodFilter):

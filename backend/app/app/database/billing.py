@@ -34,7 +34,7 @@ class Billing(Base):
     total: float = Column(Float, nullable=False)
     balance: float = Column(Float, nullable=False)
 
-    account = relationship("Account", back_populates="bills", lazy="selectin")
+    account = relationship("Account", lazy="selectin")
 
     def __repr__(self):
         return f"Billing(id={self.id!r}, account_id={self.account_id!r}, start_date={self.start_date!r}, end_date={self.end_date!r}, total={self.total!r}, balance={self.balance!r})"  # noqa
