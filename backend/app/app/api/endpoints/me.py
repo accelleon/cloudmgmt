@@ -1,7 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
 from app.api import core
@@ -17,7 +17,7 @@ router = APIRouter()
         401: {"model": model.FailedResponse},
     },
 )
-def get_self(
+async def get_self(
     *,
     user: database.User = Depends(core.get_current_user),
 ) -> Any:
@@ -33,7 +33,7 @@ def get_self(
         409: {"model": model.FailedResponse},
     },
 )
-def update_self(
+async def update_self(
     *,
     user_in: model.UpdateMe,
     db: Session = Depends(core.get_db),
@@ -45,7 +45,7 @@ def update_self(
     if user_in.is_admin and not user.is_admin:
         raise HTTPException(403, "User may not perform this action")
 
-    if user_in.old_password and not database.user.authenticate_password(
+    if user_in.old_password and not await database.user.authenticate_password(
         db, username=user.username, password=user_in.old_password
     ):
         raise HTTPException(403, "Incorrect password")
@@ -59,7 +59,7 @@ def update_self(
         if not database.user.authenticate_twofa(db, user=user, otp=user_in.twofa_code):
             raise HTTPException(403, "Invalid TOTP code provided")
 
-    newUser = database.user.update(db, db_obj=user, obj_in=user_in)
+    newUser = await database.user.update(db, db_obj=user, obj_in=user_in)
     resp: model.UserDB = newUser  # type: ignore
 
     # Generate our URI if needed

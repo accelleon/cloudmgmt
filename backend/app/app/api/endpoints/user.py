@@ -1,7 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Request, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
 from app.api import core
@@ -17,7 +17,7 @@ router = APIRouter()
         403: {"model": model.FailedResponse},
     },
 )
-def get_users(
+async def get_users(
     query: model.UserSearchRequest = Depends(),
     *,
     db: Session = Depends(core.get_db),
@@ -29,7 +29,7 @@ def get_users(
     """
 
     filter = model.UserFilter.parse_obj(query)
-    users, total = database.user.filter(
+    users, total = await database.user.filter(
         db,
         filter=filter,
         offset=query.per_page * query.page,
@@ -63,7 +63,7 @@ def get_users(
         409: {"model": model.FailedResponse},
     },
 )
-def create_user(
+async def create_user(
     *,
     user_in: model.CreateUser,
     db: Session = Depends(core.get_db),
@@ -72,10 +72,10 @@ def create_user(
     """
     Create a new user.
     """
-    if database.user.get_by_username(db, username=user_in.username):
+    if await database.user.get_by_username(db, username=user_in.username):
         raise HTTPException(status_code=409, detail="Username already exists")
 
-    newUser = database.user.create(db, obj_in=user_in)
+    newUser = await database.user.create(db, obj_in=user_in)
     return newUser
 
 
@@ -88,7 +88,7 @@ def create_user(
         404: {"model": model.FailedResponse},
     },
 )
-def get_user(
+async def get_user(
     *,
     user_id: int,
     db: Session = Depends(core.get_db),
@@ -97,7 +97,7 @@ def get_user(
     """
     Get a user by ID.
     """
-    user = database.user.get(db, user_id)
+    user = await database.user.get(db, user_id)
     if not user:
         raise HTTPException(404, "User not found")
     return user
@@ -113,7 +113,7 @@ def get_user(
         409: {"model": model.FailedResponse},
     },
 )
-def update_user(
+async def update_user(
     user_id: int,
     *,
     user_in: model.UpdateUser,
@@ -124,7 +124,7 @@ def update_user(
     Update a user.
     """
     # Get user we're updating
-    user = database.user.get(db, user_id)
+    user = await database.user.get(db, user_id)
     if not user:
         raise HTTPException(404, "User not found")
 
@@ -139,7 +139,7 @@ def update_user(
     if user_in.twofa_enabled and not user.twofa_enabled:
         raise HTTPException(403, "Cannot enable 2FA for another user")
 
-    newUser = database.user.update(db, db_obj=user, obj_in=user_in)
+    newUser = await database.user.update(db, db_obj=user, obj_in=user_in)
     return newUser
 
 
@@ -152,7 +152,7 @@ def update_user(
         404: {"model": model.FailedResponse},
     },
 )
-def delete_user(
+async def delete_user(
     user_id: int,
     *,
     db: Session = Depends(core.get_db),
@@ -162,6 +162,7 @@ def delete_user(
     Delete a user.
     """
     # Get user we're deleting
-    user = database.user.delete(db, id=user_id)
+    user = await database.user.get(db, id=user_id)
     if not user:
         raise HTTPException(404, "User not found")
+    await database.user.delete(db, id=user_id)

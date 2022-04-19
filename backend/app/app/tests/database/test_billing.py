@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 from sqlalchemy.exc import IntegrityError
-
+import pytest
 from pycloud.utils import current_month_date_range
 from app import database
 from app.model.account import CreateAccount
@@ -9,17 +9,18 @@ from app.model.billing import CreateBillingPeriod, UpdateBillingPeriod, BillingP
 from app.tests.utils import random_username
 
 
-def test_create(
+@pytest.mark.asyncio
+async def test_create(
     db: Session,
 ) -> None:
-    iaas = database.iaas.get_by_name(db, name="Jelastic")
+    iaas = await database.iaas.get_by_name(db, name="Jelastic")
     assert iaas
     data = CreateAccount(
         name=random_username(),
         iaas="Jelastic",
         data={"endpoint": "Layershift", "api_key": "test"},
     )
-    acct = database.account.create(db, obj_in=data)
+    acct = await database.account.create(db, obj_in=data)
     assert acct
 
     (start, end) = current_month_date_range()
@@ -31,7 +32,7 @@ def test_create(
         start_date=start,
         end_date=end,
     )
-    bill = database.billing.create(db, obj_in=obj_in)
+    bill = await database.billing.create(db, obj_in=obj_in)
     assert bill
     assert bill.account.id == acct.id
     assert bill.account.iaas_id == iaas.id

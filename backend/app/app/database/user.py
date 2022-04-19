@@ -1,7 +1,7 @@
 from typing import Union, Dict, Any, Optional
 
-from sqlalchemy import Boolean, Column, Integer, String
-from sqlalchemy.orm import Session
+from sqlalchemy import select, Boolean, Column, Integer, String
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app.core.security import hash_password, verify_password, create_secret, verify_totp
 from app.database.base import Base, CRUDBase
@@ -9,15 +9,15 @@ from app.model import CreateUser, UpdateUser, UserFilter
 
 
 class User(Base):
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, index=True, nullable=False)
-    password = Column(String, nullable=False)
-    first_name = Column(String, nullable=False)
-    last_name = Column(String, nullable=False)
-    is_admin = Column(Boolean(), default=False, nullable=False)
-    twofa_enabled = Column(Boolean(), default=False, nullable=False)
-    twofa_secret = Column(String)
-    twofa_secret_tmp = Column(String)
+    id: int = Column(Integer, primary_key=True, index=True)
+    username: str = Column(String, index=True, nullable=False)
+    password: str = Column(String, nullable=False)
+    first_name: str = Column(String, nullable=False)
+    last_name: str = Column(String, nullable=False)
+    is_admin: bool = Column(Boolean, default=False, nullable=False)
+    twofa_enabled: bool = Column(Boolean, default=False, nullable=False)
+    twofa_secret: str = Column(String)
+    twofa_secret_tmp: str = Column(String)
 
     def __repr__(self):
         return f"User(id={self.id!r}, username={self.username!r}, password={self.password!r})"
@@ -25,7 +25,7 @@ class User(Base):
 
 class CRUDUser(CRUDBase[User, CreateUser, UpdateUser, UserFilter]):
     # Class overrides
-    def update(
+    async def update(
         self,
         db: Session,
         *,  # Skip unnamed parameters
@@ -61,9 +61,9 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser, UserFilter]):
             update_data["twofa_secret_tmp"] = None
 
         # Call our super
-        return super().update(db, db_obj=db_obj, obj_in=update_data)
+        return await super().update(db, db_obj=db_obj, obj_in=update_data)
 
-    def create(self, db: Session, *, obj_in: CreateUser) -> User:
+    async def create(self, db: Session, *, obj_in: CreateUser) -> User:
         # Convert obj_in to a dict
         obj_in_data = (
             obj_in if isinstance(obj_in, dict) else obj_in.dict(exclude_unset=True)
@@ -73,18 +73,22 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser, UserFilter]):
         # Create user object and add to DB
         db_obj = User(**obj_in_data)  # type: ignore
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        await db.commit()
+        await db.refresh(db_obj)
         return db_obj
 
     # Class specific
-    def get_by_username(self, db: Session, *, username: str) -> Optional[User]:
-        return db.query(User).filter(User.username == username).first()
+    async def get_by_username(self, db: Session, *, username: str) -> Optional[User]:
+        return (
+            (await db.execute(select(User).where(User.username == username)))
+            .scalars()
+            .first()
+        )
 
-    def authenticate_password(
+    async def authenticate_password(
         self, db: Session, *, username: str, password: str  # Skip unnamed parameters
     ) -> Optional[User]:
-        user = self.get_by_username(db, username=username)
+        user = await self.get_by_username(db, username=username)
         # Return none if user not found or passwords don't match
         if user is None or not verify_password(password, user.password):
             return None
@@ -99,7 +103,7 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser, UserFilter]):
         # If 2fa is enabled, we're validating the user's existing 2fa
         # otherwise we're validating the user's first OTP
         secret = user.twofa_secret if user.twofa_enabled else user.twofa_secret_tmp
-        return verify_totp(secret, otp)  # type: ignore
+        return verify_totp(secret, otp)
 
     def is_admin(
         self,

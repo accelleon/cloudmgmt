@@ -1,7 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter, Request, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
 from app.api import core
@@ -17,7 +17,7 @@ router = APIRouter()
         403: {"model": model.FailedResponse},
     },
 )
-def get_accounts(
+async def get_accounts(
     query: model.AccountSearchRequest = Depends(),
     *,
     db: Session = Depends(core.get_db),
@@ -29,7 +29,7 @@ def get_accounts(
     """
 
     filter = model.AccountFilter.parse_obj(query)
-    accounts, total = database.account.filter(
+    accounts, total = await database.account.filter(
         db,
         filter=filter,
         offset=query.per_page * query.page,
@@ -62,7 +62,7 @@ def get_accounts(
         409: {"model": model.FailedResponse},
     },
 )
-def create_account(
+async def create_account(
     account: model.CreateAccount,
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_admin_user),
@@ -70,16 +70,17 @@ def create_account(
     """
     Create a new account.
     """
-    if database.iaas.get_by_name(db, name=account.iaas) is None:
+    if await database.iaas.get_by_name(db, name=account.iaas) is None:
         raise HTTPException(status_code=422, detail="Iaas not found")
 
-    if database.account.get_by_name(db, name=account.name, iaas=account.iaas):
+    if await database.account.get_by_name(db, name=account.name, iaas=account.iaas):
         raise HTTPException(status_code=409, detail="Account name already exists")
 
     try:
-        newAccount = database.account.create(db, obj_in=account)
+        newAccount = await database.account.create(db, obj_in=account)
     except Exception as e:
         raise HTTPException(status_code=422, detail=str(e))
+    print(newAccount)
     return newAccount
 
 
@@ -92,7 +93,7 @@ def create_account(
         404: {"model": model.FailedResponse},
     },
 )
-def get_account(
+async def get_account(
     account_id: int,
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_admin_user),
@@ -100,7 +101,7 @@ def get_account(
     """
     Get an account by id.
     """
-    account = database.account.get(db, id=account_id)
+    account = await database.account.get(db, id=account_id)
     if account is None:
         raise HTTPException(status_code=404, detail="Account not found")
 
@@ -116,7 +117,7 @@ def get_account(
         404: {"model": model.FailedResponse},
     },
 )
-def update_account(
+async def update_account(
     account_id: int,
     new: model.UpdateAccount,
     db: Session = Depends(core.get_db),
@@ -125,17 +126,24 @@ def update_account(
     """
     Update an account.
     """
-    account = database.account.get(db, id=account_id)
+    account = await database.account.get(db, id=account_id)
     if account is None:
         raise HTTPException(status_code=404, detail="Account not found")
 
     if new.name is not None and new.name != account.name:
-        print(new.name, account.name)
-        if database.account.get_by_name(db, name=account.name, iaas=account.iaas.name):
+        print(new.name, account.iaas.name)
+        print(
+            await database.account.get_by_name(
+                db, name=new.name, iaas=account.iaas.name
+            )
+        )
+        if await database.account.get_by_name(
+            db, name=account.name, iaas=account.iaas.name
+        ):
             raise HTTPException(status_code=409, detail="Account name already exists")
 
     try:
-        updatedAccount = database.account.update(db, db_obj=account, obj_in=new)
+        updatedAccount = await database.account.update(db, db_obj=account, obj_in=new)
     except Exception as e:
         raise HTTPException(status_code=422, detail=str(e))
     return updatedAccount
@@ -150,7 +158,7 @@ def update_account(
         404: {"model": model.FailedResponse},
     },
 )
-def delete_account(
+async def delete_account(
     account_id: int,
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_admin_user),
@@ -158,9 +166,9 @@ def delete_account(
     """
     Delete an account.
     """
-    account = database.account.get(db, id=account_id)
+    account = await database.account.get(db, id=account_id)
     if account is None:
         raise HTTPException(status_code=404, detail="Account not found")
 
-    database.account.delete(db, id=account_id)
+    await database.account.delete(db, id=account_id)
     return None

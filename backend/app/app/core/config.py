@@ -39,7 +39,7 @@ class Configs(BaseSettings):
         if isinstance(v, str):
             return v
         return PostgresDsn.build(
-            scheme="postgresql",
+            scheme="postgresql+asyncpg",
             user=values.get("POSTGRES_USER"),
             password=quote_plus(values.get("POSTGRES_PASSWORD")),  # type: ignore
             host=values.get("POSTGRES_SERVER"),  # type: ignore

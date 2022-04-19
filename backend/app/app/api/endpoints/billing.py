@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Request, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
 from app.api import core
@@ -14,7 +14,7 @@ router = APIRouter()
         401: {"model": model.FailedResponse},
     },
 )
-def get_billing(
+async def get_billing(
     query: model.BillingSearchRequest = Depends(),
     *,
     db: Session = Depends(core.get_db),
@@ -26,7 +26,7 @@ def get_billing(
     """
 
     filter = model.BillingPeriodFilter.parse_obj(query)
-    billing, total = database.billing.filter(
+    billing, total = await database.billing.filter(
         db,
         filter=filter,
         offset=query.per_page * query.page,
@@ -57,7 +57,7 @@ def get_billing(
         404: {"model": model.FailedResponse},
     },
 )
-def get_billing_period(
+async def get_billing_period(
     id: int,
     *,
     db: Session = Depends(core.get_db),
@@ -67,7 +67,7 @@ def get_billing_period(
     Get a billing period by id.
     """
 
-    billing = database.billing.get(db, id)
+    billing = await database.billing.get(db, id)
     if not billing:
         raise HTTPException(status_code=404, detail="Billing period not found")
 

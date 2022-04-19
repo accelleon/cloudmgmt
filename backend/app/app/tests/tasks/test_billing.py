@@ -1,5 +1,5 @@
 import pytest
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
 from app.tasks import get_billing
@@ -9,7 +9,7 @@ from app.tests.utils import random_username
 @pytest.mark.usefixtures("celery_session_app")
 @pytest.mark.usefixtures("celery_session_worker")
 class Test_Billing:
-    def test_billing(
+    async def test_billing(
         self,
         db: Session,
     ) -> None:
@@ -21,10 +21,10 @@ class Test_Billing:
                 "api_key": "asdf",
             },
         )
-        acct = database.account.create(db, obj_in=data)
+        acct = await database.account.create(db, obj_in=data)
 
         get_billing.delay(acct.id).get()
 
-        acct2 = database.account.get(db, id=acct.id)
+        acct2 = await database.account.get(db, id=acct.id)
         assert acct2
         assert acct2.bills

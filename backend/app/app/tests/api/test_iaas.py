@@ -1,18 +1,18 @@
 from typing import Dict
 
-from fastapi.testclient import TestClient
+from httpx import AsyncClient as TestClient
 
 from pycloud import CloudFactory
 from app.core.config import configs
 from app.model.iaas import IaasType
 
 
-def test_iaas_get_all(
+async def test_iaas_get_all(
     client: TestClient,
     admin_token_headers: Dict[str, str],
 ) -> None:
     providers = CloudFactory.get_providers()
-    r = client.get(f"{configs.API_V1_STR}/providers", headers=admin_token_headers)
+    r = await client.get(f"{configs.API_V1_STR}/providers", headers=admin_token_headers)
     assert r.status_code == 200
     js = r.json()
     assert len(js["results"]) == len(providers)
@@ -23,12 +23,12 @@ def test_iaas_get_all(
         assert i["params"] == iaas[i["name"]].params
 
 
-def test_iaas_get_all_filter(
+async def test_iaas_get_all_filter(
     client: TestClient,
     admin_token_headers: Dict[str, str],
 ) -> None:
     providers = CloudFactory.get_providers()
-    r = client.get(
+    r = await client.get(
         f"{configs.API_V1_STR}/providers?type=PAAS", headers=admin_token_headers
     )
     assert r.status_code == 200
@@ -42,13 +42,13 @@ def test_iaas_get_all_filter(
             assert provider.name not in names
 
 
-def test_get_one(
+async def test_get_one(
     client: TestClient,
     admin_token_headers: Dict[str, str],
 ) -> None:
-    r = client.get(f"{configs.API_V1_STR}/providers", headers=admin_token_headers)
+    r = await client.get(f"{configs.API_V1_STR}/providers", headers=admin_token_headers)
     js = r.json()
-    r = client.get(
+    r = await client.get(
         f"{configs.API_V1_STR}/providers/{js['results'][0]['id']}",
         headers=admin_token_headers,
     )
@@ -59,11 +59,11 @@ def test_get_one(
     assert "params" in js
 
 
-def test_iaas_get_one_not_found(
+async def test_iaas_get_one_not_found(
     client: TestClient,
     admin_token_headers: Dict[str, str],
 ) -> None:
-    r = client.get(
+    r = await client.get(
         f"{configs.API_V1_STR}/providers/1561681355", headers=admin_token_headers
     )
     assert r.status_code == 404

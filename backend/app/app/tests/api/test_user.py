@@ -1,8 +1,9 @@
 from typing import Dict
 from urllib.parse import urlparse, parse_qs
 
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+import pytest
+from httpx import AsyncClient as TestClient
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app.tests.utils import random_password, random_username, random_invalid_password
 from app.core.config import configs
@@ -12,13 +13,14 @@ from app.tests.utils.user import (
 )
 
 
-def test_search_user(
+@pytest.mark.asyncio
+async def test_search_user(
     db: Session,
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    username, _, _ = create_random_user(db)
-    r = client.get(
+    username, _, _ = await create_random_user(db)
+    r = await client.get(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         params={
@@ -27,20 +29,21 @@ def test_search_user(
             "per_page": 10,
         },
     )
-    if not r.ok:
+    if r.status_code != 200:
         print(r.json())
     resp = r.json()
     assert resp["total"] == 1
     assert resp["results"][0]["username"] == username
 
 
-def test_partial_search(
+@pytest.mark.asyncio
+async def test_partial_search(
     db: Session,
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    username, _, _ = create_random_user(db)
-    r = client.get(
+    username, _, _ = await create_random_user(db)
+    r = await client.get(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         params={
@@ -57,11 +60,12 @@ def test_partial_search(
     assert configs.FIRST_USER_NAME not in usernames
 
 
-def test_search_admins(
+@pytest.mark.asyncio
+async def test_search_admins(
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    r = client.get(
+    r = await client.get(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         params={
@@ -75,11 +79,12 @@ def test_search_admins(
         assert u["is_admin"]
 
 
-def test_search_not_admins(
+@pytest.mark.asyncio
+async def test_search_not_admins(
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    r = client.get(
+    r = await client.get(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         params={
@@ -93,11 +98,12 @@ def test_search_not_admins(
         assert not u["is_admin"]
 
 
-def test_search_links(
+@pytest.mark.asyncio
+async def test_search_links(
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    r = client.get(
+    r = await client.get(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         params={
@@ -121,13 +127,14 @@ def test_search_links(
     assert prevQ["per_page"][0] == "2"
 
 
-def test_search_not_admin(
+@pytest.mark.asyncio
+async def test_search_not_admin(
     db: Session,
     client: TestClient,
 ) -> None:
-    username, password, _ = create_random_user(db)
-    headers = user_authenticate_headers(client, username, password)
-    r = client.get(
+    username, password, _ = await create_random_user(db)
+    headers = await user_authenticate_headers(client, username, password)
+    r = await client.get(
         f"{configs.API_V1_STR}/users",
         headers=headers,
         params={
@@ -139,11 +146,12 @@ def test_search_not_admin(
     assert r.status_code == 403
 
 
-def test_create_user(
+@pytest.mark.asyncio
+async def test_create_user(
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    r = client.post(
+    r = await client.post(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         json={
@@ -157,12 +165,13 @@ def test_create_user(
     assert "id" in r.json()
 
 
-def test_create_duplicate(
+@pytest.mark.asyncio
+async def test_create_duplicate(
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
     username = random_username()
-    r = client.post(
+    r = await client.post(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         json={
@@ -173,7 +182,7 @@ def test_create_duplicate(
         },
     )
     assert r.status_code == 201
-    r = client.post(
+    r = await client.post(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         json={
@@ -186,13 +195,14 @@ def test_create_duplicate(
     assert r.status_code == 409
 
 
-def test_get_user(
+@pytest.mark.asyncio
+async def test_get_user(
     db: Session,
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    username, _, id = create_random_user(db)
-    r = client.get(
+    username, _, id = await create_random_user(db)
+    r = await client.get(
         f"{configs.API_V1_STR}/users/{id}",
         headers=admin_token_headers,
     )
@@ -200,11 +210,12 @@ def test_get_user(
     assert r.json()["username"] == username
 
 
-def test_create_invalid_password(
+@pytest.mark.asyncio
+async def test_create_invalid_password(
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    r = client.post(
+    r = await client.post(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         json={
@@ -217,11 +228,12 @@ def test_create_invalid_password(
     assert r.status_code == 422
 
 
-def test_create_invalid_username(
+@pytest.mark.asyncio
+async def test_create_invalid_username(
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    r = client.post(
+    r = await client.post(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         json={
@@ -234,17 +246,18 @@ def test_create_invalid_username(
     assert r.status_code == 422
 
 
-def test_update_user(
+@pytest.mark.asyncio
+async def test_update_user(
     db: Session,
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    username, _, id = create_random_user(db)
+    username, _, id = await create_random_user(db)
     update_data = {
         "first_name": "test",
         "last_name": "test",
     }
-    r = client.patch(
+    r = await client.patch(
         f"{configs.API_V1_STR}/users/{id}",
         headers=admin_token_headers,
         json=update_data,
@@ -255,11 +268,12 @@ def test_update_user(
     assert user["last_name"] == "test"
 
 
-def test_no_update_self(
+@pytest.mark.asyncio
+async def test_no_update_self(
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    r = client.get(
+    r = await client.get(
         f"{configs.API_V1_STR}/me",
         headers=admin_token_headers,
     )
@@ -268,7 +282,7 @@ def test_no_update_self(
         "first_name": "test",
         "last_name": "test",
     }
-    r = client.patch(
+    r = await client.patch(
         f"{configs.API_V1_STR}/users/{user['id']}",
         headers=admin_token_headers,
         json=update_data,
@@ -276,19 +290,20 @@ def test_no_update_self(
     assert r.status_code == 403
 
 
-def test_delete_user(
+@pytest.mark.asyncio
+async def test_delete_user(
     db: Session,
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
-    username, _, id = create_random_user(db)
-    r = client.delete(
+    username, _, id = await create_random_user(db)
+    r = await client.delete(
         f"{configs.API_V1_STR}/users/{id}",
         headers=admin_token_headers,
     )
     assert r.status_code == 204
 
-    r = client.get(
+    r = await client.get(
         f"{configs.API_V1_STR}/users{id}",
         headers=admin_token_headers,
         params={

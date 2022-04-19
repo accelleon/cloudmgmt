@@ -1,7 +1,9 @@
-from typing import TYPE_CHECKING, Union, Optional, Tuple, List
+from typing import TYPE_CHECKING, Union, Optional, Tuple, List, Dict
 
-from sqlalchemy import Column, Integer, String, JSON, ForeignKey
-from sqlalchemy.orm import Session, relationship, Query
+from sqlalchemy import select, Column, Integer, String, JSON, ForeignKey
+from sqlalchemy.sql import Select
+from sqlalchemy.orm import relationship, joinedload, Mapped
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from .base import Base, CRUDBase
 from .iaas import Iaas  # noqa
@@ -13,23 +15,34 @@ if TYPE_CHECKING:
 
 
 class Account(Base):
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True, unique=True, nullable=False)
-    iaas_id = Column(Integer, ForeignKey("iaas.id"), nullable=False)
-    currency = Column(String(length=3), nullable=False)
-    data = Column(JSON, nullable=False)
+    id: int = Column(Integer, primary_key=True, index=True)
+    name: str = Column(String, index=True, unique=True, nullable=False)
+    iaas_id: int = Column(Integer, ForeignKey("iaas.id"), nullable=False)
+    currency: str = Column(String(length=3), nullable=False)
+    data: JSON = Column(JSON, nullable=False)
 
-    iaas = relationship("Iaas", back_populates="accounts")
-    bills = relationship("Billing", back_populates="account")
+    iaas = relationship("Iaas", lazy="selectin")
+    bills = relationship("Billing", back_populates="account", lazy="noload")
 
     def __repr__(self):
         return f"Account(id={self.id!r}, name={self.name!r}, iaas_id={self.iaas_id!r}, data={self.data!r})"
 
 
 class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]):
-    def create(self, db: Session, *, obj_in: CreateAccount) -> Account:
+    async def get(self, db: Session, id: int) -> Optional[Account]:
+        return (
+            (await db.execute(select(Account).where(Account.id == id)))
+            .scalars()
+            .first()
+        )
+
+    async def create(self, db: Session, *, obj_in: CreateAccount) -> Account:
         # Get the Iaas object from its name
-        dbIaas = db.query(Iaas).filter(Iaas.name == obj_in.iaas).first()
+        dbIaas = (
+            (await db.execute(select(Iaas).where(Iaas.name == obj_in.iaas)))
+            .scalars()
+            .first()
+        )
         if not dbIaas:
             raise ValueError(f"Iaas {obj_in.iaas} not found")
 
@@ -39,13 +52,20 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
             iaas=dbIaas,
         )  # type: ignore
         # This'll chuck a ValidationException if the data is invalid
-        db_obj.currency = CloudFactory.get_client(dbIaas.name, obj_in.data).currency()  # type: ignore
+        db_obj.currency = CloudFactory.get_client(dbIaas.name, obj_in.data).currency()
         db.add(db_obj)
-        db.commit()
-        db.refresh(db_obj)
+        await db.commit()
+        await db.refresh(db_obj)
         return db_obj
 
-    def update(self, db: Session, *, db_obj: Account, obj_in: UpdateAccount) -> Account:
+    async def update(
+        self,
+        db: Session,
+        *,
+        db_obj: Account,
+        obj_in: Union[UpdateAccount, Dict[str, str]],
+    ) -> Account:
+        obj_in = UpdateAccount(**obj_in) if isinstance(obj_in, dict) else obj_in
         if obj_in.data is not None and db_obj.data != obj_in.data:
             # If we updated any portion of the data, validate it
             for k, v in db_obj.data.items():  # type: ignore
@@ -54,24 +74,27 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
 
             CloudFactory.get_client(db_obj.iaas.name, obj_in.data)
 
-        return super().update(db, db_obj=db_obj, obj_in=obj_in)
+        return await super().update(db, db_obj=db_obj, obj_in=obj_in)
 
-    def filter(
+    async def filter(
         self,
         db: Session,
         *,
-        query: Optional[Query] = None,
-        filter: Optional[AccountFilter] = None,
+        query: Optional[Select] = None,
+        filter: Optional[Union[AccountFilter, Dict]] = None,
         offset: Optional[int] = None,
         limit: Optional[int] = None,
         sort: Optional[str] = None,
         order: Optional[str] = "asc",
         exclude: Optional[List[int]] = None,
     ) -> Tuple[List[Account], int]:
+        filter = AccountFilter(**filter) if isinstance(filter, dict) else filter
+        query = select(Account)
         if filter and filter.iaas:
-            query = db.query(Account).join(Iaas).filter(Iaas.name == filter.iaas)
+            query = query.where(Iaas.name == filter.iaas)
+
             filter.iaas = None
-        return super().filter(
+        return await super().filter(
             db,
             query=query,
             filter=filter,
@@ -82,11 +105,18 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
             exclude=exclude,
         )
 
-    def get_by_name(self, db: Session, *, name: str, iaas: str) -> Union[Account, None]:
+    async def get_by_name(
+        self, db: Session, *, name: str, iaas: str
+    ) -> Union[Account, None]:
         return (
-            db.query(Account)
-            .join(Iaas)
-            .filter(Account.name == name, Iaas.name == iaas)
+            (
+                await db.execute(
+                    select(Account)
+                    .join(Iaas)
+                    .where(Iaas.name == iaas, Account.name == name)
+                )
+            )
+            .scalars()
             .first()
         )
 

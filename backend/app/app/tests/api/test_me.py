@@ -1,8 +1,9 @@
 from typing import Dict, Union
 from urllib.parse import urlparse, parse_qs
 
-from fastapi.testclient import TestClient
-from sqlalchemy.orm import Session
+import pytest
+from httpx import AsyncClient as TestClient
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 import pyotp
 
 from app.tests.utils import random_password
@@ -14,15 +15,16 @@ from app.tests.utils.user import (
 )
 
 
-def test_get_me(client: TestClient) -> None:
+@pytest.mark.asyncio
+async def test_get_me(client: TestClient) -> None:
     login_data = {
         "username": configs.FIRST_USER_NAME,
         "password": configs.FIRST_USER_PASS,
     }
-    r = client.post(f"{configs.API_V1_STR}/login", json=login_data)
+    r = await client.post(f"{configs.API_V1_STR}/login", json=login_data)
     token = r.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
-    r = client.get(f"{configs.API_V1_STR}/me", headers=headers)
+    r = await client.get(f"{configs.API_V1_STR}/me", headers=headers)
     user = r.json()
     # Got the right user?
     assert user["username"] == login_data["username"]
@@ -31,18 +33,19 @@ def test_get_me(client: TestClient) -> None:
     assert "password" not in user
 
 
-def test_update_me(
+@pytest.mark.asyncio
+async def test_update_me(
     db: Session,
     client: TestClient,
 ) -> None:
     new_pass = random_password()
-    username, password, _ = create_random_user(db)
-    headers = user_authenticate_headers(client, username, password)
+    username, password, _ = await create_random_user(db)
+    headers = await user_authenticate_headers(client, username, password)
     update_data = {
         "old_password": password,
         "password": new_pass,
     }
-    r = client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
+    r = await client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
     user = r.json()
     # Don't update things we didn't ask to
     print(r.json())
@@ -53,7 +56,7 @@ def test_update_me(
         "username": username,
         "password": new_pass,
     }
-    r = client.post(f"{configs.API_V1_STR}/login", json=login_data)
+    r = await client.post(f"{configs.API_V1_STR}/login", json=login_data)
     js = r.json()
     # Ensure new password is accepted
     assert r.status_code == 200
@@ -61,44 +64,47 @@ def test_update_me(
     assert js["access_token"]
 
 
-def test_update_wrong_pass(
+@pytest.mark.asyncio
+async def test_update_wrong_pass(
     db: Session,
     client: TestClient,
 ) -> None:
-    username, password, _ = create_random_user(db)
-    headers = user_authenticate_headers(client, username, password)
+    username, password, _ = await create_random_user(db)
+    headers = await user_authenticate_headers(client, username, password)
     update_data = {
         "old_password": random_password(),
         "password": random_password(),
     }
-    r = client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
+    r = await client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
     assert r.status_code == 403
 
 
-def test_update_same_pass(
+@pytest.mark.asyncio
+async def test_update_same_pass(
     db: Session,
     client: TestClient,
 ) -> None:
-    username, password, _ = create_random_user(db)
-    headers = user_authenticate_headers(client, username, password)
+    username, password, _ = await create_random_user(db)
+    headers = await user_authenticate_headers(client, username, password)
     update_data = {
         "old_password": password,
         "password": password,
     }
-    r = client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
+    r = await client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
     assert r.status_code == 422
 
 
-def test_enable_twofa(
+@pytest.mark.asyncio
+async def test_enable_twofa(
     db: Session,
     client: TestClient,
 ) -> None:
-    username, password, _ = create_random_user(db)
-    headers = user_authenticate_headers(client, username, password)
+    username, password, _ = await create_random_user(db)
+    headers = await user_authenticate_headers(client, username, password)
     update_data: Dict[str, Union[str, bool]] = {
         "twofa_enabled": True,
     }
-    r = client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
+    r = await client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
     user = r.json()
     # Make sure update was successful, received a secret and 2fa isn't marked enabled yet
     assert r.status_code == 200
@@ -111,7 +117,7 @@ def test_enable_twofa(
     # Generate a 2fa response code and send again
     totp = pyotp.TOTP(secret)
     update_data = {"twofa_enabled": True, "twofa_code": totp.now()}
-    r = client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
+    r = await client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
     user = r.json()
     # Make sure update was successful, twofa *was* enabled and we wiped the secret
     assert r.status_code == 200
@@ -119,21 +125,22 @@ def test_enable_twofa(
     assert not user["twofa_uri"]
 
 
-def test_disable_twofa(
+@pytest.mark.asyncio
+async def test_disable_twofa(
     db: Session,
     client: TestClient,
 ) -> None:
-    username, password, secret = create_user_twofa(db)
-    headers = user_authenticate_headers(
+    username, password, secret = await create_user_twofa(db)
+    headers = await user_authenticate_headers(
         client, username, password, pyotp.TOTP(secret).now()
     )
     update_data = {
         "twofa_enabled": False,
     }
-    r = client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
+    r = await client.post(f"{configs.API_V1_STR}/me", headers=headers, json=update_data)
     user = r.json()
     # Make sure update was successful and 2fa was disabled
     assert r.status_code == 200
     assert not user["twofa_enabled"]
     # Try normal login
-    headers = user_authenticate_headers(client, username, password)
+    headers = await user_authenticate_headers(client, username, password)

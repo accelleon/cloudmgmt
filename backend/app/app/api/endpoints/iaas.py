@@ -1,7 +1,7 @@
 from typing import Any, List
 
 from fastapi import APIRouter, Request, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
 from app.api import core
@@ -17,7 +17,7 @@ router = APIRouter()
         403: {"model": model.FailedResponse},
     },
 )
-def get_providers(
+async def get_providers(
     query: model.IaasSearchRequest = Depends(),
     *,
     db: Session = Depends(core.get_db),
@@ -27,7 +27,7 @@ def get_providers(
     filter = model.IaasFilter.parse_obj(query)
     search = model.common.SearchQueryBase.parse_obj(query)
 
-    providers, total = database.iaas.filter(
+    providers, total = await database.iaas.filter(
         db,
         filter=filter,
         offset=search.per_page * search.page,
@@ -59,13 +59,13 @@ def get_providers(
         404: {"model": model.FailedResponse},
     },
 )
-def get_provider(
+async def get_provider(
     provider_id: int,
     *,
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_admin_user),
 ) -> Any:
-    provider = database.iaas.get(db, provider_id)
+    provider = await database.iaas.get(db, provider_id)
     if not provider:
         raise HTTPException(status_code=404, detail="Provider not found")
     return provider
@@ -80,14 +80,14 @@ def get_provider(
         404: {"model": model.FailedResponse},
     },
 )
-def get_provider_accounts(
+async def get_provider_accounts(
     provider_id: int,
     *,
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_admin_user),
     request: Request,
 ) -> Any:
-    iaas = database.iaas.get(db, provider_id)
+    iaas = await database.iaas.get(db, provider_id)
     if not iaas:
         raise HTTPException(status_code=404, detail="Provider not found")
     return iaas.accounts

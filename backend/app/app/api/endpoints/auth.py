@@ -2,7 +2,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
 from app.core import security
@@ -25,7 +25,7 @@ async def login(
 ) -> Any:
     """ """
 
-    user = database.user.authenticate_password(
+    user = await database.user.authenticate_password(
         db, username=request.username, password=request.password
     )
 
