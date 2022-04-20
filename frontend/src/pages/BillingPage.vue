@@ -31,7 +31,7 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn-dropdown dropdown-icon="filter_list" flat @hide="onSearch">
+            <q-btn-dropdown dropdown-icon="filter_list" flat>
               <q-list>
                 <q-item>
                   <q-item-section avatar>
@@ -83,6 +83,19 @@
           </q-td>
         </template>
 
+        <template v-slot:body-cell-iaas="props">
+          <q-td :props="props">
+            {{
+              props.row.account.data.endpoint
+                ? props.row.account.iaas.name.concat(
+                    ' (',
+                    props.row.account.data.endpoint,
+                    ')'
+                  )
+                : props.row.account.iaas.name
+            }}
+          </q-td>
+        </template>
         <!--
         <template v-slot:body-cell-action="props">
           <q-td :props="props">

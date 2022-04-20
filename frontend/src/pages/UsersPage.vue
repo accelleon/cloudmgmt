@@ -31,12 +31,7 @@
                 <q-icon name="search" />
               </template>
             </q-input>
-            <q-btn-dropdown
-              dropdown-icon="filter_list"
-              flat
-              auto-close
-              @hide="onSearch"
-            >
+            <q-btn-dropdown dropdown-icon="filter_list" flat>
               <q-list>
                 <q-item>
                   <q-item-section avatar>
