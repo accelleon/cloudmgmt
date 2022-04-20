@@ -1,7 +1,7 @@
 from pytz import utc
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.event import listens_for
+from sqlalchemy.event import listen
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.jobstores.memory import MemoryJobStore
@@ -41,7 +41,7 @@ async def setup_scheduler() -> None:
 
     # Add billing task for all accounts
     db: AsyncSession = SessionLocal()
-    accounts = await database.account.get_multi(db)
+    accounts = await database.account.get_all(db)
     for account in accounts:
         scheduler.add_job(
             func=get_billing,
@@ -57,7 +57,6 @@ async def setup_scheduler() -> None:
         )
 
 
-@listens_for(database.Account, "after_insert")
 def account_inserted(mapper, connection, target: database.Account) -> None:
     """
     Add billing task for the new account.
@@ -76,9 +75,16 @@ def account_inserted(mapper, connection, target: database.Account) -> None:
         )
 
 
-@listens_for(database.Account, "before_delete")
 def account_deleted(mapper, connection, target: database.Account) -> None:
     """
     Remove billing task for the deleted account.
     """
     scheduler.remove_job(f"billing-{target.id}")
+
+
+def register_listeners() -> None:
+    """
+    Register the listeners.
+    """
+    listen(database.Account, "after_insert", account_inserted)
+    listen(database.Account, "after_delete", account_deleted)

@@ -5,7 +5,7 @@ import uvicorn
 
 from app.api.api import api_router
 from app.core.config import configs
-from app.tasks.scheduler import setup_scheduler
+from app.tasks.scheduler import setup_scheduler, register_listeners
 
 setup_scheduler()
 
@@ -34,6 +34,7 @@ app.include_router(api_router, prefix=configs.API_V1_STR)
 
 
 def main():
+    register_listeners()
     uvicorn.run("app.api_main:app", host="0.0.0.0", port=8000)
 
 
