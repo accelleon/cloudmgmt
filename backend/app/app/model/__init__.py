@@ -6,3 +6,4 @@ from .iaas import *
 from .account import *
 from .me import *
 from .billing import *
+from .template import *

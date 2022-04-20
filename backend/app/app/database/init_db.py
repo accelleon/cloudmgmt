@@ -32,3 +32,13 @@ async def init_db(db: Session) -> None:
             await database.iaas.update(db, db_obj=iaas, obj_in=provider)
             continue
         await database.iaas.create(db, obj_in=provider)
+
+    if not await database.template.get_by_name(db, name="default"):
+        accounts = await database.account.get_all(db)
+        account_ids = [account.id for account in accounts]
+        template_in = model.CreateTemplate(
+            name="default",
+            description="Default template",
+            order=account_ids,
+        )
+        await database.template.create(db, obj_in=template_in)

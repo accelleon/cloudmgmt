@@ -7,6 +7,7 @@ from app.api.endpoints import (
     account,
     iaas,
     billing,
+    template,
 )
 
 api_router = APIRouter()
@@ -16,3 +17,4 @@ api_router.include_router(user.router, prefix="/users", tags=["user"])
 api_router.include_router(iaas.router, prefix="/providers", tags=["provider"])
 api_router.include_router(account.router, prefix="/accounts", tags=["account"])
 api_router.include_router(billing.router, prefix="/billing", tags=["billing"])
+api_router.include_router(template.router, prefix="/template", tags=["template"])

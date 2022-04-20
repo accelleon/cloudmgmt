@@ -47,7 +47,7 @@ class CRUDBase(
             .first()
         )
 
-    async def get_multi(
+    async def get_all(
         self,
         db: Session,
     ) -> List[ModelType]:

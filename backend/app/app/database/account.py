@@ -12,6 +12,7 @@ from pycloud import CloudFactory
 
 if TYPE_CHECKING:
     from .billing import Billing  # noqa
+    from .template import TemplateOrder # noqa
 
 
 class Account(Base):
@@ -22,7 +23,8 @@ class Account(Base):
     data: Dict[str, str] = Column(JSON, nullable=False)
 
     iaas: Iaas = relationship("Iaas", lazy="selectin")
-    bills: List['Billing'] = relationship("Billing", back_populates="account", lazy="selectin")
+    bills: List['Billing'] = relationship("Billing", back_populates="account", lazy="noload", cascade="all, delete-orphan")
+    templateorder: List['TemplateOrder'] = relationship("TemplateOrder", back_populates="account", lazy="noload", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"Account(id={self.id!r}, name={self.name!r}, iaas_id={self.iaas_id!r}, data={self.data!r})"
