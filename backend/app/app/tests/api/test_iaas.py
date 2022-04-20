@@ -1,5 +1,6 @@
 from typing import Dict
 
+import pytest
 from httpx import AsyncClient as TestClient
 
 from pycloud import CloudFactory
@@ -7,6 +8,7 @@ from app.core.config import configs
 from app.model.iaas import IaasType
 
 
+@pytest.mark.asyncio
 async def test_iaas_get_all(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -23,6 +25,7 @@ async def test_iaas_get_all(
         assert i["params"] == iaas[i["name"]].params
 
 
+@pytest.mark.asyncio
 async def test_iaas_get_all_filter(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -42,6 +45,7 @@ async def test_iaas_get_all_filter(
             assert provider.name not in names
 
 
+@pytest.mark.asyncio
 async def test_get_one(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -59,6 +63,7 @@ async def test_get_one(
     assert "params" in js
 
 
+@pytest.mark.asyncio
 async def test_iaas_get_one_not_found(
     client: TestClient,
     admin_token_headers: Dict[str, str],

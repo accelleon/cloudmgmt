@@ -1,11 +1,13 @@
 from typing import Dict
 
+import pytest
 from httpx import AsyncClient as TestClient
 
 from app.core.config import configs
 from app.tests.utils import random_username
 
 
+@pytest.mark.asyncio
 async def test_create_delete(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -33,6 +35,7 @@ async def test_create_delete(
     assert r.status_code == 204
 
 
+@pytest.mark.asyncio
 async def test_create_wrong_iaas(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -50,6 +53,7 @@ async def test_create_wrong_iaas(
     assert r.status_code == 422
 
 
+@pytest.mark.asyncio
 async def test_create_duplicate(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -84,6 +88,7 @@ async def test_create_duplicate(
     assert r.status_code == 204
 
 
+@pytest.mark.asyncio
 async def test_get_accounts(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -94,6 +99,7 @@ async def test_get_accounts(
     assert js["results"]
 
 
+@pytest.mark.asyncio
 async def test_filter_accounts(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -108,6 +114,7 @@ async def test_filter_accounts(
         assert account["iaas"]["type"] == "PAAS"
 
 
+@pytest.mark.asyncio
 async def test_get_id(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -135,6 +142,7 @@ async def test_get_id(
     assert js["name"] == name
 
 
+@pytest.mark.asyncio
 async def test_get_no_exist(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -145,6 +153,7 @@ async def test_get_no_exist(
     assert r.status_code == 404
 
 
+@pytest.mark.asyncio
 async def test_update(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -177,6 +186,7 @@ async def test_update(
     assert js["data"] == {"endpoint": "Layershift"}
 
 
+@pytest.mark.asyncio
 async def test_update_duplicate(
     client: TestClient,
     admin_token_headers: Dict[str, str],
@@ -221,6 +231,7 @@ async def test_update_duplicate(
     assert js["detail"] == "Account name already exists"
 
 
+@pytest.mark.asyncio
 async def test_no_exist(
     client: TestClient,
     admin_token_headers: Dict[str, str],

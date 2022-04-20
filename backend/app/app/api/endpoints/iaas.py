@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get(
-    "/",
+    "",
     response_model=model.IaasSearchResponse,
     responses={
         401: {"model": model.FailedResponse},
