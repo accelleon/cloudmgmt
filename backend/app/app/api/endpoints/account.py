@@ -131,12 +131,6 @@ async def update_account(
         raise HTTPException(status_code=404, detail="Account not found")
 
     if new.name is not None and new.name != account.name:
-        print(new.name, account.iaas.name)
-        print(
-            await database.account.get_by_name(
-                db, name=new.name, iaas=account.iaas.name
-            )
-        )
         if await database.account.get_by_name(
             db, name=account.name, iaas=account.iaas.name
         ):
