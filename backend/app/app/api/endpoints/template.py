@@ -32,9 +32,7 @@ async def get_templates(
             id=template.id,
             name=template.name,
             description=template.description,
-            order=[
-                order.account_id for order in template.orders
-            ],
+            order=[order.account_id for order in template.orders],
         )
         for template in templates
     ]
@@ -67,9 +65,7 @@ async def get_template(
         id=template.id,
         name=template.name,
         description=template.description,
-        order=[
-            order.account_id for order in template.orders
-        ],
+        order=[order.account_id for order in template.orders],
     )
     return result
 
@@ -102,9 +98,7 @@ async def create_template(
         id=db_obj.id,
         name=db_obj.name,
         description=db_obj.description,
-        order=[
-            order.account_id for order in db_obj.orders
-        ],
+        order=[order.account_id for order in db_obj.orders],
     )
     return result
 
@@ -145,9 +139,7 @@ async def update_template(
         id=new_obj.id,
         name=new_obj.name,
         description=new_obj.description,
-        order=[
-            order.account_id for order in new_obj.orders
-        ],
+        order=[order.account_id for order in new_obj.orders],
     )
     return result
 

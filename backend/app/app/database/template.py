@@ -14,7 +14,9 @@ class TemplateOrder(Base):
     __tablename__ = "template_order"
 
     id: int = Column(Integer, primary_key=True)
-    template_id: int = Column(Integer, ForeignKey("template.id"), nullable=False, index=True)
+    template_id: int = Column(
+        Integer, ForeignKey("template.id"), nullable=False, index=True
+    )
     account_id: int = Column(Integer, ForeignKey("account.id"), nullable=False)
     # include: bool = Column(Boolean, nullable=False, index=True)
     sort_order: int = Column(Integer, nullable=False)
@@ -30,7 +32,9 @@ class Template(Base):
     name: str = Column(String, nullable=False, index=True, unique=True)
     description: str = Column(String, nullable=False)
 
-    orders: List[TemplateOrder] = relationship("TemplateOrder", lazy="selectin", cascade="all, delete-orphan")
+    orders: List[TemplateOrder] = relationship(
+        "TemplateOrder", lazy="selectin", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"Template(id={self.id!r}, name={self.name!r}, description={self.description!r})"
@@ -57,7 +61,9 @@ class CRUDTemplate(CRUDBase[Template, CreateTemplate, UpdateTemplate, TemplateFi
             )
             await db.refresh(db_obj)
             for order, account_id in enumerate(update_date["order"]):
-                obj = TemplateOrder(template_id=db_obj.id, account_id=account_id, sort_order=order)
+                obj = TemplateOrder(
+                    template_id=db_obj.id, account_id=account_id, sort_order=order
+                )
                 db.add(obj)
             del update_date["order"]
 
@@ -77,16 +83,20 @@ class CRUDTemplate(CRUDBase[Template, CreateTemplate, UpdateTemplate, TemplateFi
         await db.refresh(obj)
 
         for order, account_id in enumerate(obj_in["order"]):
-            tmpobj = TemplateOrder(template_id=obj.id, account_id=account_id, sort_order=order)
+            tmpobj = TemplateOrder(
+                template_id=obj.id, account_id=account_id, sort_order=order
+            )
             db.add(tmpobj)
         await db.commit()
         await db.refresh(obj)
         return obj
 
     async def get_by_name(self, db: Session, *, name: str) -> Optional[Template]:
-        return (await db.execute(
-            select(Template).where(Template.name == name)
-        )).scalars().first()
+        return (
+            (await db.execute(select(Template).where(Template.name == name)))
+            .scalars()
+            .first()
+        )
 
 
 template = CRUDTemplate(Template)
@@ -98,6 +108,10 @@ async def _after_insert(mapper, connection: AsyncConnection, target: Account):
     templates = (await connection.execute(select(Template))).scalars().all()
     for template in templates:
         await connection.execute(
-            insert(TemplateOrder).values(template_id=template.id, account_id=target.id, sort_order=len(template.orders))
+            insert(TemplateOrder).values(
+                template_id=template.id,
+                account_id=target.id,
+                sort_order=len(template.orders),
+            )
         )
     connection.commit()

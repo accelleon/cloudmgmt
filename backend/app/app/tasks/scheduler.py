@@ -62,17 +62,17 @@ def account_inserted(mapper, connection, target: database.Account) -> None:
     Add billing task for the new account.
     """
     scheduler.add_job(
-            func=get_billing,
-            trigger=CronTrigger(
-                minute="0",
-                hour="0",
-                day_of_week="*",
-                day="*",
-                month="*",
-            ),
-            args=[target.id],
-            id=f"billing-{target.id}",
-        )
+        func=get_billing,
+        trigger=CronTrigger(
+            minute="0",
+            hour="0",
+            day_of_week="*",
+            day="*",
+            month="*",
+        ),
+        args=[target.id],
+        id=f"billing-{target.id}",
+    )
 
 
 def account_deleted(mapper, connection, target: database.Account) -> None:

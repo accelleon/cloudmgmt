@@ -16,8 +16,8 @@ async def test_create_delete(
         f"{configs.API_V1_STR}/accounts",
         headers=admin_token_headers,
     )
-    accounts = resp.json()['results']
-    ids = [account['id'] for account in accounts]
+    accounts = resp.json()["results"]
+    ids = [account["id"] for account in accounts]
 
     r = await client.post(
         f"{configs.API_V1_STR}/template",
@@ -30,9 +30,9 @@ async def test_create_delete(
     )
     assert r.status_code == 201
     js = r.json()
-    assert js['name']
-    assert js['description']
-    assert js['order'] == ids
+    assert js["name"]
+    assert js["description"]
+    assert js["order"] == ids
 
     r = await client.delete(
         f"{configs.API_V1_STR}/template/{js['id']}",
@@ -50,8 +50,8 @@ async def test_create_duplicate(
         f"{configs.API_V1_STR}/accounts",
         headers=admin_token_headers,
     )
-    accounts = resp.json()['results']
-    ids = [account['id'] for account in accounts]
+    accounts = resp.json()["results"]
+    ids = [account["id"] for account in accounts]
 
     name = random_username()
     r = await client.post(
@@ -65,9 +65,9 @@ async def test_create_duplicate(
     )
     assert r.status_code == 201
     js = r.json()
-    assert js['name']
-    assert js['description']
-    assert js['order'] == ids
+    assert js["name"]
+    assert js["description"]
+    assert js["order"] == ids
 
     r = await client.post(
         f"{configs.API_V1_STR}/template",
@@ -108,7 +108,7 @@ async def test_modify_default(
     js = r.json()
     assert js
     for template in js:
-        if template['name'] == 'default':
+        if template["name"] == "default":
             r = await client.put(
                 f"{configs.API_V1_STR}/template/{template['id']}",
                 json={
@@ -135,7 +135,7 @@ async def test_delete_default(
     js = r.json()
     assert js
     for template in js:
-        if template['name'] == 'default':
+        if template["name"] == "default":
             r = await client.delete(
                 f"{configs.API_V1_STR}/template/{template['id']}",
                 headers=admin_token_headers,
@@ -157,7 +157,7 @@ async def test_modify_invalid_order(
     js = r.json()
     assert js
     for template in js:
-        if template['name'] != 'default':
+        if template["name"] != "default":
             r = await client.put(
                 f"{configs.API_V1_STR}/template/{template['id']}",
                 json={
@@ -182,11 +182,11 @@ async def test_modify_name_exists(
     js = r.json()
     assert js
     for template in js:
-        if template['name'] != 'default':
+        if template["name"] != "default":
             r = await client.put(
                 f"{configs.API_V1_STR}/template/{template['id']}",
                 json={
-                    "name": 'default',
+                    "name": "default",
                 },
                 headers=admin_token_headers,
             )

@@ -17,7 +17,9 @@ class Iaas(Base):
     type: IaasType = Column(Enum(IaasType), nullable=False)
     params: Dict[str, str] = Column(JSON, nullable=False)
 
-    accounts: List['Account'] = relationship("Account", back_populates="iaas", lazy="selectin")
+    accounts: List["Account"] = relationship(
+        "Account", back_populates="iaas", lazy="selectin"
+    )
 
     def __repr__(self):
         return f"Iaas(id={self.id!r}, type={self.type!r}, name={self.name!r}, parameters={self.params!r})"
