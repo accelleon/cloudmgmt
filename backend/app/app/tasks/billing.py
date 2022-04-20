@@ -1,17 +1,16 @@
-from celery import shared_task, group
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database.session import SessionLocal
 from app import database, model
 from pycloud import CloudFactory
 
 
-@shared_task
 async def get_billing(account_id: int) -> None:
     """
     Creates or updates billing period for the current month for the given account.
     """
-    db = SessionLocal()
+    db: AsyncSession = SessionLocal()
 
     account = await database.account.get(db, id=account_id)
 
@@ -23,7 +22,7 @@ async def get_billing(account_id: int) -> None:
         account.data,  # type: ignore
     )
 
-    billing = client.get_current_billing()
+    billing = await client.get_current_billing()
 
     new_obj = model.CreateBillingPeriod(
         **billing.dict(),
@@ -32,6 +31,7 @@ async def get_billing(account_id: int) -> None:
     try:
         await database.billing.create(db, obj_in=new_obj)
     except IntegrityError:
+        await db.rollback()
         db_obj = await database.billing.get_by_period(
             db,
             account_id=account_id,
@@ -41,16 +41,4 @@ async def get_billing(account_id: int) -> None:
         obj_in = model.UpdateBillingPeriod(
             **billing.dict(),
         )
-        database.billing.update(db, db_obj=db_obj, obj_in=obj_in)  # type: ignore
-
-
-@shared_task
-async def all_billing() -> None:
-    """
-    Creates or updates billing period for all accounts.
-    """
-    db = SessionLocal()
-
-    accounts = await database.account.get_multi(db)
-
-    return group(get_billing.s(account.id) for account in accounts)()
+        await database.billing.update(db, db_obj=db_obj, obj_in=obj_in)  # type: ignore

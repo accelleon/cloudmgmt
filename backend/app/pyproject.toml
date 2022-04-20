@@ -24,6 +24,7 @@ SQLAlchemy = {extras = ["asyncpg"], version = "^1.4.35"}
 asyncpg = "^0.25.0"
 pytest-asyncio = "^0.18.3"
 httpx = "^0.22.0"
+APScheduler = "^3.9.1"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.941"

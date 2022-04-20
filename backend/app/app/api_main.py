@@ -5,6 +5,9 @@ import uvicorn
 
 from app.api.api import api_router
 from app.core.config import configs
+from app.tasks.scheduler import setup_scheduler
+
+setup_scheduler()
 
 
 def generate_unique_id(route: APIRoute):
