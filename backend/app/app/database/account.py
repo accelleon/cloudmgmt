@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Union, Optional, Tuple, List, Dict
 
 from sqlalchemy import select, Column, Integer, String, JSON, ForeignKey
 from sqlalchemy.sql import Select
-from sqlalchemy.orm import relationship, joinedload, Mapped
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from .base import Base, CRUDBase
@@ -19,10 +19,10 @@ class Account(Base):
     name: str = Column(String, index=True, unique=True, nullable=False)
     iaas_id: int = Column(Integer, ForeignKey("iaas.id"), nullable=False)
     currency: str = Column(String(length=3), nullable=False)
-    data: JSON = Column(JSON, nullable=False)
+    data: Dict[str, str] = Column(JSON, nullable=False)
 
-    iaas = relationship("Iaas", lazy="selectin")
-    bills = relationship("Billing", back_populates="account", lazy="selectin")
+    iaas: Iaas = relationship("Iaas", lazy="selectin")
+    bills: List['Billing'] = relationship("Billing", back_populates="account", lazy="selectin")
 
     def __repr__(self):
         return f"Account(id={self.id!r}, name={self.name!r}, iaas_id={self.iaas_id!r}, data={self.data!r})"

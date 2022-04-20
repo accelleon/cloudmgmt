@@ -3,7 +3,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union, Tup
 from pydantic import BaseModel
 from sqlalchemy import select, func
 from sqlalchemy.sql import Select
-from sqlalchemy.ext.declarative import as_declarative, declared_attr
+from sqlalchemy.orm import as_declarative, declared_attr
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import BaseModel
 
@@ -7,7 +7,7 @@ from .common import SearchQueryBase, SearchResponse
 
 
 if TYPE_CHECKING:
-    from .account import _Account
+    from .account import _Account  # noqa
 
 
 class IaasFilter(BaseModel):
@@ -24,7 +24,7 @@ class _Iaas(IaasDesc):
 
 
 class Iaas(_Iaas):
-    #accounts: List["_Account"]
+    # accounts: List["_Account"]
     pass
 
 

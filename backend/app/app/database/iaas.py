@@ -1,7 +1,7 @@
-from typing import TYPE_CHECKING, Optional, List
+from typing import TYPE_CHECKING, Optional, List, Dict
 
 from sqlalchemy import select, Column, Integer, String, JSON, Enum
-from sqlalchemy.orm import relationship, Mapped
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from .base import Base, CRUDBase
@@ -15,9 +15,9 @@ class Iaas(Base):
     id: int = Column(Integer, primary_key=True, index=True)
     name: str = Column(String, index=True, unique=True, nullable=False)
     type: IaasType = Column(Enum(IaasType), nullable=False)
-    params: JSON = Column(JSON, nullable=False)
+    params: Dict[str, str] = Column(JSON, nullable=False)
 
-    accounts = relationship("Account", back_populates="iaas", lazy="selectin")
+    accounts: List['Account'] = relationship("Account", back_populates="iaas", lazy="selectin")
 
     def __repr__(self):
         return f"Iaas(id={self.id!r}, type={self.type!r}, name={self.name!r}, parameters={self.params!r})"
