@@ -1,6 +1,16 @@
 from typing import List, Union, Dict, Any, Optional
 
-from sqlalchemy import delete, insert, select, Column, Integer, String, ForeignKey
+from sqlalchemy import (
+    DDL,
+    delete,
+    insert,
+    select,
+    Column,
+    Integer,
+    String,
+    ForeignKey,
+    func,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.event import listens_for
 from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession as Session
@@ -100,18 +110,3 @@ class CRUDTemplate(CRUDBase[Template, CreateTemplate, UpdateTemplate, TemplateFi
 
 
 template = CRUDTemplate(Template)
-
-
-# Automatically append new accounts to existing templates
-@listens_for(Account, "after_insert")
-async def _after_insert(mapper, connection: AsyncConnection, target: Account):
-    templates = (await connection.execute(select(Template))).scalars().all()
-    for template in templates:
-        await connection.execute(
-            insert(TemplateOrder).values(
-                template_id=template.id,
-                account_id=target.id,
-                sort_order=len(template.orders),
-            )
-        )
-    connection.commit()
