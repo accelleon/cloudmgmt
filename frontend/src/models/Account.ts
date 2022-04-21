@@ -9,6 +9,7 @@ export type Account = {
     id?: number;
     name: string;
     iaas_id: number;
+    currency: string;
     data: AccountData;
     iaas: _Iaas;
 };

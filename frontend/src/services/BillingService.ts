@@ -56,6 +56,29 @@ export class BillingService {
     }
 
     /**
+     * Export Billing
+     * Export billing periods as a spreadsheet.
+     * @param template
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static exportBilling(
+        template: string = 'default',
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/billing/export',
+            query: {
+                'template': template,
+            },
+            errors: {
+                401: `Unauthorized`,
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
      * Get Billing Period
      * Get a billing period by id.
      * @param id

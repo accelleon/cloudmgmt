@@ -8,7 +8,7 @@ export type BillingPeriod = {
     start_date: string;
     end_date: string;
     total: number;
-    balance: number;
+    balance?: number;
     account_id: number;
     id: number;
     account: Account;

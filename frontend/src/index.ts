@@ -2,7 +2,6 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type { _Account } from './models/_Account';
 export type { _Iaas } from './models/_Iaas';
 export type { Account } from './models/Account';
 export type { AccountData } from './models/AccountData';
@@ -13,6 +12,7 @@ export type { AuthResponseOk } from './models/AuthResponseOk';
 export type { BillingPeriod } from './models/BillingPeriod';
 export type { BillingSearchResponse } from './models/BillingSearchResponse';
 export type { CreateAccount } from './models/CreateAccount';
+export type { CreateTemplate } from './models/CreateTemplate';
 export type { CreateUser } from './models/CreateUser';
 export type { FailedResponse } from './models/FailedResponse';
 export type { HTTPValidationError } from './models/HTTPValidationError';
@@ -21,9 +21,11 @@ export { IaasParam } from './models/IaasParam';
 export type { IaasSearchResponse } from './models/IaasSearchResponse';
 export { IaasType } from './models/IaasType';
 export { SearchOrder } from './models/SearchOrder';
+export type { Template } from './models/Template';
 export type { UpdateAccount } from './models/UpdateAccount';
 export type { UpdateMe } from './models/UpdateMe';
 export type { UpdateMeResponse } from './models/UpdateMeResponse';
+export type { UpdateTemplate } from './models/UpdateTemplate';
 export type { UpdateUser } from './models/UpdateUser';
 export type { User } from './models/User';
 export type { UserSearchResponse } from './models/UserSearchResponse';
@@ -34,4 +36,5 @@ export { BillingService } from './services/BillingService';
 export { LoginService } from './services/LoginService';
 export { MeService } from './services/MeService';
 export { ProviderService } from './services/ProviderService';
+export { TemplateService } from './services/TemplateService';
 export { UserService } from './services/UserService';

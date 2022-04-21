@@ -24,6 +24,8 @@ from app.model.billing import (
     CreateBillingPeriod,
 )
 
+from pycloud.utils import current_month_date_range
+
 
 class Billing(Base):
     id: int = Column(Integer, primary_key=True, index=True)
@@ -107,6 +109,24 @@ class BillingCRUD(
             )
             .scalars()
             .first()
+        )
+
+    async def get_cur_period(
+        self,
+        db: Session,
+    ) -> List[Billing]:
+        start, end = current_month_date_range()
+        return (
+            (
+                await db.execute(
+                    select(Billing).where(
+                        Billing.end_date >= start,
+                        Billing.end_date <= end,
+                    )
+                )
+            )
+            .scalars()
+            .all()
         )
 
 

@@ -59,6 +59,12 @@
           </div>
         </template>
 
+        <template v-slot:top-right>
+          <q-btn icon="file_download" @click="downloadSheet">
+            <q-tooltip> Export to Excel </q-tooltip>
+          </q-btn>
+        </template>
+
         <template v-slot:body-cell-start_date="props">
           <q-td :props="props">
             {{ utc_to_local(props.row.start_date) }}
@@ -96,28 +102,6 @@
             }}
           </q-td>
         </template>
-        <!--
-        <template v-slot:body-cell-action="props">
-          <q-td :props="props">
-            <q-btn-dropdown dropdown-icon="more_vert" flat auto-close>
-              <q-list>
-                <q-item clickable @click="onEdit(props.row)">
-                  <q-item-section avatar>
-                    <q-icon name="edit" size="xs" />
-                  </q-item-section>
-                  <q-item-section>Edit</q-item-section>
-                </q-item>
-                <q-item clickable @click="onDelete(props.row)">
-                  <q-item-section avatar>
-                    <q-icon name="delete" size="xs" />
-                  </q-item-section>
-                  <q-item-section>Delete</q-item-section>
-                </q-item>
-              </q-list>
-            </q-btn-dropdown>
-          </q-td>
-        </template>
--->
       </q-table>
     </div>
   </q-page>
@@ -154,6 +138,8 @@ import { BillingService } from 'src/services/BillingService';
 import { BillingPeriod } from 'src/models/BillingPeriod';
 import { SearchOrder } from 'src/models/SearchOrder';
 import { Account } from 'src/models/Account';
+import axios from 'axios';
+import { useAuthStore } from 'src/stores/auth-store';
 
 const columns = [
   {
@@ -305,6 +291,28 @@ export default defineComponent({
       onRequest({ pagination: pagination.value });
     };
 
+    const downloadSheet = () => {
+      // TODO: modify BillingService to use blob
+      axios({
+        method: 'GET',
+        url: 'http://172.50.1.69:8000/api/v1/billing/export',
+        responseType: 'blob',
+        headers: {
+          Authorization: `Bearer ${useAuthStore().token}`,
+        },
+      }).then((resp) => {
+        const blob = new Blob([resp.data], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.setAttribute('download', 'billing.xlsx');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      });
+    };
+
     return {
       columns,
       bills,
@@ -316,6 +324,7 @@ export default defineComponent({
       pagination,
       onRequest,
       onSearch,
+      downloadSheet,
       utc_to_local,
       num_to_cur,
     };

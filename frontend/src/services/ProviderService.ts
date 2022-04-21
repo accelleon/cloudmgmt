@@ -34,7 +34,7 @@ export class ProviderService {
     ): CancelablePromise<IaasSearchResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/providers/',
+            url: '/api/v1/providers',
             query: {
                 'name': name,
                 'type': type,
