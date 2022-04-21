@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional, List, Dict
+from typing import TYPE_CHECKING, Optional, List, Dict, Union
 
 from sqlalchemy import select, Column, Integer, String, JSON, Enum
 from sqlalchemy.orm import relationship
@@ -15,7 +15,7 @@ class Iaas(Base):
     id: int = Column(Integer, primary_key=True, index=True)
     name: str = Column(String, index=True, unique=True, nullable=False)
     type: IaasType = Column(Enum(IaasType), nullable=False)
-    params: Dict[str, str] = Column(JSON, nullable=False)
+    params: List[Dict[str, Union[str, List[str]]]] = Column(JSON, nullable=False)
 
     accounts: List["Account"] = relationship(
         "Account", back_populates="iaas", lazy="selectin"
