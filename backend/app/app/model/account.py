@@ -3,6 +3,7 @@ from typing import Optional, Dict
 from pydantic import BaseModel
 
 from pycloud.factory import CloudFactory
+from pycloud.models import IaasType
 from .common import SearchQueryBase, SearchResponse
 from .iaas import Iaas, _Iaas
 
@@ -10,6 +11,7 @@ from .iaas import Iaas, _Iaas
 class AccountFilter(BaseModel):
     name: Optional[str] = None
     iaas: Optional[str] = None
+    type: Optional[IaasType] = None
 
 
 class CreateAccount(BaseModel):

@@ -98,11 +98,15 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
         exclude: Optional[List[int]] = None,
     ) -> Tuple[List[Account], int]:
         filter = AccountFilter(**filter) if isinstance(filter, dict) else filter
-        query = select(Account)
-        if filter and filter.iaas:
-            query = query.where(Iaas.name == filter.iaas)
+        query = select(Account).join(Iaas)
+        if filter:
+            if filter.iaas:
+                query = query.where(Iaas.name == filter.iaas)
+                filter.iaas = None
+            if filter.type:
+                query = query.where(Iaas.type == filter.type)
+                filter.type = None
 
-            filter.iaas = None
         return await super().filter(
             db,
             query=query,
