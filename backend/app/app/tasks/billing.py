@@ -1,12 +1,17 @@
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from celery import shared_task, group
 
+from .utils import run_sync
 from app.database.session import SessionLocal
 from app import database, model
 from pycloud import CloudFactory
+from pycloud.exc import UnknownError, RateLimit
 
 
-async def get_billing(account_id: int) -> None:
+@shared_task(bind=True)
+@run_sync
+async def get_billing(self, account_id: int) -> None:
     """
     Creates or updates billing period for the current month for the given account.
     """
@@ -22,7 +27,10 @@ async def get_billing(account_id: int) -> None:
         account.data,  # type: ignore
     )
 
-    billing = await client.get_current_billing()
+    try:
+        billing = await client.get_current_billing()
+    except (UnknownError, RateLimit) as e:
+        raise self.retry(exc=e, countdown=60)
 
     new_obj = model.CreateBillingPeriod(
         **billing.dict(),
@@ -42,3 +50,16 @@ async def get_billing(account_id: int) -> None:
             **billing.dict(),
         )
         await database.billing.update(db, db_obj=db_obj, obj_in=obj_in)  # type: ignore
+
+
+@shared_task
+@run_sync
+async def get_all_billing() -> None:
+    """
+    Creates or updates billing period for the current month for all accounts.
+    """
+    db: AsyncSession = SessionLocal()
+
+    accounts = await database.account.get_all(db)
+
+    group(get_billing.s(account.id) for account in accounts)()
