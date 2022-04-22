@@ -7,6 +7,7 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.database.base import Base
+from app.core.config import configs
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -28,10 +29,10 @@ target_metadata = Base.metadata  # type: ignore
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 def get_url():
-    user = os.getenv("POSTGRES_USER", "postgres")
-    password = os.getenv("POSTGRES_PASSWORD", "")
-    server = os.getenv("POSTGRES_SERVER", "db")
-    db = os.getenv("POSTGRES_DB", "app")
+    user = configs.POSTGRES_USER
+    password = configs.POSTGRES_PASSWORD
+    server = configs.POSTGRES_SERVER
+    db = configs.POSTGRES_DB
     return f"postgresql://{user}:{password}@{server}/{db}"
 
 

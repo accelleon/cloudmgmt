@@ -31,7 +31,6 @@ app.include_router(api_router, prefix=configs.API_V1_STR)
 
 
 def main():
-    # register_listeners()
     uvicorn.run("app.api_main:app", host="0.0.0.0", port=8000)
 
 
