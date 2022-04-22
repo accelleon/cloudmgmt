@@ -12,19 +12,15 @@ passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 pyotp = "^2.6.0"
 pytest = "^7.1.0"
-requests = "^2.27.1"
-psycopg2-binary = "^2.9.3"
 uvicorn = "^0.17.6"
 ovh = "^1.0.0"
 boto3 = "^1.21.38"
 celery = {extras = ["pytest", "redis"], version = "^5.2.6"}
 python-dateutil = "^2.8.2"
-requests-cache = {extras = ["redis"], version = "^0.9.3"}
 SQLAlchemy = {extras = ["asyncpg"], version = "^1.4.35"}
 asyncpg = "^0.25.0"
 pytest-asyncio = "^0.18.3"
 httpx = "^0.22.0"
-APScheduler = "^3.9.1"
 openpyxl = "^3.0.9"
 
 [tool.poetry.dev-dependencies]
@@ -33,7 +29,6 @@ isort = "^5.10.1"
 flake8 = "^4.0.1"
 pytest-cov = "^3.0.0"
 black = "^22.1.0"
-types-requests = "^2.27.16"
 types-python-dateutil = "^2.8.10"
 types-pytz = "^2021.3.6"
 boto3-stubs = {extras = ["essential", "ce"], version = "^1.21.42"}
