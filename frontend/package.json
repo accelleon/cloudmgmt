@@ -19,7 +19,7 @@
     "pinia": "^2.0.13",
     "qrious": "^4.0.2",
     "quasar": "^2.6.6",
-    "vue": "^3.0.0",
+    "vue": "^3.0.0 <3.2.32",
     "vue-router": "^4.0.14"
   },
   "devDependencies": {
