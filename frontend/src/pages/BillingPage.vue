@@ -295,7 +295,7 @@ export default defineComponent({
       // TODO: modify BillingService to use blob
       axios({
         method: 'GET',
-        url: 'http://172.50.1.69:8000/api/v1/billing/export',
+        url: '/api/v1/billing/export',
         responseType: 'blob',
         headers: {
           Authorization: `Bearer ${useAuthStore().token}`,

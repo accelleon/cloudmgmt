@@ -15,6 +15,7 @@
     "@quasar/extras": "^1.13.5",
     "axios": "^0.21.4",
     "core-js": "^3.21.1",
+    "jwt-decode": "^3.1.2",
     "lodash": "^4.17.21",
     "pinia": "^2.0.13",
     "qrious": "^4.0.2",

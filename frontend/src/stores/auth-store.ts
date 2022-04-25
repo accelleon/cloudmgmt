@@ -1,22 +1,37 @@
 import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
 import { AuthRequest, LoginService } from '..';
+import jwt_decode from 'jwt-decode';
 
 interface authState {
   token: string | null;
-  authenticated: boolean;
+}
+
+interface Token {
+  sub: number;
+  exp: number;
+  iat: number;
 }
 
 export const useAuthStore = defineStore('auth', {
   state: () => {
     return {
       token: LocalStorage.getItem('auth_token') || null,
-      authenticated: LocalStorage.getItem('auth_token') ? true : false,
     } as authState;
   },
 
   getters: {
-    isAuthenticated: (state) => state.authenticated,
+    isAuthenticated: (state) => {
+      if (!state.token) {
+        return false;
+      }
+      const token: Token = jwt_decode(state.token);
+
+      if (token.exp * 1000 < Date.now()) {
+        return false;
+      }
+      return true;
+    },
   },
 
   actions: {
@@ -24,7 +39,6 @@ export const useAuthStore = defineStore('auth', {
       await LoginService.login(data)
         .then((resp) => {
           const token = resp.access_token;
-          this.authenticated = true;
           this.token = token;
           LocalStorage.set('auth_token', token);
           return Promise.resolve();
@@ -35,9 +49,9 @@ export const useAuthStore = defineStore('auth', {
     },
 
     logout() {
-      this.authenticated = false;
       this.token = null;
       LocalStorage.remove('auth_token');
+      window.location.reload();
     },
   },
 });

@@ -102,7 +102,7 @@
 
       <div class="absolute-bottom justify-center row" style="height: 70px">
         <div class="column q-pa-lg">
-          <q-btn square label="Log out" icon="logout" />
+          <q-btn square label="Log out" icon="logout" @click="logout" />
         </div>
       </div>
     </q-drawer>
@@ -192,7 +192,6 @@ export default defineComponent({
 
       logout: () => {
         useAuthStore().logout();
-        $router.push('/login');
       },
 
       onTwofaChange: (value: any, _evt: any) => {
