@@ -57,7 +57,7 @@
   </q-card>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .q-card {
   width: 400px;
   margin: auto;

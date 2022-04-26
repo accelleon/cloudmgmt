@@ -90,7 +90,7 @@
   </q-page>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .acct-table {
   height: calc(100vh - 160px);
 

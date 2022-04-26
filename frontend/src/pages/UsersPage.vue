@@ -127,7 +127,7 @@
   </q-page>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .user-table {
   height: calc(100vh - 160px);
 
