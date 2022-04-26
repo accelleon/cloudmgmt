@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
@@ -34,6 +34,7 @@ async def get_self(
     },
 )
 async def update_self(
+    request: Request,
     *,
     user_in: model.UpdateMe,
     db: Session = Depends(core.get_db),
@@ -64,6 +65,8 @@ async def update_self(
 
     # Generate our URI if needed
     if user_in.twofa_enabled and newUser.twofa_secret_tmp:
-        resp.twofa_uri = create_uri(newUser.username, newUser.twofa_secret_tmp)
+        resp.twofa_uri = create_uri(
+            request.headers["Host"], newUser.username, newUser.twofa_secret_tmp
+        )
 
     return resp

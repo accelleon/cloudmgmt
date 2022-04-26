@@ -13,7 +13,9 @@ def json_source(settings: BaseSettings) -> Dict[str, Any]:
     """
     encoding = settings.__config__.env_file_encoding
     try:
-        env = json.loads(Path('/etc/cloudcost/config.json').read_text(encoding=encoding))
+        env = json.loads(
+            Path("/etc/cloudcost/config.json").read_text(encoding=encoding)
+        )
     except FileNotFoundError:
         env = {}
     return env
@@ -39,7 +41,7 @@ class Configs(BaseSettings):
 
     # Related to tokens
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    TOKEN_EXPIRES_MINUTES: int = 4*60
+    TOKEN_EXPIRES_MINUTES: int = 4 * 60
 
     # Database connection
     POSTGRES_SERVER: str = "localhost"
@@ -65,7 +67,7 @@ class Configs(BaseSettings):
 
     class Config:
         case_sensitive = True
-        env_file_encoding = 'utf-8'
+        env_file_encoding = "utf-8"
 
         @classmethod
         def customise_sources(

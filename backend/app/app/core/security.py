@@ -19,7 +19,7 @@ def create_token(
         if expires_delta
         else timedelta(minutes=configs.TOKEN_EXPIRES_MINUTES)
     )
-    to_encode = {"exp": expires, "sub": str(subject)}
+    to_encode = {"exp": expires, "sub": str(subject), "iat": datetime.utcnow()}
     return jwt.encode(to_encode, configs.SECRET_KEY, algorithm=ALGORITHM)
 
 
@@ -37,10 +37,8 @@ def create_secret() -> str:
 
 
 # Create a URI to make a QR code from
-def create_uri(username: str, secret: str) -> str:
-    return pyotp.totp.TOTP(secret).provisioning_uri(
-        name=username, issuer_name=configs.SERVER_NAME
-    )
+def create_uri(issuer: str, username: str, secret: str) -> str:
+    return pyotp.totp.TOTP(secret).provisioning_uri(name=username, issuer_name=issuer)
 
 
 # Verify a TOTP code
