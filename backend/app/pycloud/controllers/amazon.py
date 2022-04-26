@@ -1,5 +1,7 @@
+from datetime import date, datetime
 from typing import List
 
+import asyncio
 from mypy_boto3_ce import Client
 import boto3
 from botocore.exceptions import ClientError
@@ -31,11 +33,10 @@ class Amazon(IaasBase):
             aws_secret_access_key=self.secret_key,
         )
 
-    async def get_current_billing(self) -> BillingResponse:
+    def _get_billing(self, start: datetime, end: datetime) -> BillingResponse:
         """
-        Returns the current billing for the current month.
+        Returns the billing for the given time range.
         """
-        start, end = current_month_date_range()
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_cost_and_usage
         try:
             # TODO: Wrap in async call
@@ -57,3 +58,15 @@ class Amazon(IaasBase):
             start_date=start,
             end_date=end,
         )
+
+    async def get_current_invoiced(self) -> BillingResponse:
+        start, end = current_month_date_range()
+        return await asyncio.get_running_loop().run_in_executor(
+            None, self._get_billing, start, end
+        )
+
+    async def get_current_usage(self) -> BillingResponse:
+        return await self.get_current_invoiced()
+
+    async def get_invoice(self, month: datetime) -> BillingResponse:
+        pass

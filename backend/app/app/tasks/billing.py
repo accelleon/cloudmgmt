@@ -30,7 +30,7 @@ async def get_billing(self, account_id: int) -> None:
         )
 
         try:
-            billing = await client.get_current_billing()
+            billing = await client.get_current_invoiced()
         except (UnknownError, RateLimit) as e:
             raise self.retry(exc=e, countdown=60)
 

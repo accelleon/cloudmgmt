@@ -56,7 +56,7 @@ class Jelastic(PaasBase):
         super().__init__(**kwargs)
         self._base = endpoints[self.endpoint].endpoint
 
-    async def get_current_billing(self) -> BillingResponse:
+    async def get_current_invoiced(self) -> BillingResponse:
         first_day, last_day = current_month_date_range()
         data = {
             # This is a generic appid for all jelastic apps, use global or "no" environment
@@ -105,3 +105,9 @@ class Jelastic(PaasBase):
             total=total,
             balance=js["balance"],
         )
+
+    async def get_current_usage(self) -> BillingResponse:
+        return await self.get_current_invoiced()
+
+    async def get_invoice(self) -> BillingResponse:
+        pass

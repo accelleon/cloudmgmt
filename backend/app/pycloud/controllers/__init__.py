@@ -4,3 +4,6 @@ from .heroku import Heroku
 from .rackspace import Rackspace
 from .ovhcloud import OVHCloud
 from .digitalocean import DigitalOcean
+from .softlayer import Softlayer
+from .bluemix import Bluemix
+from .azure import Azure

@@ -22,7 +22,7 @@ class Rackspace(IaasBase):
         super().__init__(**data)
         self._base = "https://billing.api.rackspacecloud.com/"  # type: ignore
 
-    async def get_current_billing(self) -> BillingResponse:
+    async def get_current_invoiced(self) -> BillingResponse:
         """
         Returns the current billing for the current month.
         """
@@ -71,3 +71,9 @@ class Rackspace(IaasBase):
             start_date=js["estimatedCharges"]["currentBillingPeriodStartDate"],
             end_date=js["estimatedCharges"]["currentBillingPeriodEndDate"],
         )
+
+    async def get_current_usage(self) -> BillingResponse:
+        return await self.get_current_invoiced()
+
+    async def get_invoice(self) -> BillingResponse:
+        pass

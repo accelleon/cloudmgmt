@@ -40,10 +40,7 @@ class OVHCloud(IaasBase):
             consumer_key=self.consumer_key,
         )
 
-    async def get_current_billing(self) -> BillingResponse:
-        """
-        Returns the current billing for the current month.
-        """
+    async def get_current_invoiced(self) -> BillingResponse:
         start, end = current_month_date_range()
 
         try:
@@ -76,3 +73,30 @@ class OVHCloud(IaasBase):
             start_date=start,
             end_date=end,
         )
+
+    async def get_current_usage(self) -> BillingResponse:
+        start, end = current_month_date_range()
+
+        try:
+            usage = self._client.get("me/consumption/usage/forecast")
+        except ovh.exceptions.InvalidCredential:
+            raise exc.AuthorizationError("Invalid consumer key")
+        except ovh.exceptions.InvalidKey:
+            raise exc.AuthorizationError("Invalid application key or secret")
+        except Exception as e:
+            raise exc.UnknownError(e)
+
+        try:
+            total = usage[0]["price"]["value"]
+        except (TypeError, IndexError):
+            total = 0
+
+        return BillingResponse(
+            total=total,
+            balance=None,
+            start_date=start,
+            end_date=end,
+        )
+
+    async def get_invoice(self) -> BillingResponse:
+        pass

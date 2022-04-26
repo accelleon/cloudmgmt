@@ -25,10 +25,7 @@ class Heroku(PaasBase):
             }
         )
 
-    async def get_current_billing(self) -> BillingResponse:
-        """
-        Returns the current billing for the current month.
-        """
+    async def get_current_invoiced(self) -> BillingResponse:
         resp = await self._session.get(
             self.url("/account/invoices"),
             headers=self._headers,
@@ -57,3 +54,9 @@ class Heroku(PaasBase):
                 )
 
         raise Exception("No invoice found for the current month")
+
+    async def get_current_usage(self) -> BillingResponse:
+        return await self.get_current_invoiced()
+
+    async def get_invoice(self) -> BillingResponse:
+        pass

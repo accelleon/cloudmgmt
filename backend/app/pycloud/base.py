@@ -50,7 +50,29 @@ class ProviderBase(BaseModel, ABC):
         )
 
     @abstractmethod
-    async def get_current_billing(self) -> BillingResponse:
+    async def get_current_invoiced(self) -> BillingResponse:
+        """
+        Returns the current invoiced billing for the current month.
+        This will only aggregate costs that have actually invoiced.
+        """
+        pass
+
+    @abstractmethod
+    async def get_current_usage(self) -> BillingResponse:
+        """
+        Returns the current estimated billing for the current month.
+        This will aggregate costs that are also not invoiced yet.
+        Note that for some providers this is the same as the current invoiced.
+        """
+        pass
+
+    @abstractmethod
+    async def get_invoice(self) -> BillingResponse:
+        """
+        Returns a filetype and bytestream for the invoice for a given month.
+        The filetype will vary from provider to provider. For example, rackspace returns a CSV,
+        DO has a PDF.
+        """
         pass
 
 
