@@ -18,6 +18,7 @@ router = APIRouter()
     },
 )
 async def get_templates(
+    custom: bool = False,
     *,
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_current_user),
@@ -36,6 +37,7 @@ async def get_templates(
             order=[order.account_id for order in template.orders],
         )
         for template in templates
+        if (not custom) or (custom and template.name != "default")
     ]
     return result
 
