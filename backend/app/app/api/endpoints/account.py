@@ -1,6 +1,7 @@
 from typing import Any
+from http import HTTPStatus
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
@@ -156,7 +157,7 @@ async def delete_account(
     account_id: int,
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_admin_user),
-) -> None:
+):
     """
     Delete an account.
     """
@@ -165,4 +166,4 @@ async def delete_account(
         raise HTTPException(status_code=404, detail="Account not found")
 
     await database.account.delete(db, id=account_id)
-    return None
+    return Response(status_code=HTTPStatus.NO_CONTENT)

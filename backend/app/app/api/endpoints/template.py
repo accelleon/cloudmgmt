@@ -1,6 +1,7 @@
 from typing import List
+from http import HTTPStatus
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
@@ -170,3 +171,4 @@ async def delete_template(
         raise HTTPException(status_code=404, detail="Template not found")
 
     await database.template.delete(db, id=id)
+    return Response(status_code=HTTPStatus.NO_CONTENT)

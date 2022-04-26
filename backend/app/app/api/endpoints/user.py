@@ -1,6 +1,7 @@
 from typing import Any
+from http import HTTPStatus
 
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, HTTPException, Response
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from app import database, model
@@ -166,3 +167,4 @@ async def delete_user(
     if not user:
         raise HTTPException(404, "User not found")
     await database.user.delete(db, id=user_id)
+    return Response(status_code=HTTPStatus.NO_CONTENT)
