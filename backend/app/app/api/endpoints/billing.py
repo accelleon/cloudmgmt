@@ -1,14 +1,14 @@
 from io import BytesIO
-from typing import Optional
-from tempfile import NamedTemporaryFile
+from typing import Optional, List
 
-from fastapi import APIRouter, Request, Depends, HTTPException, Response
+from fastapi import APIRouter, Request, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 from openpyxl import Workbook
 
 from app import database, model
 from app.api import core
+from app.core import utils
 
 router = APIRouter()
 
@@ -68,6 +68,9 @@ async def get_billing(
 )
 async def export_billing(
     template: str = "default",
+    period: Optional[str] = Query(
+        None, description="Billing period, defaults to current"
+    ),
     *,
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_current_user),
@@ -77,14 +80,29 @@ async def export_billing(
     """
     wb = Workbook()
     ws = wb.active
-    reports = await database.billing.get_cur_period(db)
-    templateDb = await database.template.get_by_name(db, name="default")
+    reports = await database.billing.get_billing_period(
+        db,
+        period=period or utils.current_period(),
+    )
+    if not reports:
+        raise HTTPException(
+            status_code=404,
+            detail="No billing reports found for period {}".format(period),
+        )
+
+    templateDb = await database.template.get_by_name(db, name=template)
 
     account_ids = {report.account_id: report for report in reports}
 
     ws.append(
         ["Provider", "Account", "Billing Start", "Billing End", "Cost", "Balance"]
     )
+
+    if not templateDb:
+        raise HTTPException(
+            status_code=404,
+            detail="Template does not exist",
+        )
 
     for account_id in [order.account_id for order in templateDb.orders]:
         if account_id not in account_ids:
@@ -115,6 +133,24 @@ async def export_billing(
         headers=headers,
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
+
+
+@router.get(
+    "/periods",
+    response_model=List[str],
+    responses={
+        401: {"model": model.FailedResponse},
+    },
+)
+async def get_periods(
+    *,
+    db: Session = Depends(core.get_db),
+    _: database.User = Depends(core.get_current_user),
+):
+    """
+    Get a list of billing periods.
+    """
+    return await database.billing.get_periods(db)
 
 
 @router.get(

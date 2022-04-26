@@ -5,6 +5,8 @@ from celery import shared_task, group
 from .utils import run_sync
 from app.database.session import SessionLocal
 from app import database, model
+from app.core.utils import current_period
+
 from pycloud import CloudFactory
 from pycloud.exc import UnknownError, RateLimit
 
@@ -16,6 +18,7 @@ async def get_billing(self, account_id: int) -> None:
     Creates or updates billing period for the current month for the given account.
     """
     async with SessionLocal() as db:
+        period = current_period()
         account = await database.account.get(db, id=account_id)
 
         if account is None:
@@ -39,11 +42,10 @@ async def get_billing(self, account_id: int) -> None:
             await database.billing.create(db, obj_in=new_obj)
         except IntegrityError:
             await db.rollback()
-            db_obj = await database.billing.get_by_period(
+            db_obj = await database.billing.get_account_period(
                 db,
                 account_id=account_id,
-                start_date=billing.start_date,
-                end_date=billing.end_date,
+                period=period,
             )
             obj_in = model.UpdateBillingPeriod(
                 **billing.dict(),

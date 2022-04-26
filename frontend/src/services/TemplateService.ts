@@ -14,15 +14,22 @@ export class TemplateService {
     /**
      * Get Templates
      * Get a list of templates.
+     * @param custom
      * @returns Template Successful Response
      * @throws ApiError
      */
-    public static getTemplates(): CancelablePromise<Array<Template>> {
+    public static getTemplates(
+        custom: boolean = false,
+    ): CancelablePromise<Array<Template>> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/template',
+            query: {
+                'custom': custom,
+            },
             errors: {
                 401: `Unauthorized`,
+                422: `Validation Error`,
             },
         });
     }

@@ -14,10 +14,9 @@ export class BillingService {
     /**
      * Get Billing
      * Get a list of billing period summaries filtered by query.
+     * @param period
      * @param iaas
      * @param account
-     * @param startDate
-     * @param endDate
      * @param page
      * @param perPage
      * @param sort
@@ -26,10 +25,9 @@ export class BillingService {
      * @throws ApiError
      */
     public static getBilling(
+        period: string,
         iaas?: string,
         account?: string,
-        startDate?: string,
-        endDate?: string,
         page?: number,
         perPage: number = 20,
         sort?: string,
@@ -39,10 +37,9 @@ export class BillingService {
             method: 'GET',
             url: '/api/v1/billing',
             query: {
+                'period': period,
                 'iaas': iaas,
                 'account': account,
-                'start_date': startDate,
-                'end_date': endDate,
                 'page': page,
                 'per_page': perPage,
                 'sort': sort,
@@ -59,21 +56,40 @@ export class BillingService {
      * Export Billing
      * Export billing periods as a spreadsheet.
      * @param template
+     * @param period Billing period, defaults to current
      * @returns any Successful Response
      * @throws ApiError
      */
     public static exportBilling(
         template: string = 'default',
+        period?: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/billing/export',
             query: {
                 'template': template,
+                'period': period,
             },
             errors: {
                 401: `Unauthorized`,
                 422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Get Periods
+     * Get a list of billing periods.
+     * @returns string Successful Response
+     * @throws ApiError
+     */
+    public static getPeriods(): CancelablePromise<Array<string>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/billing/periods',
+            errors: {
+                401: `Unauthorized`,
             },
         });
     }

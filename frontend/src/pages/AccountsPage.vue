@@ -59,6 +59,16 @@
           </div>
         </template>
 
+        <template v-slot:body-cell-iaas="props">
+          <q-td :props="props">
+            {{
+              props.row.data.endpoint
+                ? props.row.iaas.name.concat(' (', props.row.data.endpoint, ')')
+                : props.row.iaas.name
+            }}
+          </q-td>
+        </template>
+
         <template v-slot:top-right>
           <q-btn icon="add" @click="onAdd">
             <q-tooltip> Add Account </q-tooltip>
@@ -124,16 +134,9 @@ import { Iaas } from '../models/Iaas';
 import { SearchOrder } from '../models/SearchOrder';
 import NewAccountDialog from 'src/components/dialogs/NewAccountDialog.vue';
 import UpdateAccountDialog from 'src/components/dialogs/UpdateAccountDialog.vue';
+import { IaasType } from 'src/models/IaasType';
 
 const columns = [
-  {
-    name: 'name',
-    required: true,
-    label: 'Name',
-    align: 'left',
-    sortable: true,
-    field: 'name',
-  },
   {
     name: 'iaas',
     required: true,
@@ -141,6 +144,14 @@ const columns = [
     align: 'left',
     sortable: true,
     field: (row: any) => row.iaas.name,
+  },
+  {
+    name: 'name',
+    required: true,
+    label: 'Name',
+    align: 'left',
+    sortable: true,
+    field: 'name',
   },
   {
     name: 'action',
@@ -154,6 +165,7 @@ const columns = [
 interface Filter {
   name?: string;
   iaas?: string;
+  type?: IaasType;
 }
 
 export default defineComponent({
@@ -167,9 +179,11 @@ export default defineComponent({
     const filter = ref({
       name: '',
       iaas: '',
+      type: undefined,
     } as Filter);
     const filterBy = ref({
       iaas: false,
+      type: false,
     });
     const loading = ref(false);
     const pagination = ref({
@@ -188,6 +202,7 @@ export default defineComponent({
       return AccountService.getAccounts(
         filter.value.name,
         filterBy.value.iaas ? filter.value.iaas : undefined,
+        filterBy.value.type ? filter.value.type : undefined,
         page - 1,
         rowsPerPage,
         sortBy,

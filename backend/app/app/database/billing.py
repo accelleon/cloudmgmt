@@ -7,6 +7,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Float,
+    String,
     asc,
     desc,
     select,
@@ -24,17 +25,27 @@ from app.model.billing import (
     CreateBillingPeriod,
 )
 
-from pycloud.utils import current_month_date_range
+
+class BillingPeriod(Base):
+    __tablename__ = "billing_period"  # type: ignore
+    id: int = Column(Integer, primary_key=True, index=True)
+    period: str = Column(String(9), index=True, unique=True)
+
+    billing: List["Billing"] = relationship(
+        "Billing", back_populates="period", lazy="selectin"
+    )
 
 
 class Billing(Base):
     id: int = Column(Integer, primary_key=True, index=True)
     account_id: int = Column(Integer, ForeignKey("account.id"), nullable=False)
+    period_id: int = Column(Integer, ForeignKey("billing_period.id"), nullable=False)
     start_date: datetime = Column(DateTime(timezone=True), nullable=False)
     end_date: datetime = Column(DateTime(timezone=True), nullable=False)
     total: float = Column(Float, nullable=False)
-    balance: float = Column(Float, nullable=False)
+    balance: Optional[float] = Column(Float, nullable=False)
 
+    period: BillingPeriod = relationship("BillingPeriod", back_populates="billing")
     account: Account = relationship("Account", lazy="selectin")
 
     def __repr__(self):
@@ -61,16 +72,14 @@ class BillingCRUD(
             filter = (
                 BillingPeriodFilter(**filter) if isinstance(filter, dict) else filter
             )
+            if filter.period:
+                query = query.where(BillingPeriod.period == filter.period)
             if filter.account and not filter.iaas:
                 raise ValueError("Must specify iaas when filtering by account")
             if filter.iaas:
                 query = query.where(Iaas.name == filter.iaas)
             if filter.account:
                 query = query.where(Account.name == filter.account)
-            if filter.start_date:
-                query = query.where(Billing.end_date >= filter.start_date)
-            if filter.end_date:
-                query = query.where(Billing.end_date < filter.end_date)
         op = asc if order == "asc" else desc
         if sort == "iaas":
             query = query.order_by(op(Iaas.name))
@@ -89,21 +98,75 @@ class BillingCRUD(
             exclude=exclude,
         )
 
-    async def get_by_period(
+    async def create(
+        self,
+        db: Session,
+        *,
+        obj_in: CreateBillingPeriod,
+    ) -> Billing:
+        period = obj_in.end_date.strftime("%Y-%m")
+        billing_period = await self.get_period(db, period=period)
+        if not billing_period:
+            billing_period = BillingPeriod(period=period)
+            db.add(billing_period)
+            await db.commit()
+            db.refresh(billing_period)
+
+        billing = Billing(
+            account_id=obj_in.account_id,
+            period_id=billing_period.id,
+            start_date=obj_in.start_date,
+            end_date=obj_in.end_date,
+            total=obj_in.total,
+            balance=obj_in.balance,
+        )
+        db.add(billing)
+        await db.commit()
+        return billing
+
+    async def get_period(
+        self,
+        db: Session,
+        *,
+        period: str,
+    ) -> Optional[BillingPeriod]:
+        return (
+            (
+                await db.execute(
+                    select(BillingPeriod).where(BillingPeriod.period == period)
+                )
+            )
+            .scalars()
+            .first()
+        )
+
+    async def get_periods(
+        self,
+        db: Session,
+    ) -> List[str]:
+        return (
+            (
+                await db.execute(
+                    select(BillingPeriod.period).order_by(desc(BillingPeriod.period))
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+    async def get_account_period(
         self,
         db: Session,
         *,
         account_id: int,
-        start_date: datetime,
-        end_date: datetime,
+        period: str,
     ) -> Optional[Billing]:
         return (
             (
                 await db.execute(
-                    select(Billing).where(
+                    select(BillingPeriod.billing).where(
+                        BillingPeriod.period == period,
                         Billing.account_id == account_id,
-                        Billing.start_date == start_date,
-                        Billing.end_date == end_date,
                     )
                 )
             )
@@ -111,23 +174,22 @@ class BillingCRUD(
             .first()
         )
 
-    async def get_cur_period(
+    async def get_billing_period(
         self,
         db: Session,
+        *,
+        period: str,
     ) -> List[Billing]:
-        start, end = current_month_date_range()
-        return (
+        resp = (
             (
                 await db.execute(
-                    select(Billing).where(
-                        Billing.end_date >= start,
-                        Billing.end_date <= end,
-                    )
+                    select(BillingPeriod).where(BillingPeriod.period == period)
                 )
             )
             .scalars()
-            .all()
+            .first()
         )
+        return resp.billing if resp else None
 
 
 billing = BillingCRUD(Billing)

@@ -4,6 +4,7 @@
 import type { Account } from '../models/Account';
 import type { AccountSearchResponse } from '../models/AccountSearchResponse';
 import type { CreateAccount } from '../models/CreateAccount';
+import type { IaasType } from '../models/IaasType';
 import type { SearchOrder } from '../models/SearchOrder';
 import type { UpdateAccount } from '../models/UpdateAccount';
 
@@ -18,6 +19,7 @@ export class AccountService {
      * Get a list of accounts filtered by query.
      * @param name
      * @param iaas
+     * @param type
      * @param page
      * @param perPage
      * @param sort
@@ -28,6 +30,7 @@ export class AccountService {
     public static getAccounts(
         name?: string,
         iaas?: string,
+        type?: IaasType,
         page?: number,
         perPage: number = 20,
         sort: string = 'name',
@@ -39,6 +42,7 @@ export class AccountService {
             query: {
                 'name': name,
                 'iaas': iaas,
+                'type': type,
                 'page': page,
                 'per_page': perPage,
                 'sort': sort,

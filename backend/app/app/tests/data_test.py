@@ -1,10 +1,13 @@
 import asyncio
 from random import choice, random
+from datetime import datetime
+
+from dateutil.relativedelta import relativedelta
 
 from app.database.session import SessionLocal
 from app import database, model
 from app.tests.utils import random_username
-from pycloud.utils import current_month_date_range
+from pycloud.utils import current_month_date_range, range_from_date
 
 
 async def main() -> None:
@@ -29,6 +32,16 @@ async def main() -> None:
 
             # create a billing period
             start, end = current_month_date_range()
+            bill = model.CreateBillingPeriod(
+                account_id=acct.id,
+                total=random() * 100.0,
+                balance=random() * 100.0,
+                start_date=start,
+                end_date=end,
+            )
+
+            # and create one for last month
+            start, end = range_from_date(datetime.today() - relativedelta(months=1))
             bill = model.CreateBillingPeriod(
                 account_id=acct.id,
                 total=random() * 100.0,

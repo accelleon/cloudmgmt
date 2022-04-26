@@ -1,7 +1,7 @@
 from typing import Optional
-from datetime import datetime
+import re
 
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from app.model.common import SearchQueryBase, SearchResponse
 
 from pycloud.models import BillingResponse
@@ -9,10 +9,18 @@ from .account import Account
 
 
 class BillingPeriodFilter(BaseModel):
+    period: str
     iaas: Optional[str] = None
     account: Optional[str] = None
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+
+    @validator("period")
+    def validate_period(cls, v):
+        if v is None:
+            raise ValueError("period is required")
+        # match regex pattern
+        if not re.match(r"^\d{4}-\d{2}$", v):
+            raise ValueError("Invalid period format")
+        return v
 
 
 class UpdateBillingPeriod(BaseModel):
