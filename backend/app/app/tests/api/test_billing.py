@@ -3,6 +3,7 @@ from typing import Dict
 import pytest
 from httpx import AsyncClient as TestClient
 from sqlalchemy.ext.asyncio import AsyncSession as Session
+from dateutil.relativedelta import relativedelta
 
 from app.core.config import configs
 from app import database
@@ -39,7 +40,7 @@ async def test_get_billing(
     await database.billing.create(db, obj_in=obj_in)
 
     r = await client.get(
-        f"{configs.API_V1_STR}/billing",
+        f"{configs.API_V1_STR}/billing?period={(end - relativedelta(days=1)).strftime('%Y-%m')}",
         headers=user_token_headers,
     )
     assert r.status_code == 200
