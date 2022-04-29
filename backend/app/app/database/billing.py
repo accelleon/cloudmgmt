@@ -15,6 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.sql import Select
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.asyncio import AsyncSession as Session
+from dateutil.relativedelta import relativedelta
 
 from .base import Base, CRUDBase
 from .account import Account  # noqa
@@ -67,7 +68,7 @@ class BillingCRUD(
         order: Optional[str] = "asc",
         exclude: Optional[List[int]] = None,
     ) -> Tuple[List[Billing], int]:
-        query = query if query is not None else select(Billing).join(Account).join(Iaas)
+        query = query if query is not None else select(Billing).join(BillingPeriod).join(Account).join(Iaas)
         if filter:
             filter = (
                 BillingPeriodFilter(**filter) if isinstance(filter, dict) else filter
@@ -104,13 +105,14 @@ class BillingCRUD(
         *,
         obj_in: CreateBillingPeriod,
     ) -> Billing:
-        period = obj_in.end_date.strftime("%Y-%m")
+        # Cloud providers have end date as exclusive normally subtract 1 day
+        period = (obj_in.end_date - relativedelta(days=1)).strftime("%Y-%m")
         billing_period = await self.get_period(db, period=period)
         if not billing_period:
             billing_period = BillingPeriod(period=period)
             db.add(billing_period)
             await db.commit()
-            db.refresh(billing_period)
+            await db.refresh(billing_period)
 
         billing = Billing(
             account_id=obj_in.account_id,
@@ -122,6 +124,7 @@ class BillingCRUD(
         )
         db.add(billing)
         await db.commit()
+        await db.refresh(billing)
         return billing
 
     async def get_period(

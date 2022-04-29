@@ -40,6 +40,8 @@ async def main() -> None:
                 end_date=end,
             )
 
+            await database.billing.create(db, obj_in=bill)
+
             # and create one for last month
             start, end = range_from_month(
                 (datetime.today() - relativedelta(months=1)).strftime("%Y-%m")
