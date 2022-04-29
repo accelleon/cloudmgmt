@@ -35,7 +35,7 @@ export class UserService {
         isAdmin?: boolean,
         twofaEnabled?: boolean,
         page?: number,
-        perPage: number = 20,
+        perPage?: number,
         sort: string = 'username',
         order?: SearchOrder,
     ): CancelablePromise<UserSearchResponse> {

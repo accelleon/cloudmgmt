@@ -28,7 +28,7 @@ export class ProviderService {
         name?: string,
         type?: IaasType,
         page?: number,
-        perPage: number = 20,
+        perPage?: number,
         sort: string = 'name',
         order?: SearchOrder,
     ): CancelablePromise<IaasSearchResponse> {

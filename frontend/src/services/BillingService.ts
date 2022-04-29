@@ -29,7 +29,7 @@ export class BillingService {
         iaas?: string,
         account?: string,
         page?: number,
-        perPage: number = 20,
+        perPage?: number,
         sort?: string,
         order?: SearchOrder,
     ): CancelablePromise<BillingSearchResponse> {

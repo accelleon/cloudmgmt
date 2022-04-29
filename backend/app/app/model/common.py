@@ -15,7 +15,7 @@ class SearchOrder(str, Enum):
 
 class SearchQueryBase(BaseModel):
     page: int = 0
-    per_page: int = 20
+    per_page: int = 0
     sort: Optional[str] = None
     order: SearchOrder = SearchOrder.ASC
 
