@@ -93,10 +93,25 @@
         <q-tabs vertical inline-label stretch>
           <q-route-tab icon="receipt_long" label="Billing" to="/billing" />
           <!-- <q-route-tab icon="delete_sweep" label="Purge" to="#" /> -->
-          <q-route-tab icon="manage_accounts" label="Users" to="/users" />
-          <q-route-tab icon="groups" label="Groups" to="#" />
-          <q-route-tab icon="cloud" label="Accounts" to="/accounts" />
-          <q-route-tab icon="settings" label="Settings" to="#" />
+          <q-route-tab
+            v-if="user.user.is_admin"
+            icon="manage_accounts"
+            label="Users"
+            to="/users"
+          />
+          <q-route-tab
+            v-if="user.user.is_admin"
+            icon="groups"
+            label="Groups"
+            to="#"
+          />
+          <q-route-tab
+            v-if="user.user.is_admin"
+            icon="cloud"
+            label="Accounts"
+            to="/accounts"
+          />
+          <!-- <q-route-tab icon="settings" label="Settings" to="#" /> -->
         </q-tabs>
       </q-scroll-area>
 
@@ -120,7 +135,6 @@ import { useUserStore } from 'src/stores/user-store';
 import TwoFaDialog from 'src/components/dialogs/TwoFaDialog.vue';
 import ChangePasswordDialog from 'src/components/dialogs/ChangePasswordDialog.vue';
 import { useAuthStore } from 'src/stores/auth-store';
-import { useRouter } from 'vue-router';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -130,7 +144,6 @@ export default defineComponent({
     const pinned = ref(true);
     const link = ref('');
     const $q = useQuasar();
-    const $router = useRouter();
     const user = useUserStore();
 
     const twofa = ref(false);
