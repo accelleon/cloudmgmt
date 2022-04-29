@@ -4,7 +4,7 @@ import secrets
 from typing import Any, Dict, List, Optional, Union
 
 from urllib.parse import quote_plus
-from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, validator
+from pydantic import AnyHttpUrl, BaseSettings, PostgresDsn, RedisDsn, validator
 
 
 def json_source(settings: BaseSettings) -> Dict[str, Any]:
@@ -48,9 +48,9 @@ class Configs(BaseSettings):
     POSTGRES_USER: str
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str = "cloudcost"
-    DATABASE_URI: Optional[PostgresDsn] = None
+    POSTGRES_DSN: Optional[PostgresDsn] = None
 
-    @validator("DATABASE_URI", pre=True)
+    @validator("POSTGRES_DSN", pre=True)
     def assemble_db_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
         if isinstance(v, str):
             return v
@@ -60,6 +60,22 @@ class Configs(BaseSettings):
             password=quote_plus(values.get("POSTGRES_PASSWORD")),  # type: ignore
             host=values.get("POSTGRES_SERVER"),  # type: ignore
             path=f"/{values.get('POSTGRES_DB') or ''}",
+        )
+
+    REDIS_SERVER: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_DSN: Optional[RedisDsn] = None
+
+    REDIS_2FA_DB: int = 1
+
+    @validator("REDIS_DSN", pre=True)
+    def assemble_redis_connection(cls, v: Optional[str], values: Dict[str, Any]) -> Any:
+        if isinstance(v, str):
+            return v
+        return RedisDsn.build(
+            scheme="redis",
+            host=values.get("REDIS_SERVER"),
+            port=str(values.get("REDIS_PORT")),
         )
 
     FIRST_USER_NAME: str = "admin"

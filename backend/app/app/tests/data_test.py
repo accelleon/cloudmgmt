@@ -7,7 +7,7 @@ from dateutil.relativedelta import relativedelta
 from app.database.session import SessionLocal
 from app import database, model
 from app.tests.utils import random_username
-from pycloud.utils import current_month_date_range, range_from_date
+from pycloud.utils import current_month_date_range, range_from_month
 
 
 async def main() -> None:
@@ -41,7 +41,9 @@ async def main() -> None:
             )
 
             # and create one for last month
-            start, end = range_from_date(datetime.today() - relativedelta(months=1))
+            start, end = range_from_month(
+                (datetime.today() - relativedelta(months=1)).strftime("%Y-%m")
+            )
             bill = model.CreateBillingPeriod(
                 account_id=acct.id,
                 total=random() * 100.0,

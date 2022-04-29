@@ -3,7 +3,14 @@ from typing import Union, Dict, Any, Optional
 from sqlalchemy import select, Boolean, Column, Integer, String
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
-from app.core.security import hash_password, verify_password, create_secret, verify_totp
+from app.database.session import redis_2fa
+from app.core.security import (
+    hash_password,
+    verify_password,
+    create_secret,
+    verify_totp,
+    totp_time_remaining,
+)
 from app.database.base import Base, CRUDBase
 from app.model import CreateUser, UpdateUser, UserFilter
 
@@ -94,15 +101,21 @@ class CRUDUser(CRUDBase[User, CreateUser, UpdateUser, UserFilter]):
             return None
         return user
 
-    def authenticate_twofa(self, db: Session, *, user: User, otp: str) -> bool:
+    async def authenticate_twofa(self, db: Session, *, user: User, otp: str) -> bool:
         if user.twofa_secret is None and user.twofa_secret_tmp is None:
             # We shouldn't be here, we don't have 2fa enabled and we're not in the process of enabling it
             raise Exception("You tried verifying TOTP on a user without it enabled")
+
+        redis_key = f"{user.username}:{otp}"
+        if await redis_2fa.get(redis_key):
+            # We've already used this code
             return False
 
         # If 2fa is enabled, we're validating the user's existing 2fa
         # otherwise we're validating the user's first OTP
         secret = user.twofa_secret if user.twofa_enabled else user.twofa_secret_tmp
+        await redis_2fa.set(redis_key, "1", ex=totp_time_remaining(secret))
+
         return verify_totp(secret, otp)
 
     def is_admin(

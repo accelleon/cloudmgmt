@@ -1,10 +1,12 @@
+import asyncio
+
 import pytest
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 import pyotp
 
 from app import database
-from app.core.security import verify_password
+from app.core.security import verify_password, totp_time_remaining
 from app.model.user import CreateUser, UpdateUser, UserFilter
 from app.model.me import UpdateMe
 from app.tests.utils import random_username, random_password
@@ -150,7 +152,7 @@ async def test_enable_twofa(db: Session) -> None:
 
     totp = pyotp.TOTP(user.twofa_secret_tmp)
     # Fail if we don't accept a 2fa code
-    assert database.user.authenticate_twofa(db, user=user, otp=totp.now())
+    assert await database.user.authenticate_twofa(db, user=user, otp=totp.now())
     update_data = UpdateMe(twofa_enabled=True, twofa_code=totp.now())
     user2 = await database.user.update(db, db_obj=user, obj_in=update_data)
     # Now we fail if we don't mark 2fa enabled, remove the tmp secret and set the secret
@@ -160,7 +162,31 @@ async def test_enable_twofa(db: Session) -> None:
 
     totp = pyotp.TOTP(user.twofa_secret)
     # Fail if we don't accept a 2fa code
-    assert database.user.authenticate_twofa(db, user=user, otp=totp.now())
+    assert await database.user.authenticate_twofa(db, user=user, otp=totp.now())
+
+
+@pytest.mark.asyncio
+async def test_reuse_twofa(db: Session) -> None:
+    username = random_username()
+    password = random_password()
+    user_in = CreateUser(
+        username=username,
+        password=password,
+        first_name="",
+        last_name="",
+    )
+    user = await database.user.create(db, obj_in=user_in)
+    update_data = UpdateUser(
+        twofa_enabled=True,
+    )
+    user = await database.user.update(db, db_obj=user, obj_in=update_data)
+    totp = pyotp.TOTP(user.twofa_secret_tmp)
+    update_data = UpdateMe(twofa_enabled=True, twofa_code=totp.now())
+    # Wait for a new code
+    await asyncio.sleep(totp_time_remaining(user.twofa_secret_tmp))
+    assert await database.user.authenticate_twofa(db, user=user, otp=totp.now())
+    # This should reject
+    assert not await database.user.authenticate_twofa(db, user=user, otp=totp.now())
 
 
 @pytest.mark.asyncio

@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from math import ceil
 from typing import Any, Union, Optional
 
 import pyotp
@@ -38,9 +39,15 @@ def create_secret() -> str:
 
 # Create a URI to make a QR code from
 def create_uri(issuer: str, username: str, secret: str) -> str:
-    return pyotp.totp.TOTP(secret).provisioning_uri(name=username, issuer_name=issuer)
+    return pyotp.TOTP(secret).provisioning_uri(name=username, issuer_name=issuer)
 
 
 # Verify a TOTP code
 def verify_totp(secret: str, code: str) -> bool:
     return pyotp.TOTP(secret).verify(code)
+
+
+# Retrieve time remaining until the next TOTP code is valid
+def totp_time_remaining(secret: str) -> int:
+    totp = pyotp.TOTP(secret)
+    return ceil(totp.interval - (datetime.now().timestamp() % totp.interval))

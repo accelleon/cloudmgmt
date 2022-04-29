@@ -57,7 +57,9 @@ async def update_self(
 
     # Are we trying to enable 2fa? If so ensure our first code is valid
     if user_in.twofa_enabled and user_in.twofa_code:
-        if not database.user.authenticate_twofa(db, user=user, otp=user_in.twofa_code):
+        if not await database.user.authenticate_twofa(
+            db, user=user, otp=user_in.twofa_code
+        ):
             raise HTTPException(403, "Invalid TOTP code provided")
 
     newUser = await database.user.update(db, db_obj=user, obj_in=user_in)

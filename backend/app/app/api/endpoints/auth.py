@@ -36,7 +36,7 @@ async def login(
         if request.twofa_code is None:
             # User has 2fa enabled but didn't give us a code
             return JSONResponse(status_code=403, content=model.AuthResponse2Fa().dict())
-        elif not database.user.authenticate_twofa(
+        elif not await database.user.authenticate_twofa(
             db, user=user, otp=request.twofa_code
         ):
             # User passed us the wrong 2fa code
