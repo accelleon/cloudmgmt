@@ -6,9 +6,22 @@ const routes: RouteRecordRaw[] = [
     name: 'main',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '/users', component: () => import('pages/UsersPage.vue') },
-      { path: '/accounts', component: () => import('pages/AccountsPage.vue') },
-      { path: '/billing', component: () => import('pages/BillingPage.vue') },
+      {
+        path: '/users',
+        component: () => import('pages/UsersPage.vue'),
+        meta: { isAdmin: true },
+      },
+      {
+        path: '/accounts',
+        component: () => import('pages/AccountsPage.vue'),
+        meta: { isAdmin: true },
+      },
+      {
+        path: '/billing',
+        component: () => import('pages/BillingPage.vue'),
+        meta: { requiresAuth: true },
+        alias: '/',
+      },
     ],
   },
   {

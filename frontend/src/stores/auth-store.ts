@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { LocalStorage } from 'quasar';
 import { AuthRequest, LoginService } from '..';
 import jwt_decode from 'jwt-decode';
+import { useUserStore } from 'src/stores/user-store';
 
 interface authState {
   token: string | null;
@@ -41,7 +42,11 @@ export const useAuthStore = defineStore('auth', {
           const token = resp.access_token;
           this.token = token;
           LocalStorage.set('auth_token', token);
-          return Promise.resolve();
+          useUserStore()
+            .getUser()
+            .then(() => {
+              return Promise.resolve();
+            });
         })
         .catch((err) => {
           return Promise.reject(err);

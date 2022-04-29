@@ -8,6 +8,7 @@ import {
 import routes from './routes';
 
 import { useAuthStore } from 'src/stores/auth-store';
+import { useUserStore } from 'src/stores/user-store';
 
 /*
  * If not building with SSR mode, you can
@@ -39,18 +40,26 @@ export default route(function ({ store /* ssrContext */ }) {
 
   Router.beforeEach((to, from, next) => {
     const authStore = useAuthStore(store);
-    if (to.path !== '/login' && authStore.isAuthenticated) {
-      // Requested anything but login and we're authenticated
-      next();
-    } else if (to.path === '/login' && authStore.isAuthenticated) {
-      // We're already logged in but wanted to go the login page, redirect to main
-      next({ name: 'main' });
-    } else if (to.path === '/login' && !authStore.isAuthenticated) {
-      // We're not logged in and wanted login
-      next();
+    if (to.matched.some((record) => record.meta.requiresAuth)) {
+      if (!authStore.isAuthenticated) {
+        next({
+          path: '/login',
+          query: { redirect: to.fullPath },
+        });
+      } else {
+        next();
+      }
+    } else if (to.matched.some((record) => record.meta.isAdmin)) {
+      const userStore = useUserStore();
+      if (!userStore.user.is_admin) {
+        next({
+          path: '/',
+        });
+      } else {
+        next();
+      }
     } else {
-      // None of the above just go back to login, pass the path we wanted
-      next({ path: '/login', query: { next: to.fullPath } });
+      next();
     }
   });
 
