@@ -22,15 +22,16 @@ curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
 
 # Pull in all our packages
 sudo apt update
-sudo apt install nodejs postgresql-14 redis nginx supervisor python3.9 python3.9-venv python3-pip -y
+sudo apt install nodejs postgresql-14 redis nginx python3.9 python3.9-venv python3-pip -y
 
 # install poetry
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.9 -
+source $HOME/.poetry/env
 
 # Build frontend
 cd frontend
 npm install
-quasar build
+bash -c "quasar build"
 
 # Copy the frontend over
 mkdir -p /opt/cloudcost/public
@@ -41,7 +42,7 @@ cd ..
 cp -r ./conf/* /
 
 # Copy the backend over
-cd ../backend
+cd backend
 cp -r . /opt/cloudcost
 cd /opt/cloudcost/app
 
@@ -49,6 +50,7 @@ cd /opt/cloudcost/app
 poetry install
 
 # Generate various secrets
+DB=cloudcost
 DBUSER=cloudcost
 DBPASS=`randpass 16`
 ADMIN_PASS=`randpass 16`
@@ -56,7 +58,7 @@ SECRET_KEY=`randpass 64`
 
 # Create the database
 sudo -u postgres psql -c "CREATE USER $DBUSER WITH PASSWORD '$DBPASS';"
-sudo -u postgres psql -c "CREATE DATABASE cloudcost OWNER $DBUSER;"
+sudo -u postgres psql -c "CREATE DATABASE $DB OWNER $DBUSER;"
 
 # Generate our config file
 cfg_cmd=$(cat << EOF
@@ -68,7 +70,7 @@ cfg_cmd=$(cat << EOF
         "POSTGRES_SERVER": "localhost",
         "POSTGRES_USER": "$DBUSER",
         "POSTGRES_PASSWORD": "$DBPASS",
-        "POSTGRES_DB": "cloudcost",
+        "POSTGRES_DB": "$DB",
 
         "FIRST_USER_PASS": "$ADMIN_PASS",
         "SECRET_KEY": "$SECRET_KEY",
@@ -87,31 +89,37 @@ fi
 /opt/cloudcost/app/.venv/bin/python -m app.init_data
 
 # Hard link the nginx config
-ln -s /opt/cloudcost/conf/sites-available/cloudcost /opt/cloudcost/conf/sites-enabled/cloudcost
+ln -s /opt/cloudcost/nginx/sites-available/cloudcost /opt/cloudcost/nginx/sites-enabled/cloudcost
 
 # Generate SSL certs for nginx
-mkdir -p /opt/cloudcost/conf/ssl
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /opt/cloudcost/conf/ssl/server.key -out /opt/cloudcost/conf/ssl/server.crt
+mkdir -p /opt/cloudcost/ssl
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /opt/cloudcost/ssl/server.key -out /opt/cloudcost/ssl/server.crt
 
 # Users and permissions for everything
 groupadd -r www-data
-groupadd -r cloudcost
 
-adduser --system --no-create-home --user-group --disabled-login --disabled-password nginx
-adduser --system --no-create-home --user-group --disabled-login --disabled-password celery
+adduser --system --no-create-home --group --disabled-login --disabled-password nginx
+adduser --system --no-create-home --group --disabled-login --disabled-password cloudcost
 
-usermod -a -g www-data nginx
-usermod -a -g celery cloudcost
+usermod -a -G www-data nginx
 
-chown -R nginx:www-data /opt/cloudcost/nginx
-chmod -R 0444 /opt/cloudcost/nginx
-chgrp -R www-data /opt/cloudcost/public
-chmod -R 0444 /opt/cloudcost/public
+chown -R nginx:nginx /opt/cloudcost/nginx
+chmod -R 0555 /opt/cloudcost/nginx
+chown -R nginx:nginx /opt/cloudcost/public
+chmod -R 0555 /opt/cloudcost/public
 
-chgrp -R cloudcost /opt/cloudcost/app
+chmod +x /opt/cloudcost
+chmod +x /opt/
+
+chown -R cloudcost:cloudcost /opt/cloudcost/app
 chmod -R u-w /opt/cloudcost/app
 chmod -R g-w /opt/cloudcost/app
 chmod -R o-w /opt/cloudcost/app
 
 chown -R nginx:www-data /var/log/supervisor/nginx*
 chown -R celery:cloudcost /var/log/supervisor/celery*
+
+service nginx stop
+service postgresql stop
+sudo apt install supervisor -y
+supervisorctl start *
