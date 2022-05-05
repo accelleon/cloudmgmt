@@ -1,10 +1,12 @@
 from datetime import date, datetime
-from typing import List
+from typing import TYPE_CHECKING, List
 
 import asyncio
-from mypy_boto3_ce import Client
 import boto3
 from botocore.exceptions import ClientError
+
+if TYPE_CHECKING:
+    from mypy_boto3_ce import Client
 
 from pycloud.base import IaasBase
 from pycloud.models import BillingResponse, IaasParam
@@ -16,7 +18,7 @@ class Amazon(IaasBase):
     access_key: str
     secret_key: str
 
-    _client: Client
+    _client: 'Client'
 
     @staticmethod
     def params() -> List[IaasParam]:
