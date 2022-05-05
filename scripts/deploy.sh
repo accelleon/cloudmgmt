@@ -25,7 +25,7 @@ sudo apt update
 sudo apt install nodejs postgresql-14 redis nginx python3.9 python3.9-venv python3-pip -y
 
 # install poetry
-curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.9 -
+curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python3.9 -
 
 # Build frontend
 cd frontend
