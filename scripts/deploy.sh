@@ -73,12 +73,12 @@ cfg_cmd=$(cat << EOF
         "POSTGRES_DB": "$DB",
 
         "FIRST_USER_PASS": "$ADMIN_PASS",
-        "SECRET_KEY": "$SECRET_KEY",
+        "SECRET_KEY": "$SECRET_KEY"
 }
 EOF
 )
 
-echo "$cfg_cmd" > /opt/cloudcost/config.json
+echo "$cfg_cmd" > /etc/cloudcost/config.json
 if [[ $? -ne 0 ]]; then
   echo "Failed to generate config."
   exit 1
