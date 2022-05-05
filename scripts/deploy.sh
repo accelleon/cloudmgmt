@@ -72,7 +72,7 @@ cfg_cmd=$(cat << EOF
         "POSTGRES_PASSWORD": "$DBPASS",
         "POSTGRES_DB": "$DB",
 
-        "FIRST_USER_PASS": "$ADMIN_PASS",
+        "FIRST_USER_PASS": "$ADMIN_PASS!",
         "SECRET_KEY": "$SECRET_KEY"
 }
 EOF
