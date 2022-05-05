@@ -26,11 +26,13 @@ sudo apt install nodejs postgresql-14 redis nginx python3.9 python3.9-venv pytho
 
 # install poetry
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.9 -
-source $HOME/.poetry/env
+chmod +x $HOME/.poetry/env
+exec $HOME/.poetry/env
 
 # Build frontend
 cd frontend
 npm install
+npm link @quasar/cli
 bash -c "quasar build"
 
 # Copy the frontend over
@@ -107,14 +109,11 @@ chown -R nginx:nginx /opt/cloudcost/nginx
 chmod -R 0555 /opt/cloudcost/nginx
 chown -R nginx:nginx /opt/cloudcost/public
 chmod -R 0555 /opt/cloudcost/public
-
 chmod +x /opt/cloudcost
 chmod +x /opt/
 
 chown -R cloudcost:cloudcost /opt/cloudcost/app
-chmod -R u-w /opt/cloudcost/app
-chmod -R g-w /opt/cloudcost/app
-chmod -R o-w /opt/cloudcost/app
+chmod -R 0744 /opt/cloudcost/app
 
 chown -R nginx:www-data /var/log/supervisor/nginx*
 chown -R celery:cloudcost /var/log/supervisor/celery*
