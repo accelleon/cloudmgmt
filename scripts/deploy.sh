@@ -119,4 +119,3 @@ chown -R celery:cloudcost /var/log/supervisor/celery*
 service nginx stop
 service postgresql stop
 sudo apt install supervisor -y
-supervisorctl start *
