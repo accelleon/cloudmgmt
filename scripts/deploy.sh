@@ -26,14 +26,12 @@ sudo apt install nodejs postgresql-14 redis nginx python3.9 python3.9-venv pytho
 
 # install poetry
 curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python3.9 -
-chmod +x $HOME/.poetry/env
-exec $HOME/.poetry/env
 
 # Build frontend
 cd frontend
 npm install
 npm link @quasar/cli
-bash -c "quasar build"
+quasar build
 
 # Copy the frontend over
 mkdir -p /opt/cloudcost/public
@@ -49,7 +47,7 @@ cp -r . /opt/cloudcost
 cd /opt/cloudcost/app
 
 # Grab requirements via poetry
-poetry install
+/opt/poetry/bin/poetry install --no-dev
 
 # Generate various secrets
 DB=cloudcost
