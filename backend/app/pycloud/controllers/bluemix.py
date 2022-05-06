@@ -8,26 +8,26 @@ from pycloud import exc
 
 # item for usage costs
 api_getNextInvoiceTopLevel = (
-    "/rest/v3.1/SoftLayer_Account/getNextInvoiceTopLevelBillingItems.json"
+    "https://api.softlayer.com/rest/v3.1/SoftLayer_Account/getNextInvoiceTopLevelBillingItems.json"
 )
 
 # Grab child items of a billing item
 # Returns only non-zero cost children of billing item id {id}
 api_getChildren = (
-    "/rest/v3.1/SoftLayer_Billing_Item/{id}/getNonZeroNextInvoiceChildren.json"
+    "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Item/{id}/getNonZeroNextInvoiceChildren.json"
 )
 
 # Grab previous invoice object
-api_getPrevInvoice = "/rest/v3.1/SoftLayer_Account/getLatestRecurringInvoice.json"
+api_getPrevInvoice = "https://api.softlayer.com/rest/v3.1/SoftLayer_Account/getLatestRecurringInvoice.json"
 
 # Grab top level items of indicated invoice
 api_getInvoiceTopLevel = (
-    "/rest/v3.1/SoftLayer_Billing_Invoice/{id}/getInvoiceTopLevelItems.json"
+    "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Invoice/{id}/getInvoiceTopLevelItems.json"
 )
 
 # Grab an invoices non-zero cost children
 api_getInvoiceChildren = (
-    "/rest/v3.1/SoftLayer_Billing_Invoice_Item/{id}/getNonZeroAssociatedChildren.json"
+    "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Invoice_Item/{id}/getNonZeroAssociatedChildren.json"
 )
 
 

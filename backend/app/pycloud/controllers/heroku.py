@@ -47,7 +47,7 @@ class Heroku(PaasBase):
         for invoice in js:
             if month in invoice["period_start"]:
                 return BillingResponse(
-                    total=invoice["total"],
+                    total=(invoice["total"] / 100),
                     balance=None,
                     start_date=start,
                     end_date=end,
