@@ -55,7 +55,7 @@ class Rackspace(IaasBase):
             self.url("/v2/accounts/{ran}/estimated_charges".format(ran=self.ran)),
             headers=self._headers,
         )
-        if not resp.status_code != 200:
+        if resp.status_code != 200:
             if resp.status_code == 401:
                 raise exc.AuthorizationError(
                     "Invalid API key. Please check your Rackspace API key."
