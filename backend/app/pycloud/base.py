@@ -51,6 +51,10 @@ class ProviderBase(BaseModel, ABC):
         )
 
     @abstractmethod
+    async def validate_account(self) -> None:
+        pass
+
+    @abstractmethod
     async def get_current_invoiced(self) -> BillingResponse:
         """
         Returns the current invoiced billing for the current month.

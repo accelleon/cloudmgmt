@@ -64,6 +64,18 @@ class CloudSigma(IaasBase):
         self._base = f"https://{self.endpoint}.cloudsigma.com/"
         self._auth = (self.username, self.password)
 
+    async def validate_account(self) -> None:
+        r = await self._session.get(self.url("/api/2.0/profile"), auth=self._auth)
+        if r.status_code != 200:
+            if r.status_code == 401:
+                raise exc.AuthorizationError(
+                    "Invalid username or password. Please check your CloudSigma credentials."
+                )
+            else:
+                raise exc.UnknownError(
+                    "Failed to get CloudSigma profile: {}".format(r.text)
+                )
+
     async def get_current_invoiced(self) -> BillingResponse:
         start, end = current_month_date_range()
         # First retrieve our account balance

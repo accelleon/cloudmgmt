@@ -2,6 +2,7 @@ from typing import Any, List
 from datetime import datetime
 
 import ovh
+from asgiref.sync import sync_to_async
 
 from pycloud.base import IaasBase
 from pycloud.models import BillingResponse, IaasParam
@@ -39,6 +40,19 @@ class OVHCloud(IaasBase):
             application_secret=self.app_secret,
             consumer_key=self.consumer_key,
         )
+
+    async def validate_account(self) -> None:
+        def _validate_account():
+            try:
+                self._client.get("/me")
+            except ovh.exceptions.InvalidCredential:
+                raise exc.AuthorizationError("Invalid consumer key")
+            except ovh.exceptions.InvalidKey:
+                raise exc.AuthorizationError("Invalid application key or secret")
+            except Exception as e:
+                raise exc.UnknownError(e)
+
+        await sync_to_async(_validate_account)()
 
     async def get_current_invoiced(self) -> BillingResponse:
         start, end = current_month_date_range()

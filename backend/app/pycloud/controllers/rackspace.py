@@ -22,10 +22,7 @@ class Rackspace(IaasBase):
         super().__init__(**data)
         self._base = "https://billing.api.rackspacecloud.com/"  # type: ignore
 
-    async def get_current_invoiced(self) -> BillingResponse:
-        """
-        Returns the current billing for the current month.
-        """
+    async def authenticate(self) -> None:
         resp = await self._session.post(
             "https://identity.api.rackspacecloud.com/v2.0/tokens",
             headers=self._headers,
@@ -50,6 +47,15 @@ class Rackspace(IaasBase):
         js = resp.json()
         token = js["access"]["token"]["id"]
         self._headers.update({"X-Auth-Token": token})
+
+    async def validate_account(self) -> None:
+        await self.authenticate()
+
+    async def get_current_invoiced(self) -> BillingResponse:
+        """
+        Returns the current billing for the current month.
+        """
+        await self.authenticate()
 
         resp = await self._session.get(
             self.url("/v2/accounts/{ran}/estimated_charges".format(ran=self.ran)),

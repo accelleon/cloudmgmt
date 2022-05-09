@@ -2,6 +2,7 @@ from datetime import date, datetime
 from typing import TYPE_CHECKING, List
 
 import asyncio
+from asgiref.sync import sync_to_async
 import boto3
 from botocore.exceptions import ClientError
 
@@ -35,6 +36,14 @@ class Amazon(IaasBase):
             aws_secret_access_key=self.secret_key,
         )
 
+    async def validate_account(self) -> None:
+        def _validate_account():
+            try:
+                boto3.client("sts", aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key).get_caller_identity()
+            except Exception as e:
+                raise exc.AuthorizationError("Failed to validate account: {}".format(e))
+        return await sync_to_async(_validate_account)()
+
     def _get_billing(self, start: datetime, end: datetime) -> BillingResponse:
         """
         Returns the billing for the given time range.
@@ -63,6 +72,7 @@ class Amazon(IaasBase):
 
     async def get_current_invoiced(self) -> BillingResponse:
         start, end = current_month_date_range()
+        return await sync_to_async(self._get_billing)(start, end)
         return await asyncio.get_running_loop().run_in_executor(
             None, self._get_billing, start, end
         )

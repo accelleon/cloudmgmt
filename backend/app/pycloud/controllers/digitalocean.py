@@ -20,6 +20,17 @@ class DigitalOcean(IaasBase):
         self._headers.update({"Authorization": f"Bearer {self.api_key}"})
         self._base = "https://api.digitalocean.com/"  # type: ignore
 
+    async def validate_account(self) -> None:
+        r = await self._session.get(self.url("/v2/account"), headers=self._headers)
+        if r.status_code == 401:
+            raise exc.AuthorizationError(
+                "Invalid API token. Please check your DigitalOcean credentials."
+            )
+        if r.status_code != 200:
+            raise exc.UnknownError(
+                "Failed to get DigitalOcean profile: {}".format(r.text)
+            )
+
     async def _get_current_invoiced(self) -> BillingResponse:
         """
         Returns the invoiced billing for the given month.

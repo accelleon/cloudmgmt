@@ -52,6 +52,11 @@ class Softlayer(IaasBase):
         self._base = "https://api.softlayer.com/"
         self._auth = (self.account_name, self.token)
 
+    async def validate_account(self) -> None:
+        r = await self._session.get(self.url("/rest/v3.1/SoftLayer_Account/getCurrentUser.json"), auth=self._auth)
+        if r.status_code != 200:
+            raise exc.AuthorizationError("Invalid API key. Please check your Bluemix Account number or API key.")
+
     async def _get_invoices(self) -> Any:
         r = await self._session.get(
             self.url("/rest/v3.1/Softlayer_Account/getInvoices"),

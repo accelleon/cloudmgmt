@@ -48,6 +48,9 @@ class Azure(IaasBase):
         token = js["access_token"]
         self._headers.update({"Authorization": f"Bearer {token}"})
 
+    async def validate_account(self) -> None:
+        await self.authenticate()
+
     async def get_current_invoiced(self) -> BillingResponse:
         await self.authenticate()
         # Parameters for the initial request
