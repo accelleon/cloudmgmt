@@ -16,8 +16,6 @@ class Azure(IaasBase):
     client_id: str
     client_secret: str
 
-    _token: str
-
     @staticmethod
     def params() -> List[IaasParam]:
         return [
@@ -31,10 +29,7 @@ class Azure(IaasBase):
         super().__init__(**data)
         self._base = "https://management.azure.com/"
 
-    async def authenticate(self) -> str:
-        if self._token:
-            return self._token
-
+    async def authenticate(self) -> None:
         # Build payload for authentication
         data = {
             "grant_type": "client_credentials",
@@ -50,9 +45,8 @@ class Azure(IaasBase):
         js = x.json()
         if x.status_code != 200:
             raise exc.AuthorizationError(f"authentication failed:\n{x.text}")
-        self._token = js["access_token"]
-        self._headers.update({"Authorization": f"Bearer {self._token}"})
-        return self._token
+        token = js["access_token"]
+        self._headers.update({"Authorization": f"Bearer {token}"})
 
     async def get_current_invoiced(self) -> BillingResponse:
         await self.authenticate()
@@ -84,7 +78,7 @@ class Azure(IaasBase):
             x = await self._session.get(next_url, headers=self._headers)
             js = x.json()
             if x.status_code != 200:
-                raise Exception(f"API Call Failed:\n{x.text}")
+                raise exc.UnknownError(f"failed to get usage:\n{x.text}")
 
             # Loop through the returned itemized JSON and total
             [total := total + i["properties"]["paygCostInUSD"] for i in js["value"]]
