@@ -1,6 +1,8 @@
 from typing import List, Any, Tuple
 import json
 
+from dateutil.relativedelta import relativedelta
+
 from pycloud.base import IaasBase
 from pycloud.models import IaasParam, BillingResponse
 from pycloud import exc
@@ -8,26 +10,26 @@ from pycloud import exc
 
 # item for usage costs
 api_getNextInvoiceTopLevel = (
-    "/rest/v3.1/SoftLayer_Account/getNextInvoiceTopLevelBillingItems.json"
+    "https://api.softlayer.com/rest/v3.1/SoftLayer_Account/getNextInvoiceTopLevelBillingItems.json"
 )
 
 # Grab child items of a billing item
 # Returns only non-zero cost children of billing item id {id}
 api_getChildren = (
-    "/rest/v3.1/SoftLayer_Billing_Item/{id}/getNonZeroNextInvoiceChildren.json"
+    "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Item/{id}/getNonZeroNextInvoiceChildren.json"
 )
 
 # Grab previous invoice object
-api_getPrevInvoice = "/rest/v3.1/SoftLayer_Account/getLatestRecurringInvoice.json"
+api_getPrevInvoice = "https://api.softlayer.com/rest/v3.1/SoftLayer_Account/getLatestRecurringInvoice.json"
 
 # Grab top level items of indicated invoice
 api_getInvoiceTopLevel = (
-    "/rest/v3.1/SoftLayer_Billing_Invoice/{id}/getInvoiceTopLevelItems.json"
+    "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Invoice/{id}/getInvoiceTopLevelItems.json"
 )
 
 # Grab an invoices non-zero cost children
 api_getInvoiceChildren = (
-    "/rest/v3.1/SoftLayer_Billing_Invoice_Item/{id}/getNonZeroAssociatedChildren.json"
+    "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Invoice_Item/{id}/getNonZeroAssociatedChildren.json"
 )
 
 
@@ -124,11 +126,13 @@ class Softlayer(IaasBase):
             for child in children:
                 total += float(child["recurringFee"])
 
-        return BillingResponse(
+        resp = BillingResponse(
             total=total,
             start_date=endDate,
             end_date=endDate,
         )
+        resp.start_date = (resp.start_date - relativedelta(months=1))
+        return resp
 
     async def get_current_usage(self) -> BillingResponse:
         # We filter everything that doesn't start with paas

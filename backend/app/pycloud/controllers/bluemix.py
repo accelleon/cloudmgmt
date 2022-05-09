@@ -1,6 +1,8 @@
 from typing import List, Any, Tuple
 import json
 
+from dateutil.relativedelta import relativedelta
+
 from pycloud.base import PaasBase
 from pycloud.models import IaasParam, BillingResponse
 from pycloud import exc
@@ -124,11 +126,13 @@ class Bluemix(PaasBase):
             for child in children:
                 total += float(child["recurringFee"])
 
-        return BillingResponse(
+        resp = BillingResponse(
             total=total,
             start_date=endDate,
             end_date=endDate,
         )
+        resp.start_date = (resp.start_date - relativedelta(months=1))
+        return resp
 
     async def get_current_usage(self) -> BillingResponse:
         # We filter everything that doesn't start with paas
