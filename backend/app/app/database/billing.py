@@ -44,7 +44,7 @@ class Billing(Base):
     start_date: datetime = Column(DateTime(timezone=True), nullable=False)
     end_date: datetime = Column(DateTime(timezone=True), nullable=False)
     total: float = Column(Float, nullable=False)
-    balance: Optional[float] = Column(Float, nullable=False)
+    balance: Optional[float] = Column(Float, nullable=True)
 
     period: BillingPeriod = relationship("BillingPeriod", back_populates="billing")
     account: Account = relationship("Account", lazy="selectin")
@@ -167,7 +167,7 @@ class BillingCRUD(
         return (
             (
                 await db.execute(
-                    select(BillingPeriod.billing).where(
+                    select(Billing).join(BillingPeriod).where(
                         BillingPeriod.period == period,
                         Billing.account_id == account_id,
                     )
