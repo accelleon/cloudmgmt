@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, Dict, Optional
 
 from pydantic import BaseModel, AnyHttpUrl
-from httpx import AsyncClient
+from httpx import AsyncClient, AsyncHTTPTransport
 from urllib.parse import urljoin
 
 from .models import IaasType, IaasParam, BillingResponse
@@ -40,7 +40,8 @@ class ProviderBase(BaseModel, ABC):
         super().__init__(**kwargs)
         global session
         if not session:
-            session = AsyncClient()
+            transport = AsyncHTTPTransport(retries=5)
+            session = AsyncClient(transport=transport, follow_redirects=True)
         self._session = session
         self._headers.update(
             {
