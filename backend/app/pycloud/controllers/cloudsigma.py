@@ -1,4 +1,4 @@
-from typing import List, Literal, Tuple
+from typing import List, Literal, Tuple, Union, Dict
 
 from pycloud.base import IaasBase
 from pycloud.models import BillingResponse, IaasParam
@@ -67,33 +67,54 @@ class CloudSigma(IaasBase):
     async def get_current_invoiced(self) -> BillingResponse:
         start, end = current_month_date_range()
         # First retrieve our account balance
-        x = await self._session.get(self.url("/balance"), auth=self._auth)
+        x = await self._session.get(self.url("/api/2.0/balance"), auth=self._auth)
         if x.status_code != 200:
-            raise Exception(f"failed to retreive balance {x}")
+            if x.status_code == 401:
+                raise exc.AuthorizationError(
+                    "Invalid username or password. Please check your CloudSigma credentials."
+                )
+            else:
+                raise exc.UnknownError(
+                    "Failed to get CloudSigma billing: {}".format(x.text)
+                )
         js = x.json()
         balance = round(float(js["balance"]), 2)
 
         # Query parameters, filter by what we want
         # our first request we want nothing returned, we simply want the total count that our query returns
-        params = {
+        params: Dict[str, Union[str, int]] = {
             "time__gt": start.strftime("%Y-%m-%d"),
             "time__lt": end.strftime("%Y-%m-%d"),
             "limit": 0,
         }
 
         # Do the thing
-        x = await self._session.get(self.url("/ledger"), auth=self._auth, params=params)
+        x = await self._session.get(self.url("/api/2.0/ledger"), auth=self._auth, params=params)
         if x.status_code != 200:
-            raise Exception(f"failed to retreive monthly usage {x}")
+            if x.status_code == 401:
+                raise exc.AuthorizationError(
+                    "Invalid username or password. Please check your CloudSigma credentials."
+                )
+            else:
+                raise exc.UnknownError(
+                    "Failed to get CloudSigma billing: {}".format(x.text)
+                )
         js = x.json()
 
         # Set the limit for our next request, grab everything
         params["limit"] = js["meta"]["total_count"]
 
         # Do the thing
-        x = await self._session.get(self.url("/ledger"), auth=self._auth, params=params)
+        x = await self._session.get(self.url("/api/2.0/ledger"), auth=self._auth, params=params)
         if x.status_code != 200:
-            raise Exception(f"failed to retreive monthly usage {x}")
+            if x.status_code == 401:
+                raise exc.AuthorizationError(
+                    "Invalid username or password. Please check your CloudSigma credentials."
+                )
+            else:
+                raise exc.UnknownError(
+                    "Failed to get CloudSigma billing: {}".format(x.text)
+                )
         js = x.json()
 
         # Loop through the returned itemized JSON and total

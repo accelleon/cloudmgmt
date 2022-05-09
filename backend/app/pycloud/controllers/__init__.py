@@ -7,3 +7,4 @@ from .digitalocean import DigitalOcean
 from .softlayer import Softlayer
 from .bluemix import Bluemix
 from .azure import Azure
+from .cloudsigma import CloudSigma
