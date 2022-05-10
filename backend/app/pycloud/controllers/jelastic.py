@@ -61,7 +61,7 @@ class Jelastic(PaasBase):
             "appid": "1dd8d191d38fff45e62564fcf67fdcd6",
             "session": self.api_key,
         }
-        r = await self._session.get("/1.0/billing/account/rest/getaccount", params=data)
+        r = await self._session.get(self.url("/1.0/billing/account/rest/getaccount"), params=data)
         js = r.json()
         if js["result"]:
             # Result should be 0 for success
