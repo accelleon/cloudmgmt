@@ -8,3 +8,4 @@ from .softlayer import Softlayer
 from .bluemix import Bluemix
 from .azure import Azure
 from .cloudsigma import CloudSigma
+from .nexmo import Nexmo

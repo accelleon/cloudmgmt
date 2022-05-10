@@ -22,6 +22,7 @@ class BillingResponse(BaseModel):
 class IaasType(Enum):
     IAAS = "IAAS"
     PAAS = "PAAS"
+    SIP = "SIP"
 
 
 class IaasParam(BaseModel):

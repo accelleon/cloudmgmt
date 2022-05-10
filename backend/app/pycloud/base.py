@@ -81,13 +81,23 @@ class ProviderBase(BaseModel, ABC):
         pass
 
 
-class IaasBase(ProviderBase):
+class CloudBase(ProviderBase, ABC):
+    pass
+
+
+class SIPBase(ProviderBase):
+    @staticmethod
+    def type() -> IaasType:
+        return IaasType.SIP
+
+
+class IaasBase(CloudBase):
     @staticmethod
     def type() -> IaasType:
         return IaasType.IAAS
 
 
-class PaasBase(ProviderBase):
+class PaasBase(CloudBase):
     @staticmethod
     def type() -> IaasType:
         return IaasType.PAAS
