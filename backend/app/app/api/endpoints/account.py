@@ -133,7 +133,7 @@ async def update_account(
 
     if new.name is not None and new.name != account.name:
         if await database.account.get_by_name(
-            db, name=account.name, iaas=account.iaas.name
+            db, name=new.name, iaas=account.iaas.name
         ):
             raise HTTPException(status_code=409, detail="Account name already exists")
 
