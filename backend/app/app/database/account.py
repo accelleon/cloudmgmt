@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Union, Optional, Tuple, List, Dict
+import traceback
 
 from sqlalchemy import select, Column, Integer, String, JSON, ForeignKey, Boolean
 from sqlalchemy.sql import Select
@@ -137,7 +138,7 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
 
     async def validate(self, db: Session, *, account: Account) -> Account:
         if account.validated:
-            return
+            return account
         try:
             client = CloudFactory.get_client(account.iaas.name, account.data)
             await client.validate_account()
@@ -148,7 +149,8 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
             account.last_error = str(e)
         except Exception:
             # Some other error, don't modify anything
-            return
+            print(traceback.format_exc())
+            return account
 
         db.add(account)
         await db.commit()
