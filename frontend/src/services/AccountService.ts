@@ -159,4 +159,29 @@ export class AccountService {
         });
     }
 
+    /**
+     * Validate Account
+     * Validate an account.
+     * @param accountId
+     * @returns Account Successful Response
+     * @throws ApiError
+     */
+    public static validateAccount(
+        accountId: number,
+    ): CancelablePromise<Account> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/accounts/{account_id}/validate',
+            path: {
+                'account_id': accountId,
+            },
+            errors: {
+                401: `Unauthorized`,
+                403: `Forbidden`,
+                404: `Not Found`,
+                422: `Validation Error`,
+            },
+        });
+    }
+
 }

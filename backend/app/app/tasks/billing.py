@@ -8,7 +8,7 @@ from app.database.session import SessionLocal
 from app import database, model
 
 from pycloud import CloudFactory
-from pycloud.exc import UnknownError, RateLimit
+from pycloud.exc import UnknownError, RateLimit, AuthorizationError
 
 
 @shared_task(name="get_billing", bind=True)
@@ -30,6 +30,12 @@ async def get_billing(self, account_id: int) -> None:
 
         try:
             billing = await client.get_current_invoiced()
+        except AuthorizationError as e:
+            account.last_error = str(e)
+            account.validated = False
+            db.add(account)
+            db.commit()
+            raise
         except (UnknownError, RateLimit) as e:
             raise self.retry(exc=e, countdown=60)
 
@@ -52,6 +58,13 @@ async def get_billing(self, account_id: int) -> None:
                 **billing.dict(),
             )
             await database.billing.update(db, db_obj=db_obj, obj_in=obj_in)  # type: ignore
+
+        if not account.validated:
+            account.validated = True
+        if account.last_error:
+            account.last_error = None
+        db.add(account)
+        await db.commit()
 
 
 @shared_task(name="get_billing_all")

@@ -69,6 +69,22 @@
           </q-td>
         </template>
 
+        <template v-slot:body-cell-validated="props">
+          <q-td :props="props">
+            <q-icon
+              size="md"
+              :name="props.row.validated ? 'check_circle' : 'cancel'"
+              :color="props.row.validated ? 'green' : 'red'"
+            >
+              <q-tooltip v-if="!props.row.validated">
+                {{
+                  props.row.last_error ? props.row.last_error : 'Not validated'
+                }}
+              </q-tooltip>
+            </q-icon>
+          </q-td>
+        </template>
+
         <template v-slot:top-right>
           <q-btn icon="add" @click="onAdd">
             <q-tooltip> Add Account </q-tooltip>
@@ -79,6 +95,9 @@
           <q-td :props="props">
             <q-btn-dropdown dropdown-icon="more_vert" flat auto-close>
               <q-list>
+                <q-item clickable @click="onValidate(props.row)">
+                  <q-item-section>Validate</q-item-section>
+                </q-item>
                 <q-item clickable @click="onEdit(props.row)">
                   <q-item-section avatar>
                     <q-icon name="edit" size="xs" />
@@ -152,6 +171,14 @@ const columns = [
     align: 'left',
     sortable: true,
     field: 'name',
+  },
+  {
+    name: 'validated',
+    required: true,
+    label: 'Validated',
+    align: 'center',
+    sortable: true,
+    field: (row: any) => row.data.validated,
   },
   {
     name: 'action',
@@ -262,6 +289,28 @@ export default defineComponent({
       });
     };
 
+    const onValidate = (props: any) => {
+      const { id, name } = props;
+      loading.value = true;
+      AccountService.validateAccount(id).then((account) => {
+        onRequest({ pagination: pagination.value });
+        loading.value = false;
+        if (account.validated) {
+          $q.notify({
+            color: 'positive',
+            textColor: 'white',
+            message: `${name} validated`,
+          });
+        } else {
+          $q.notify({
+            color: 'negative',
+            textColor: 'white',
+            message: `${name} not validated`,
+          });
+        }
+      });
+    };
+
     const onEdit = (props: any) => {
       $q.dialog({
         title: 'Edit Account',
@@ -303,6 +352,7 @@ export default defineComponent({
       onEdit,
       onAdd,
       onSearch,
+      onValidate,
     };
   },
 });

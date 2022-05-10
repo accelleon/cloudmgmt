@@ -8,9 +8,9 @@ export type AccountData = {
     tenant_id?: string;
     client_id?: string;
     account_name?: string;
+    username?: string;
     endpoint?: string;
     app_key?: string;
     consumer_key?: string;
-    username?: string;
     ran?: string;
 };

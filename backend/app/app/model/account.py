@@ -45,6 +45,8 @@ class _Account(BaseModel):
     iaas_id: int
     currency: str
     data: AccountData  # type: ignore
+    validated: bool
+    last_error: Optional[str]
 
     class Config:
         orm_mode = True

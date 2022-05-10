@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession as Session
 from .base import Base, CRUDBase
 from .iaas import Iaas  # noqa
 from app.model.account import AccountFilter, CreateAccount, UpdateAccount
-from pycloud import CloudFactory
+from pycloud import CloudFactory, exc
 
 if TYPE_CHECKING:
     from .billing import Billing  # noqa
@@ -21,6 +21,8 @@ class Account(Base):
     iaas_id: int = Column(Integer, ForeignKey("iaas.id"), nullable=False)
     currency: str = Column(String(length=3), nullable=False)
     data: Dict[str, str] = Column(JSON, nullable=False)
+    validated: bool = Column(Integer, nullable=False, default=False)
+    last_error: Optional[str] = Column(String, nullable=True)
 
     iaas: Iaas = relationship("Iaas", lazy="selectin")
     bills: List["Billing"] = relationship(
@@ -132,6 +134,26 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
             .scalars()
             .first()
         )
+
+    async def validate(self, db: Session, *, account: Account) -> Account:
+        if account.validated:
+            return
+        try:
+            client = CloudFactory.get_client(account.iaas.name, account.data)
+            await client.validate_account()
+            account.validated = True
+            account.last_error = None
+        except exc.AuthorizationError as e:
+            account.validated = False
+            account.last_error = str(e)
+        except Exception:
+            # Some other error, don't modify anything
+            return
+
+        db.add(account)
+        await db.commit()
+        await db.refresh(account)
+        return account
 
 
 account = AccountCRUD(Account)

@@ -167,3 +167,27 @@ async def delete_account(
 
     await database.account.delete(db, id=account_id)
     return Response(status_code=HTTPStatus.NO_CONTENT)
+
+
+@router.post(
+    "/{account_id}/validate",
+    response_model=model.Account,
+    responses={
+        401: {"model": model.FailedResponse},
+        403: {"model": model.FailedResponse},
+        404: {"model": model.FailedResponse},
+    },
+)
+async def validate_account(
+    account_id: int,
+    db: Session = Depends(core.get_db),
+    _: database.User = Depends(core.get_admin_user),
+) -> Any:
+    """
+    Validate an account.
+    """
+    account = await database.account.get(db, id=account_id)
+    if account is None:
+        raise HTTPException(status_code=404, detail="Account not found")
+
+    return await database.account.validate(db, account=account)

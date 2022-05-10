@@ -110,7 +110,14 @@
             icon="cloud"
             label="Accounts"
             to="/accounts"
-          />
+            :alert="account_error ? 'red' : false"
+            alert-icon="warning"
+          >
+            <q-tooltip v-if="account_error">
+              <q-icon name="warning" />
+              One or more of your accounts require attention.
+            </q-tooltip>
+          </q-route-tab>
           <!-- <q-route-tab icon="settings" label="Settings" to="#" /> -->
         </q-tabs>
       </q-scroll-area>
@@ -135,6 +142,8 @@ import { useUserStore } from 'src/stores/user-store';
 import TwoFaDialog from 'src/components/dialogs/TwoFaDialog.vue';
 import ChangePasswordDialog from 'src/components/dialogs/ChangePasswordDialog.vue';
 import { useAuthStore } from 'src/stores/auth-store';
+import { AccountService } from 'src/services/AccountService';
+import { Account } from 'src/models/Account';
 
 export default defineComponent({
   name: 'MainLayout',
@@ -145,12 +154,19 @@ export default defineComponent({
     const link = ref('');
     const $q = useQuasar();
     const user = useUserStore();
+    const account_error = ref(false);
 
     const twofa = ref(false);
 
     onMounted(async () => {
       await user.getUser();
       twofa.value = user.user.twofa_enabled!;
+      AccountService.getAccounts().then((resp) => {
+        const accounts = resp.results;
+        account_error.value = accounts
+          .map((account: Account) => account.validated)
+          .includes(false);
+      });
     });
 
     async function enableTwofa() {
@@ -195,6 +211,7 @@ export default defineComponent({
       user,
       twofa,
       leftDrawerOpen,
+      account_error,
 
       changePassword: () => {
         $q.dialog({

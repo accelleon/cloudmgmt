@@ -11,5 +11,7 @@ export type Account = {
     iaas_id: number;
     currency: string;
     data: AccountData;
+    validated: boolean;
+    last_error?: string;
     iaas: _Iaas;
 };
