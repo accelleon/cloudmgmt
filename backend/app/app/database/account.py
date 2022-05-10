@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Union, Optional, Tuple, List, Dict
 
-from sqlalchemy import select, Column, Integer, String, JSON, ForeignKey
+from sqlalchemy import select, Column, Integer, String, JSON, ForeignKey, Boolean
 from sqlalchemy.sql import Select
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.asyncio import AsyncSession as Session
@@ -21,7 +21,7 @@ class Account(Base):
     iaas_id: int = Column(Integer, ForeignKey("iaas.id"), nullable=False)
     currency: str = Column(String(length=3), nullable=False)
     data: Dict[str, str] = Column(JSON, nullable=False)
-    validated: bool = Column(Integer, nullable=False, default=False)
+    validated: bool = Column(Boolean, nullable=False, default=False)
     last_error: Optional[str] = Column(String, nullable=True)
 
     iaas: Iaas = relationship("Iaas", lazy="selectin")
