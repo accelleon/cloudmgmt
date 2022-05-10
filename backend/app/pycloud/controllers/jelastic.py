@@ -17,7 +17,7 @@ endpoints = {
     "Layershift": Endpoint(endpoint="https://app.j.layershift.co.uk/", currency="GBP"),  # type: ignore
     "Eapps": Endpoint(endpoint="https://app.jelastic.eapps.com/", currency="USD"),  # type: ignore
     "Cloudsigma": Endpoint(endpoint="https://app.env2.paas.ruh.cloudsigma.com/", currency="USD"),  # type: ignore
-    "Mamazala": Endpoint(endpoint="https://app.pass.mamazala.com/", currency="USD"),  # type: ignore
+    "Mamazala": Endpoint(endpoint="https://app.paas.mamazala.com/", currency="USD"),  # type: ignore
     "Mirhosting": Endpoint(endpoint="https://app.mircloud.host/", currency="EUR"),  # type: ignore
     "Togglebox": Endpoint(endpoint="https://app.togglebox.cloud/", currency="USD"),  # type: ignore
     "Cloudjiffy": Endpoint(endpoint="https://app.cloudjiffy.com/", currency="USD"),  # type: ignore
