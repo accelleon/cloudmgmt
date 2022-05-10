@@ -32,9 +32,7 @@ class Heroku(PaasBase):
                 "Invalid API token. Please check your Heroku credentials."
             )
         if r.status_code != 200:
-            raise exc.UnknownError(
-                "Failed to get Heroku profile: {}".format(r.text)
-            )
+            raise exc.UnknownError("Failed to get Heroku profile: {}".format(r.text))
 
     async def get_current_invoiced(self) -> BillingResponse:
         resp = await self._session.get(

@@ -19,7 +19,7 @@ class Amazon(IaasBase):
     access_key: str
     secret_key: str
 
-    _client: 'Client'
+    _client: "Client"
 
     @staticmethod
     def params() -> List[IaasParam]:
@@ -39,9 +39,14 @@ class Amazon(IaasBase):
     async def validate_account(self) -> None:
         def _validate_account():
             try:
-                boto3.client("sts", aws_access_key_id=self.access_key, aws_secret_access_key=self.secret_key).get_caller_identity()
+                boto3.client(
+                    "sts",
+                    aws_access_key_id=self.access_key,
+                    aws_secret_access_key=self.secret_key,
+                ).get_caller_identity()
             except Exception as e:
                 raise exc.AuthorizationError("Failed to validate account: {}".format(e))
+
         return await sync_to_async(_validate_account)()
 
     def _get_billing(self, start: datetime, end: datetime) -> BillingResponse:

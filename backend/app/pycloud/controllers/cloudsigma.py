@@ -101,7 +101,9 @@ class CloudSigma(IaasBase):
         }
 
         # Do the thing
-        x = await self._session.get(self.url("/api/2.0/ledger"), auth=self._auth, params=params)
+        x = await self._session.get(
+            self.url("/api/2.0/ledger"), auth=self._auth, params=params
+        )
         if x.status_code != 200:
             if x.status_code == 401:
                 raise exc.AuthorizationError(
@@ -117,7 +119,9 @@ class CloudSigma(IaasBase):
         params["limit"] = js["meta"]["total_count"]
 
         # Do the thing
-        x = await self._session.get(self.url("/api/2.0/ledger"), auth=self._auth, params=params)
+        x = await self._session.get(
+            self.url("/api/2.0/ledger"), auth=self._auth, params=params
+        )
         if x.status_code != 200:
             if x.status_code == 401:
                 raise exc.AuthorizationError(

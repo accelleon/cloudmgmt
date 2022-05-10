@@ -9,28 +9,20 @@ from pycloud import exc
 
 
 # item for usage costs
-api_getNextInvoiceTopLevel = (
-    "https://api.softlayer.com/rest/v3.1/SoftLayer_Account/getNextInvoiceTopLevelBillingItems.json"
-)
+api_getNextInvoiceTopLevel = "https://api.softlayer.com/rest/v3.1/SoftLayer_Account/getNextInvoiceTopLevelBillingItems.json"
 
 # Grab child items of a billing item
 # Returns only non-zero cost children of billing item id {id}
-api_getChildren = (
-    "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Item/{id}/getNonZeroNextInvoiceChildren.json"
-)
+api_getChildren = "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Item/{id}/getNonZeroNextInvoiceChildren.json"
 
 # Grab previous invoice object
 api_getPrevInvoice = "https://api.softlayer.com/rest/v3.1/SoftLayer_Account/getLatestRecurringInvoice.json"
 
 # Grab top level items of indicated invoice
-api_getInvoiceTopLevel = (
-    "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Invoice/{id}/getInvoiceTopLevelItems.json"
-)
+api_getInvoiceTopLevel = "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Invoice/{id}/getInvoiceTopLevelItems.json"
 
 # Grab an invoices non-zero cost children
-api_getInvoiceChildren = (
-    "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Invoice_Item/{id}/getNonZeroAssociatedChildren.json"
-)
+api_getInvoiceChildren = "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Invoice_Item/{id}/getNonZeroAssociatedChildren.json"
 
 
 class Bluemix(PaasBase):
@@ -53,9 +45,14 @@ class Bluemix(PaasBase):
         self._auth = (self.account_name, self.token)
 
     async def validate_account(self) -> None:
-        r = await self._session.get(self.url("/rest/v3.1/SoftLayer_Account/getCurrentUser.json"), auth=self._auth)
+        r = await self._session.get(
+            self.url("/rest/v3.1/SoftLayer_Account/getCurrentUser.json"),
+            auth=self._auth,
+        )
         if r.status_code != 200:
-            raise exc.AuthorizationError("Invalid API key. Please check your Bluemix Account number or API key.")
+            raise exc.AuthorizationError(
+                "Invalid API key. Please check your Bluemix Account number or API key."
+            )
 
     async def _get_invoices(self) -> Any:
         r = await self._session.get(
@@ -136,7 +133,7 @@ class Bluemix(PaasBase):
             start_date=endDate,
             end_date=endDate,
         )
-        resp.start_date = (resp.start_date - relativedelta(months=1))
+        resp.start_date = resp.start_date - relativedelta(months=1)
         return resp
 
     async def get_current_usage(self) -> BillingResponse:

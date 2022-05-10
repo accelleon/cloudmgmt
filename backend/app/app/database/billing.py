@@ -68,7 +68,11 @@ class BillingCRUD(
         order: Optional[str] = "asc",
         exclude: Optional[List[int]] = None,
     ) -> Tuple[List[Billing], int]:
-        query = query if query is not None else select(Billing).join(BillingPeriod).join(Account).join(Iaas)
+        query = (
+            query
+            if query is not None
+            else select(Billing).join(BillingPeriod).join(Account).join(Iaas)
+        )
         if filter:
             filter = (
                 BillingPeriodFilter(**filter) if isinstance(filter, dict) else filter
@@ -167,7 +171,9 @@ class BillingCRUD(
         return (
             (
                 await db.execute(
-                    select(Billing).join(BillingPeriod).where(
+                    select(Billing)
+                    .join(BillingPeriod)
+                    .where(
                         BillingPeriod.period == period,
                         Billing.account_id == account_id,
                     )

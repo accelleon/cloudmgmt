@@ -10,14 +10,16 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'b7f69c234e17'
-down_revision = '120ab9341a2f'
+revision = "b7f69c234e17"
+down_revision = "120ab9341a2f"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.add_column("account", sa.Column("validated", sa.Boolean(), nullable=True, default=False))
+    op.add_column(
+        "account", sa.Column("validated", sa.Boolean(), nullable=True, default=False)
+    )
     op.execute(
         sa.table("account", sa.Column("validated")).update().values(validated=False)
     )

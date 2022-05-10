@@ -10,15 +10,15 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '120ab9341a2f'
-down_revision = 'b48a98428f2b'
+revision = "120ab9341a2f"
+down_revision = "b48a98428f2b"
 branch_labels = None
 depends_on = None
 
 
 def upgrade():
-    op.drop_index('iaas_id')
-    op.drop_index('ix_account_name')
+    op.drop_index("iaas_id")
+    op.drop_index("ix_account_name")
 
     op.create_index(
         "ix_account_name_iaas",
