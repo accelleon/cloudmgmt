@@ -24,6 +24,8 @@ api_getInvoiceTopLevel = "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_
 # Grab an invoices non-zero cost children
 api_getInvoiceChildren = "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_Invoice_Item/{id}/getNonZeroAssociatedChildren.json"
 
+api_getVirtualGuests = "https://api.softlayer.com/rest/v3.1/SoftLayer_Account/getVirtualGuests.json"
+
 
 class Softlayer(IaasBase):
     account_name: str
@@ -197,3 +199,14 @@ class Softlayer(IaasBase):
 
     async def get_invoice(self) -> BillingResponse:
         pass
+
+    async def get_server_count(self) -> int:
+        r = await self._session.get(
+            self.url("/rest/v3.1/SoftLayer_Account/getVirtualGuests.json"),
+            auth=self._auth,
+        )
+        if r.status_code != 200:
+            raise exc.UnknownError(
+                "Failed to get Softlayer server count: {}".format(r.text)
+            )
+        return len(r.json())

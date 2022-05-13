@@ -154,3 +154,17 @@ class CloudSigma(IaasBase):
 
     async def get_invoice(self) -> BillingResponse:
         pass
+
+    async def get_server_count(self) -> int:
+        r = await self._session.get(self.url("/api/2.0/servers"), auth=self._auth)
+        if r.status_code != 200:
+            if r.status_code == 401:
+                raise exc.AuthorizationError(
+                    "Invalid username or password. Please check your CloudSigma credentials."
+                )
+            else:
+                raise exc.UnknownError(
+                    "Failed to get CloudSigma server count: {}".format(r.text)
+                )
+        js = r.json()
+        return js["meta"]["total_count"]

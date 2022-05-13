@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Dict, Any
 
 from pycloud.base import IaasBase
 from pycloud.models import BillingResponse, IaasParam
@@ -9,6 +9,8 @@ class Rackspace(IaasBase):
     username: str
     api_key: str
     ran: str
+
+    _services: Dict[str, Any]
 
     @staticmethod
     def params() -> List[IaasParam]:
@@ -48,6 +50,8 @@ class Rackspace(IaasBase):
         token = js["access"]["token"]["id"]
         self._headers.update({"X-Auth-Token": token})
 
+        self._services = js["access"]["serviceCatalog"]
+
     async def validate_account(self) -> None:
         await self.authenticate()
 
@@ -83,3 +87,18 @@ class Rackspace(IaasBase):
 
     async def get_invoice(self) -> BillingResponse:
         pass
+
+    async def get_server_count(self) -> int:
+        await self.authenticate()
+        endpoints = self._services["cloudServersOpenStack"]["endpoints"]
+        count = 0
+        for endpoint in endpoints:
+            resp = await self._session.get(
+                f"{endpoint['publicURL']}/servers/detail",
+                headers=self._headers
+            )
+            if resp.status_code != 200:
+                raise exc.UnknownError(f"Failed to get Rackspace servers: {resp.text}")
+            js = resp.json()
+            count += len(js["servers"])
+        return count

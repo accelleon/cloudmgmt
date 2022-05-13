@@ -8,7 +8,7 @@ from pycloud import exc
 auth_endpoint = "https://login.microsoftonline.com/{tenant_id}/oauth2/token"
 usage_endpoint = "https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.Consumption/usageDetails"
 period_endpoint = "https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.Billing/billingPeriods?api-version=2017-04-24-preview"
-
+vm_endpoint = "https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.Compute/virtualMachines"
 
 class Azure(IaasBase):
     subscription_id: str
@@ -110,3 +110,33 @@ class Azure(IaasBase):
 
     async def get_invoice(self) -> BillingResponse:
         pass
+
+    async def get_server_count(self) -> int:
+        await self.authenticate()
+
+        # Only probe status, should be faster
+        params = {
+            'api-version': '2021-11-01',
+            'statusOnly': 'true',
+        }
+
+        p = self._session.build_request(
+            "GET",
+            vm_endpoint.format(subscriptionId=self.subscription_id),
+            params=params,
+        )
+        next_url = p.url
+
+        count = 0
+        # We loop here to handle pagination
+        while next_url is not None:
+            x = await self._session.get(next_url, headers=self._headers)
+            js = x.json()
+            if x.status_code != 200:
+                raise exc.UnknownError(f"failed to get usage:\n{x.text}")
+            count += len(js["value"])
+            if "nextLink" in js.keys():
+                next_url = js["nextLink"]
+            else:
+                break
+        return count

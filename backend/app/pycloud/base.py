@@ -96,6 +96,10 @@ class IaasBase(CloudBase):
     def type() -> IaasType:
         return IaasType.IAAS
 
+    @abstractmethod
+    async def get_server_count(self) -> int:
+        pass
+
 
 class PaasBase(CloudBase):
     @staticmethod
