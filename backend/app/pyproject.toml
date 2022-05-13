@@ -24,6 +24,8 @@ httpx = "^0.22.0"
 openpyxl = "^3.0.9"
 psycopg2-binary = "^2.9.3"
 aioredis = "^2.0.1"
+pandas = "^1.4.2"
+starsessions = "^1.2.3"
 
 [tool.poetry.dev-dependencies]
 mypy = "^0.941"
