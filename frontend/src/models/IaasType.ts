@@ -8,4 +8,5 @@
 export enum IaasType {
     IAAS = 'IAAS',
     PAAS = 'PAAS',
+    SIP = 'SIP',
 }

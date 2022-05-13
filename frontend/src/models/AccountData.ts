@@ -12,5 +12,6 @@ export type AccountData = {
     endpoint?: string;
     app_key?: string;
     consumer_key?: string;
+    project_id?: string;
     ran?: string;
 };
