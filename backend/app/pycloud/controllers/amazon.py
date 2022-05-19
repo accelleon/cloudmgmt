@@ -85,7 +85,7 @@ class Amazon(IaasBase):
     async def get_current_usage(self) -> BillingResponse:
         return await self.get_current_invoiced()
 
-    async def get_invoice(self, month: datetime) -> BillingResponse:
+    async def get_invoice(self) -> BillingResponse:
         pass
 
     async def get_instance_count(self) -> int:

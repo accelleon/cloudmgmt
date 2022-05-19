@@ -22,10 +22,8 @@ async def get_all_metrics(
     db: Session = Depends(core.get_db),
     _: database.User = Depends(core.get_current_user),
 ):
-    start = start or (datetime.today() - relativedelta(day=1)).replace(hour=0, minute=0, second=0, microsecond=0)
-    end = end or datetime.today()
-    #start = start or (datetime.today() - relativedelta(days=1))
-    #end = end or datetime.today()
+    end = end or datetime.utcnow()
+    start = start or (end - relativedelta(day=1))
     iaas = await database.metric.filter(
         db, start=start, end=end, period=(period or "5min"), type=model.IaasType.IAAS
     )
