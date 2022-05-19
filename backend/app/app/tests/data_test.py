@@ -1,6 +1,7 @@
 import asyncio
 from random import choice, random
 from datetime import datetime
+from math import floor
 
 from dateutil.relativedelta import relativedelta
 
@@ -41,6 +42,15 @@ async def main() -> None:
             )
 
             await database.billing.create(db, obj_in=bill)
+
+            # Fill in BS metrics
+            for i in range(50):
+                await database.metric.create(
+                    db,
+                    account_id=acct.id,
+                    time=start + relativedelta(minutes=(i * 5)),
+                    instances=floor(random() * 100),
+                )
 
             # and create one for last month
             start, end = range_from_month(
