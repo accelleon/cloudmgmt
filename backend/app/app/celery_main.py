@@ -16,4 +16,8 @@ app.conf.beat_schedule = {
         "task": "get_billing_all",
         "schedule": crontab(hour=0, minute=0),
     },
+    "get_server_count_all": {
+        "task": "get_instance_count_all",
+        "schedule": 5 * 60,
+    },
 }
