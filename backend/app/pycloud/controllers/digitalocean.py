@@ -98,10 +98,8 @@ class DigitalOcean(IaasBase):
     async def get_invoice(self) -> BillingResponse:
         pass
 
-    async def get_server_count(self) -> int:
-        r = await self._session.get(
-            self.url("/v2/droplets"), headers=self._headers
-        )
+    async def get_instance_count(self) -> int:
+        r = await self._session.get(self.url("/v2/droplets"), headers=self._headers)
         if r.status_code == 401:
             raise exc.AuthorizationError(
                 "Invalid API key. Please check your DigitalOcean API key."

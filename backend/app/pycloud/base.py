@@ -97,7 +97,7 @@ class IaasBase(CloudBase):
         return IaasType.IAAS
 
     @abstractmethod
-    async def get_server_count(self) -> int:
+    async def get_instance_count(self) -> int:
         pass
 
 
@@ -105,3 +105,7 @@ class PaasBase(CloudBase):
     @staticmethod
     def type() -> IaasType:
         return IaasType.PAAS
+
+    @abstractmethod
+    async def get_instance_count(self) -> int:
+        pass

@@ -117,14 +117,17 @@ class OVHCloud(IaasBase):
     async def get_invoice(self) -> BillingResponse:
         pass
 
-    async def get_server_count(self) -> int:
+    async def get_instance_count(self) -> int:
         def _get_server_count():
             try:
-                return len(self._client.get(f"/cloud/project/{self.project_id}/instance"))
+                return len(
+                    self._client.get(f"/cloud/project/{self.project_id}/instance")
+                )
             except ovh.exceptions.InvalidCredential:
                 raise exc.AuthorizationError("Invalid consumer key")
             except ovh.exceptions.InvalidKey:
                 raise exc.AuthorizationError("Invalid application key or secret")
             except Exception as e:
                 raise exc.UnknownError(e)
+
         return await sync_to_async(_get_server_count)()

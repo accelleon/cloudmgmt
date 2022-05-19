@@ -126,3 +126,21 @@ class Jelastic(PaasBase):
 
     async def get_invoice(self) -> BillingResponse:
         pass
+
+    async def get_instance_count(self) -> int:
+        resp = await self._session.get(
+            self.url("/1.0/environment/control/rest/getenvs"),
+            params={
+                "appid": "1dd8d191d38fff45e62564fcf67fdcd6",
+                "session": self.api_key,
+            },
+        )
+        js = resp.json()
+        if js["result"]:
+            if js["result"] == 702:
+                raise exc.AuthorizationError(
+                    "Invalid API key. Please check your API key and try again."
+                )
+            else:
+                raise exc.UnknownError(f"Unknown error. {js['result']}: {js['error']}")
+        return len(js["infos"])

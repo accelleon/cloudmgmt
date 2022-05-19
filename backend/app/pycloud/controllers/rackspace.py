@@ -88,14 +88,13 @@ class Rackspace(IaasBase):
     async def get_invoice(self) -> BillingResponse:
         pass
 
-    async def get_server_count(self) -> int:
+    async def get_instance_count(self) -> int:
         await self.authenticate()
         endpoints = self._services["cloudServersOpenStack"]["endpoints"]
         count = 0
         for endpoint in endpoints:
             resp = await self._session.get(
-                f"{endpoint['publicURL']}/servers/detail",
-                headers=self._headers
+                f"{endpoint['publicURL']}/servers/detail", headers=self._headers
             )
             if resp.status_code != 200:
                 raise exc.UnknownError(f"Failed to get Rackspace servers: {resp.text}")

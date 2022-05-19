@@ -14,7 +14,7 @@ async def test_billing() -> None:
             "secret_key": "asdf",
         },
     )
-    bill = await client.get_current_billing()
+    bill = await client.get_billing("2022-04")
     assert bill.start_date == current_month_date_range()[0]
     assert bill.end_date == current_month_date_range()[1]
     assert bill.total > 0
@@ -32,4 +32,4 @@ async def test_wrong_cred() -> None:
     )
 
     with pytest.raises(AuthorizationError):
-        await client.get_current_billing()
+        await client.get_billing("2022-04")

@@ -88,7 +88,7 @@ class Amazon(IaasBase):
     async def get_invoice(self, month: datetime) -> BillingResponse:
         pass
 
-    async def get_server_count(self) -> int:
+    async def get_instance_count(self) -> int:
         def _get_server_count() -> int:
             ret = 0
             try:
@@ -96,7 +96,7 @@ class Amazon(IaasBase):
                     "ec2",
                     aws_access_key_id=self.access_key,
                     aws_secret_access_key=self.secret_key,
-                    region_name='us-east-1'
+                    region_name="us-east-1",
                 )
                 region_resp = rclient.describe_regions()
                 regions = [region["RegionName"] for region in region_resp["Regions"]]
@@ -108,8 +108,15 @@ class Amazon(IaasBase):
                         region_name=region,
                     )
                     instances = client.instances.all()
-                    ret += len([instance for instance in instances if instance.state["Name"] != "terminated"])
+                    ret += len(
+                        [
+                            instance
+                            for instance in instances
+                            if instance.state["Name"] != "terminated"
+                        ]
+                    )
             except ClientError as e:
                 raise exc.AuthorizationError("Failed to get server count: {}".format(e))
             return ret
+
         return await sync_to_async(_get_server_count)()

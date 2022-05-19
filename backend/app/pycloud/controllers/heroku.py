@@ -69,3 +69,22 @@ class Heroku(PaasBase):
 
     async def get_invoice(self) -> BillingResponse:
         pass
+
+    async def get_instance_count(self) -> int:
+        resp = await self._session.get(
+            self.url("/apps"),
+            headers=self._headers,
+        )
+
+        if resp.status_code != 200:
+            if resp.status_code == 401:
+                raise exc.AuthorizationError(
+                    "Invalid API key. Please check your Heroku API key."
+                )
+            else:
+                raise exc.UnknownError(
+                    "Failed to get Heroku instance count: {}".format(resp.text)
+                )
+
+        js = resp.json()
+        return len(js)

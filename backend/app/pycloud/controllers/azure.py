@@ -10,6 +10,7 @@ usage_endpoint = "https://management.azure.com/subscriptions/{subscriptionId}/pr
 period_endpoint = "https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.Billing/billingPeriods?api-version=2017-04-24-preview"
 vm_endpoint = "https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.Compute/virtualMachines"
 
+
 class Azure(IaasBase):
     subscription_id: str
     tenant_id: str
@@ -111,13 +112,13 @@ class Azure(IaasBase):
     async def get_invoice(self) -> BillingResponse:
         pass
 
-    async def get_server_count(self) -> int:
+    async def get_instance_count(self) -> int:
         await self.authenticate()
 
         # Only probe status, should be faster
         params = {
-            'api-version': '2021-11-01',
-            'statusOnly': 'true',
+            "api-version": "2021-11-01",
+            "statusOnly": "true",
         }
 
         p = self._session.build_request(
