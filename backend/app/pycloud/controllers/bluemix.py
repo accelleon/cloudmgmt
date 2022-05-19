@@ -46,7 +46,7 @@ class Bluemix(PaasBase):
     def __init__(self, **data):
         super().__init__(**data)
         self._base = "https://api.softlayer.com/"
-        self._auth = (self.account_name, self.token)
+        self._auth = (self.account_name, self.sl_apikey)
         self._api = IBMApi(self.ibm_apikey, client=self._session)
 
     async def validate_account(self) -> None:
@@ -205,6 +205,9 @@ class Bluemix(PaasBase):
             start_date=startDate,
             end_date=endDate,
         )
+
+    async def get_invoice(self) -> BillingResponse:
+        raise NotImplementedError()
 
     async def get_instance_count(self) -> int:
         await self._api.login()
