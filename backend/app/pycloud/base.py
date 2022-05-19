@@ -82,7 +82,9 @@ class ProviderBase(BaseModel, ABC):
 
 
 class CloudBase(ProviderBase, ABC):
-    pass
+    @abstractmethod
+    async def get_instance_count(self) -> int:
+        pass
 
 
 class SIPBase(ProviderBase):
@@ -96,16 +98,8 @@ class IaasBase(CloudBase):
     def type() -> IaasType:
         return IaasType.IAAS
 
-    @abstractmethod
-    async def get_instance_count(self) -> int:
-        pass
-
 
 class PaasBase(CloudBase):
     @staticmethod
     def type() -> IaasType:
         return IaasType.PAAS
-
-    @abstractmethod
-    async def get_instance_count(self) -> int:
-        pass

@@ -4,7 +4,7 @@ from pytz import UTC
 from sqlalchemy.exc import IntegrityError
 from celery import shared_task, group
 
-from pycloud.base import IaasBase
+from pycloud.base import CloudBase
 from pycloud.models import IaasType
 
 from .utils import run_sync
@@ -22,10 +22,10 @@ async def get_instance_count(self, account_id: int) -> None:
         account = await database.account.get(db, id=account_id)
         if account is None:
             raise Exception("Account not found")
-        if account.iaas.type != model.IaasType.IAAS:
-            raise Exception("Account is not an IAAS")
+        if account.iaas.type == model.IaasType.SIP:
+            raise Exception("Account is SIP account")
 
-        client: IaasBase = CloudFactory.get_client(
+        client: CloudBase = CloudFactory.get_client(
             account.iaas.name,
             account.data,  # type: ignore
         )
