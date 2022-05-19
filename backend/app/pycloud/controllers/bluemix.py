@@ -7,6 +7,7 @@ from pycloud.base import PaasBase
 from pycloud.models import IaasParam, BillingResponse
 from pycloud import exc
 
+from .ibm import IBMApi
 
 # item for usage costs
 api_getNextInvoiceTopLevel = "https://api.softlayer.com/rest/v3.1/SoftLayer_Account/getNextInvoiceTopLevelBillingItems.json"
@@ -27,22 +28,26 @@ api_getInvoiceChildren = "https://api.softlayer.com/rest/v3.1/SoftLayer_Billing_
 
 class Bluemix(PaasBase):
     account_name: str
-    token: str
+    sl_apikey: str
+    ibm_apikey: str
 
     _auth: Tuple[str, str]
     _filter: str = "^=paas"
+    _api: IBMApi
 
     @staticmethod
     def params() -> List[IaasParam]:
         return [
-            IaasParam(key="account_name", label="Account Name", type="string"),
-            IaasParam(key="token", label="Token", type="secret"),
+            IaasParam(key="account_name", label="Account Number", type="string"),
+            IaasParam(key="sl_apikey", label="SL API Key", type="secret"),
+            IaasParam(key="ibm_apikey", label="Bluemix API Key", type="secret"),
         ]
 
     def __init__(self, **data):
         super().__init__(**data)
         self._base = "https://api.softlayer.com/"
         self._auth = (self.account_name, self.token)
+        self._api = IBMApi(self.ibm_apikey, client=self._session)
 
     async def validate_account(self) -> None:
         r = await self._session.get(
@@ -51,7 +56,13 @@ class Bluemix(PaasBase):
         )
         if r.status_code != 200:
             raise exc.AuthorizationError(
-                "Invalid API key. Please check your Bluemix Account number or API key."
+                "Invalid API key. Please check your Softlayer Account number or API key."
+            )
+        try:
+            await self._api.login()
+        except Exception as e:
+            raise exc.AuthorizationError(
+                "Invalid API key. Please check your Bluemix API key.", e
             )
 
     async def _get_invoices(self) -> Any:
@@ -195,5 +206,16 @@ class Bluemix(PaasBase):
             end_date=endDate,
         )
 
-    async def get_invoice(self) -> BillingResponse:
-        pass
+    async def get_instance_count(self) -> int:
+        await self._api.login()
+        regions = await self._api.get_regions()
+        ret = 0
+        for region in regions:
+            cf = region.cf()
+            await cf.login()
+            orgs = await cf.get_organizations()
+            for org in orgs:
+                spaces = await org.get_spaces()
+                for space in spaces:
+                    ret += len((await space.get_info()).apps)
+        return ret
