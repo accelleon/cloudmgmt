@@ -92,6 +92,7 @@
       >
         <q-tabs vertical inline-label stretch>
           <q-route-tab icon="receipt_long" label="Billing" to="/billing" />
+          <q-route-tab icon="cloud" label="Metrics" to="/metrics" />
           <!-- <q-route-tab icon="delete_sweep" label="Purge" to="#" /> -->
           <q-route-tab
             v-if="user.user.is_admin"

@@ -71,7 +71,7 @@
     <template v-slot:body-cell-total="props">
       <q-td :props="props">
         {{
-          props.row.total
+          props.row.total != null
             ? num_to_cur(props.row.total, props.row.account.currency)
             : '-'
         }}
@@ -81,7 +81,7 @@
     <template v-slot:body-cell-balance="props">
       <q-td :props="props">
         {{
-          props.row.balance
+          props.row.balance != null
             ? num_to_cur(props.row.balance, props.row.account.currency)
             : '-'
         }}

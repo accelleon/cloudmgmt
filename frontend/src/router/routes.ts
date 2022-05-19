@@ -22,6 +22,11 @@ const routes: RouteRecordRaw[] = [
         meta: { requiresAuth: true },
         alias: '/',
       },
+      {
+        path: '/metrics',
+        component: () => import('pages/MetricsPage.vue'),
+        meta: { requiresAuth: true },
+      },
     ],
   },
   {

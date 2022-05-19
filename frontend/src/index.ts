@@ -35,6 +35,7 @@ export { AccountService } from './services/AccountService';
 export { BillingService } from './services/BillingService';
 export { LoginService } from './services/LoginService';
 export { MeService } from './services/MeService';
+export { MetricService } from './services/MetricService';
 export { ProviderService } from './services/ProviderService';
 export { TemplateService } from './services/TemplateService';
 export { UserService } from './services/UserService';
