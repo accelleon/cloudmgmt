@@ -1,5 +1,9 @@
 <template>
-  <canvas class="q-pa-xl" id="chart" ref="chart"></canvas>
+  <canvas
+    class="q-px-md q-py-lg full-width full-height"
+    id="chart"
+    ref="chart"
+  ></canvas>
 </template>
 
 <script lang="ts">
