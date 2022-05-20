@@ -215,10 +215,13 @@ class Bluemix(PaasBase):
         ret = 0
         for region in regions:
             cf = region.cf()
-            await cf.login()
-            orgs = await cf.get_organizations()
-            for org in orgs:
-                spaces = await org.get_spaces()
-                for space in spaces:
-                    ret += len((await space.get_info()).apps)
+            try:
+                await cf.login()
+                orgs = await cf.get_organizations()
+                for org in orgs:
+                    spaces = await org.get_spaces()
+                    for space in spaces:
+                        ret += len((await space.get_info()).apps)
+            except NotImplementedError:
+                pass
         return ret

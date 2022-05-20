@@ -37,6 +37,8 @@ class CloudFoundry:
             }
         )
         if r.status_code != 200:
+            if r.json()["errorCode"] == "BXNIM0207E":
+                raise NotImplementedError()  # We don't have CF configured for this region
             raise Exception(f"login failed: {r.status_code} {r.text}")
         self.token = LoginResp(**r.json())
         self.headers.update({"Authorization": f"Bearer {self.token.access_token}"})

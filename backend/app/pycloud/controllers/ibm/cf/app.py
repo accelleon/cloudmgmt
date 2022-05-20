@@ -25,13 +25,13 @@ class App(BaseModel):
     disk_quota: int
     state: str
     version: str
-    command: str
+    command: Optional[str]
     console: bool
     debug: Optional[bool]
     staging_task_id: str
     package_state: str
     health_check_type: str
-    health_check_timeout: int
+    health_check_timeout: Optional[int]
     health_check_http_endpoint: Optional[str]
     staging_failed_reason: Optional[str]
     staging_failed_description: Optional[str]
