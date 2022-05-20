@@ -48,7 +48,7 @@ async def main() -> None:
                 await database.metric.create(
                     db,
                     account_id=acct.id,
-                    time=start + relativedelta(minutes=(i * 5)),
+                    time=start + relativedelta(minutes=(i * 5), seconds=floor(random()*60)),
                     instances=floor(random() * 100),
                 )
 

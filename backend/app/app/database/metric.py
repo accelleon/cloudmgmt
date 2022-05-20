@@ -1,3 +1,4 @@
+from tokenize import group
 from typing import Optional, List, Dict, Any
 import logging
 from datetime import datetime
@@ -82,13 +83,15 @@ class MetricService:
                 {
                     "x": metric.time,
                     "y": metric.instances,
+                    "type": metric.account.iaas.type.name,
                 }
                 for metric in metrics
-            ]
+            ],
         )
-        df = df.groupby("x", as_index=False).sum()
-        df = df.resample(period, on="x").max()
-        return df
+
+        return (
+            df.groupby(["type", pd.Grouper(key="x", freq=period)]).max().reset_index()
+        )
 
 
 metric = MetricService()
