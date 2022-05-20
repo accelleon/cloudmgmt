@@ -1,6 +1,7 @@
 import pytest
 
 from pycloud import CloudFactory
+from pycloud.base import CloudBase
 from pycloud.exc import AuthorizationError, UnknownError
 
 
@@ -50,3 +51,17 @@ async def test_wrong_ran() -> None:
 
     with pytest.raises(UnknownError):
         await client.get_current_billing()
+
+
+@pytest.mark.asyncio
+async def test_get_instance_count() -> None:
+    client: CloudBase = CloudFactory.get_client(
+        "Rackspace",
+        {
+            "username": "********",
+            "api_key": "*******",
+            "ran": "0000",
+        },
+    )
+
+    await client.get_instance_count()
