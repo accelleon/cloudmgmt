@@ -39,6 +39,7 @@ async def get_instance_count(self, account_id: int) -> None:
             db.commit()
             raise
         except (UnknownError, RateLimit) as e:
+            print(f"{account.name} {account.iaas.name} {e}")
             raise self.retry(exc=e, countdown=60)
 
         await database.metric.create(
