@@ -45,7 +45,6 @@ class SummaryResp(BaseModel):
 
 class SpaceResource(BaseResource[Space]):
     async def get_info(self) -> SummaryResp:
-        print(f"{self.region.cf_api}/{self.me.metadata.url}/summary")
         r = await self.parent.client.get(
             f"{self.region.cf_api}/{self.me.metadata.url}/summary",
             headers=self.parent.headers,
