@@ -23,7 +23,7 @@ async def get_all_metrics(
     _: database.User = Depends(core.get_current_user),
 ):
     end = end or datetime.utcnow()
-    start = start or (end - relativedelta(day=1))
+    start = start or (end - relativedelta(days=1))
     data = await database.metric.filter(
         db, start=start, end=end, period=(period or "5min"),
     )

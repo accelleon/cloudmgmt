@@ -90,7 +90,7 @@ class MetricService:
         )
 
         return (
-            df.groupby(["type", pd.Grouper(key="x", freq=period)]).max().reset_index()
+            df.groupby(["type", pd.Grouper(key="x", freq=period)]).sum().reset_index()
         )
 
 
