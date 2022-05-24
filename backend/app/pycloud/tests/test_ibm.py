@@ -48,6 +48,7 @@ async def test_get_organizations():
     organizations = await cf.get_organizations()
     assert len(organizations) > 0
 
+
 @pytest.mark.asyncio
 async def test_get_spaces():
     api = IBMApi(IBM_API_KEY)
@@ -60,6 +61,7 @@ async def test_get_spaces():
     assert len(organizations) > 0
     spaces = await organizations[0].get_spaces()
     assert len(spaces) > 0
+
 
 @pytest.mark.asyncio
 async def test_get_apps():

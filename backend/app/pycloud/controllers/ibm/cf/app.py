@@ -17,7 +17,7 @@ class App(BaseModel):
     space_guid: str
     stack_guid: str
     buildpack: str
-    detected_buildpack: str
+    detected_buildpack: Optional[str]
     detected_buildpack_guid: Optional[str]
     environment_json: Dict[str, str]
     memory: int
@@ -28,7 +28,7 @@ class App(BaseModel):
     command: Optional[str]
     console: bool
     debug: Optional[bool]
-    staging_task_id: str
+    staging_task_id: Optional[str]
     package_state: str
     health_check_type: str
     health_check_timeout: Optional[int]
@@ -37,7 +37,7 @@ class App(BaseModel):
     staging_failed_description: Optional[str]
     diego: bool
     docker_image: Optional[str]
-    package_updated_at: datetime
+    package_updated_at: Optional[datetime]
     detected_start_command: str
     enable_ssh: bool
     ports: Optional[Any]

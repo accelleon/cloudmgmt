@@ -26,9 +26,13 @@ class BaseResource(GenericModel, Generic[Model]):
     me: Model
 
     @classmethod
-    def from_model(cls, model: Model, parent: "CloudFoundry", region: "Region") -> "BaseResource[Model]":
+    def from_model(
+        cls, model: Model, parent: "CloudFoundry", region: "Region"
+    ) -> "BaseResource[Model]":
         return cls(parent=parent, me=model, region=region)
 
     @classmethod
-    def map_model(cls, models: List[Model], parent: "CloudFoundry", region: "Region") -> List["BaseResource[Model]"]:
+    def map_model(
+        cls, models: List[Model], parent: "CloudFoundry", region: "Region"
+    ) -> List["BaseResource[Model]"]:
         return [cls.from_model(model, parent, region) for model in models]

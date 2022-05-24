@@ -75,7 +75,10 @@ class AccountResource(BaseResource[Account]):
         )
         if r.status_code != 200:
             raise Exception(f"get_resource_groups failed: {r.text}")
-        return [ResourceGroupResource(me=r, parent=self.parent) for r in ListResourceGroupsResp(**r.json()).resources]
+        return [
+            ResourceGroupResource(me=r, parent=self.parent)
+            for r in ListResourceGroupsResp(**r.json()).resources
+        ]
 
     async def get_coe(self) -> COEDescription:
         r = await self.parent.client.get(

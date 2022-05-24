@@ -42,4 +42,6 @@ class OrganizationResource(BaseResource[Organization]):
         )
         if r.status_code != 200:
             raise Exception(r.text)
-        return SpaceResource.map_model(ListSpacesResp(**r.json()).resources, parent=self.parent, region=self.region)
+        return SpaceResource.map_model(
+            ListSpacesResp(**r.json()).resources, parent=self.parent, region=self.region
+        )

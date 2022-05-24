@@ -39,7 +39,7 @@ class SubscriptionHistory(BaseModel):
     billingSystem: str
 
     # Bluemix returns an empty string if not present, convert to None
-    @validator('endTime', pre=True)
+    @validator("endTime", pre=True)
     def end_time_default(cls, v):
         if v == "":
             return None

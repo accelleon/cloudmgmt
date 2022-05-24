@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
 
 class CloudFoundry:
-    ibm: 'IBMApi'
-    region: 'Region'
+    ibm: "IBMApi"
+    region: "Region"
     headers: Dict[str, str]
     token: Optional[LoginResp]
     client: AsyncClient
@@ -34,7 +34,7 @@ class CloudFoundry:
             params={
                 "grant_type": "iam_token",
                 "iam_token": self.ibm.token.access_token,
-            }
+            },
         )
         if r.status_code != 200:
             if r.json()["errorCode"] == "BXNIM0207E":
@@ -50,4 +50,6 @@ class CloudFoundry:
         )
         if r.status_code != 200:
             raise Exception(f"get_organizations failed: {r.text}")
-        return OrganizationResource.map_model(ListOrganiztionsResp(**r.json()).resources, parent=self, region=self.region)
+        return OrganizationResource.map_model(
+            ListOrganiztionsResp(**r.json()).resources, parent=self, region=self.region
+        )

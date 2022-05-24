@@ -29,7 +29,7 @@ class IBMApi:
                 "grant_type": "urn:ibm:params:oauth:grant-type:apikey",
                 "apikey": self.api_key,
                 "response_type": "cloud_iam",
-            }
+            },
         )
         if r.status_code != 200:
             raise Exception(f"login failed: {r.status_code} {r.text}")
@@ -76,7 +76,9 @@ class IBMApi:
         )
         if r.status_code != 200:
             raise Exception(f"get_accounts failed: {r.text}")
-        return AccountResource.map_model(ListAccountResp.parse_raw(r.text).resources, parent=self)
+        return AccountResource.map_model(
+            ListAccountResp.parse_raw(r.text).resources, parent=self
+        )
 
     async def get_regions(self) -> List[RegionResource]:
         r = await self.client.get(
@@ -85,4 +87,6 @@ class IBMApi:
         )
         if r.status_code != 200:
             raise Exception(f"get_regions failed: {r.text}")
-        return RegionResource.map_model(parse_obj_as(ListRegionsResp, r.json()), parent=self)
+        return RegionResource.map_model(
+            parse_obj_as(ListRegionsResp, r.json()), parent=self
+        )

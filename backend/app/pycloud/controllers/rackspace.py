@@ -50,7 +50,9 @@ class Rackspace(IaasBase):
         token = js["access"]["token"]["id"]
         self._headers.update({"X-Auth-Token": token})
 
-        self._services = {service["name"]: service for service in js["access"]["serviceCatalog"]}
+        self._services = {
+            service["name"]: service for service in js["access"]["serviceCatalog"]
+        }
 
     async def validate_account(self) -> None:
         await self.authenticate()

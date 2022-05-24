@@ -25,5 +25,7 @@ class BaseResource(GenericModel, Generic[Model]):
         return cls(parent=parent, me=model)
 
     @classmethod
-    def map_model(cls, models: List[Model], parent: "IBMApi") -> List["BaseResource[Model]"]:
+    def map_model(
+        cls, models: List[Model], parent: "IBMApi"
+    ) -> List["BaseResource[Model]"]:
         return [cls.from_model(model, parent) for model in models]
