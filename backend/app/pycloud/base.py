@@ -41,7 +41,7 @@ class ProviderBase(BaseModel, ABC):
         global session
         if not session:
             transport = AsyncHTTPTransport(retries=5)
-            session = AsyncClient(transport=transport, follow_redirects=True)
+            session = AsyncClient(transport=transport, follow_redirects=True, timeout=30)
         self._session = session
         self._headers.update(
             {
