@@ -17,7 +17,7 @@ depends_on = None
 
 
 def upgrade():
-    op.execute("ALTER TYPE iaastype ADD VALUE 'SIP';")
+    op.execute("ALTER TYPE iaastype ADD VALUE IF NOT EXISTS 'SIP';")
 
 
 def downgrade():
