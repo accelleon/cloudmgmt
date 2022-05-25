@@ -25,12 +25,25 @@ async def get_all_metrics(
     end = end or datetime.utcnow()
     start = start or (end - relativedelta(days=1))
     data = await database.metric.filter(
-        db, start=start, end=end, period=(period or "5min"),
+        db,
+        start=start,
+        end=end,
+        period=(period or "5min"),
     )
 
     return [
-        {"label": "IaaS Instances", "data": data.query(f"type == '{model.IaasType.IAAS.value}'").to_dict(orient="records")},
-        {"label": "PaaS Instances", "data": data.query(f"type == '{model.IaasType.PAAS.value}'").to_dict(orient="records")},
+        {
+            "label": "IaaS Instances",
+            "data": data.query(f"type == '{model.IaasType.IAAS.value}'").to_dict(
+                orient="records"
+            ),
+        },
+        {
+            "label": "PaaS Instances",
+            "data": data.query(f"type == '{model.IaasType.PAAS.value}'").to_dict(
+                orient="records"
+            ),
+        },
     ]
 
 

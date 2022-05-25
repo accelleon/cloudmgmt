@@ -81,7 +81,6 @@ async def create_account(
         newAccount = await database.account.create(db, obj_in=account)
     except Exception as e:
         raise HTTPException(status_code=422, detail=str(e))
-    print(newAccount)
     return newAccount
 
 
