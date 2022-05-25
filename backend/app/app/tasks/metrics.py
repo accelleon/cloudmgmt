@@ -18,6 +18,7 @@ from pycloud.exc import UnknownError, RateLimit, AuthorizationError
 @shared_task(name="get_instance_count", bind=True)
 @run_sync
 async def get_instance_count(self, account_id: int) -> None:
+    time = datetime.utcnow()
     async with SessionLocal() as db:
         account = await database.account.get(db, id=account_id)
         if account is None:
@@ -43,7 +44,7 @@ async def get_instance_count(self, account_id: int) -> None:
             raise self.retry(exc=e, countdown=60)
 
         await database.metric.create(
-            db, account_id=account_id, time=datetime.utcnow(), instances=server_count
+            db, account_id=account_id, time=time, instances=server_count
         )
 
 
