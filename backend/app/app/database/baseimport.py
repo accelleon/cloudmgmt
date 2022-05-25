@@ -5,3 +5,5 @@ from app.database.user import User  # noqa
 from app.database.iaas import Iaas  # noqa
 from app.database.account import Account  # noqa
 from app.database.billing import Billing  # noqa
+from app.database.template import Template  # noqa
+from app.database.metric import CloudMetric  # noqa

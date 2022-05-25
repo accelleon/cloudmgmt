@@ -1,13 +1,22 @@
 from typing import TYPE_CHECKING, Union, Optional, Tuple, List, Dict
 import traceback
 
-from sqlalchemy import select, Column, Integer, String, JSON, ForeignKey, Boolean
+from sqlalchemy import (
+    select,
+    Column,
+    Integer,
+    String,
+    JSON,
+    ForeignKey,
+    Boolean,
+)
 from sqlalchemy.sql import Select
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.asyncio import AsyncSession as Session
 
 from .base import Base, CRUDBase
-from .iaas import Iaas  # noqa
+from .iaas import Iaas
+from .group import Group
 from app.model.account import AccountFilter, CreateAccount, UpdateAccount
 from pycloud import CloudFactory, exc
 
@@ -20,12 +29,14 @@ class Account(Base):
     id: int = Column(Integer, primary_key=True, index=True)
     name: str = Column(String, index=True, unique=True, nullable=False)
     iaas_id: int = Column(Integer, ForeignKey("iaas.id"), nullable=False)
+    group_id: int = Column(Integer, ForeignKey("groups.id"), nullable=False)
     currency: str = Column(String(length=3), nullable=False)
     data: Dict[str, str] = Column(JSON, nullable=False)
     validated: bool = Column(Boolean, nullable=False, default=False)
     last_error: Optional[str] = Column(String, nullable=True)
 
     iaas: Iaas = relationship("Iaas", lazy="selectin")
+    group: Group = relationship("Group", lazy="selectin")
     bills: List["Billing"] = relationship(
         "Billing", back_populates="account", lazy="noload", cascade="all, delete-orphan"
     )
@@ -58,10 +69,15 @@ class AccountCRUD(CRUDBase[Account, CreateAccount, UpdateAccount, AccountFilter]
         if not dbIaas:
             raise ValueError(f"Iaas {obj_in.iaas} not found")
 
+        group = await db.scalar(select(Group).where(Group.name == obj_in.group))
+        if not group:
+            raise ValueError(f"Group {obj_in.group} not found")
+
         db_obj = Account(
             name=obj_in.name,
             data=obj_in.data,
             iaas=dbIaas,
+            group=group,
         )  # type: ignore
         # This'll chuck a ValidationException if the data is invalid
         db_obj.currency = CloudFactory.get_client(dbIaas.name, obj_in.data).currency()

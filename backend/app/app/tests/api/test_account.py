@@ -14,21 +14,29 @@ async def test_create_delete(
 ):
     name = random_username()
     r = await client.post(
+        f"{configs.API_V1_STR}/groups",
+        json={
+            "name": name,
+        },
+        headers=admin_token_headers,
+    )
+    r = await client.post(
         f"{configs.API_V1_STR}/accounts",
         json={
             "name": name,
-            "iaas": "Jelastic",
-            "data": {"endpoint": "Layershift", "api_key": "test"},
+            "iaas": "Heroku",
+            "data": {"api_key": "test"},
+            "group": name,
         },
         headers=admin_token_headers,
     )
     assert r.status_code == 201
     js = r.json()
     assert js["name"] == name
-    assert js["iaas"]["name"] == "Jelastic"
+    assert js["iaas"]["name"] == "Heroku"
     assert js["iaas"]["type"] == "PAAS"
-    assert js["currency"] == "GBP"
-    assert js["data"] == {"endpoint": "Layershift"}
+    assert js["currency"] == "USD"
+    assert "api_key" not in js["data"]
     r = await client.delete(
         f"{configs.API_V1_STR}/accounts/{js['id']}", headers=admin_token_headers
     )
@@ -42,11 +50,38 @@ async def test_create_wrong_iaas(
 ):
     name = random_username()
     r = await client.post(
+        f"{configs.API_V1_STR}/groups",
+        json={
+            "name": name,
+        },
+        headers=admin_token_headers,
+    )
+    r = await client.post(
         f"{configs.API_V1_STR}/accounts",
         json={
             "name": name,
             "iaas": "asdf",
             "data": {"endpoint": "Layershift", "api_key": "test"},
+            "group": name,
+        },
+        headers=admin_token_headers,
+    )
+    assert r.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_create_no_group(
+    client: TestClient,
+    admin_token_headers: Dict[str, str],
+):
+    name = random_username()
+    r = await client.post(
+        f"{configs.API_V1_STR}/accounts",
+        json={
+            "name": name,
+            "iaas": "Heroku",
+            "data": {"api_key": "test"},
+            "group": name,
         },
         headers=admin_token_headers,
     )
@@ -60,11 +95,19 @@ async def test_create_duplicate(
 ):
     name = random_username()
     r = await client.post(
+        f"{configs.API_V1_STR}/groups",
+        json={
+            "name": name,
+        },
+        headers=admin_token_headers,
+    )
+    r = await client.post(
         f"{configs.API_V1_STR}/accounts",
         json={
             "name": name,
-            "iaas": "Jelastic",
-            "data": {"endpoint": "Layershift", "api_key": "test"},
+            "iaas": "Heroku",
+            "data": {"api_key": "test"},
+            "group": name,
         },
         headers=admin_token_headers,
     )
@@ -74,8 +117,9 @@ async def test_create_duplicate(
         f"{configs.API_V1_STR}/accounts",
         json={
             "name": name,
-            "iaas": "Jelastic",
-            "data": {"endpoint": "Layershift", "api_key": "test"},
+            "iaas": "Heroku",
+            "data": {"api_key": "test"},
+            "group": name,
         },
         headers=admin_token_headers,
     )
@@ -122,11 +166,19 @@ async def test_get_id(
     # Create one
     name = random_username()
     r = await client.post(
+        f"{configs.API_V1_STR}/groups",
+        json={
+            "name": name,
+        },
+        headers=admin_token_headers,
+    )
+    r = await client.post(
         f"{configs.API_V1_STR}/accounts",
         json={
             "name": name,
-            "iaas": "Jelastic",
-            "data": {"endpoint": "Layershift", "api_key": "test"},
+            "iaas": "Heroku",
+            "data": {"api_key": "test"},
+            "group": name,
         },
         headers=admin_token_headers,
     )
@@ -161,11 +213,19 @@ async def test_update(
     # Create one
     name = random_username()
     r = await client.post(
+        f"{configs.API_V1_STR}/groups",
+        json={
+            "name": name,
+        },
+        headers=admin_token_headers,
+    )
+    r = await client.post(
         f"{configs.API_V1_STR}/accounts",
         json={
             "name": name,
             "iaas": "Jelastic",
             "data": {"endpoint": "Layershift", "api_key": "test"},
+            "group": name,
         },
         headers=admin_token_headers,
     )
@@ -195,24 +255,33 @@ async def test_update_duplicate(
     name = random_username()
     name2 = random_username()
     r = await client.post(
+        f"{configs.API_V1_STR}/groups",
+        json={
+            "name": name,
+        },
+        headers=admin_token_headers,
+    )
+    r = await client.post(
         f"{configs.API_V1_STR}/accounts",
         json={
             "name": name,
-            "iaas": "Jelastic",
-            "data": {"endpoint": "Layershift", "api_key": "test"},
+            "iaas": "Heroku",
+            "data": {"api_key": "test"},
+            "group": name,
         },
         headers=admin_token_headers,
     )
     assert r.status_code == 201
     acct = r.json()
+    print(acct)
     # Create another
-    name = random_username()
     r = await client.post(
         f"{configs.API_V1_STR}/accounts",
         json={
             "name": name2,
-            "iaas": "Jelastic",
-            "data": {"endpoint": "Layershift", "api_key": "test"},
+            "iaas": "Heroku",
+            "data": {"api_key": "test"},
+            "group": name,
         },
         headers=admin_token_headers,
     )
@@ -222,7 +291,7 @@ async def test_update_duplicate(
         f"{configs.API_V1_STR}/accounts/{acct['id']}",
         json={
             "name": name2,
-            "data": {"endpoint": "Layershift", "api_key": "test2"},
+            "data": {"api_key": "test2"},
         },
         headers=admin_token_headers,
     )

@@ -18,6 +18,7 @@ class CreateAccount(BaseModel):
     name: str
     iaas: str
     data: Dict[str, str]
+    group: str
 
 
 class UpdateAccount(BaseModel):

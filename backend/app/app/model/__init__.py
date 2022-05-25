@@ -8,3 +8,4 @@ from .me import *
 from .billing import *
 from .template import *
 from .metric import *
+from .group import *
