@@ -100,15 +100,19 @@ async def test_search_not_admins(
 
 @pytest.mark.asyncio
 async def test_search_links(
+    db: Session,
     admin_token_headers: Dict[str, str],
     client: TestClient,
 ) -> None:
+    await create_random_user(db)
+    await create_random_user(db)
+    await create_random_user(db)
     r = await client.get(
         f"{configs.API_V1_STR}/users",
         headers=admin_token_headers,
         params={
             "page": 1,
-            "per_page": 2,
+            "per_page": 1,
         },
     )
     resp = r.json()
@@ -119,12 +123,12 @@ async def test_search_links(
     next = urlparse(resp["next"])
     nextQ = parse_qs(next.query)
     assert nextQ["page"][0] == "2"
-    assert nextQ["per_page"][0] == "2"
+    assert nextQ["per_page"][0] == "1"
 
     prev = urlparse(resp["prev"])
     prevQ = parse_qs(prev.query)
     assert prevQ["page"][0] == "0"
-    assert prevQ["per_page"][0] == "2"
+    assert prevQ["per_page"][0] == "1"
 
 
 @pytest.mark.asyncio
@@ -264,6 +268,7 @@ async def test_update_user(
     )
     assert r.status_code == 200
     user = r.json()
+    assert user["username"] == username
     assert user["first_name"] == "test"
     assert user["last_name"] == "test"
 

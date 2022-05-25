@@ -15,7 +15,7 @@ def generate_unique_id(route: APIRoute):
 
 app = FastAPI(
     title=configs.PROJECT_NAME,
-    openapi_url=f"{configs.API_V1_STR}/openapi.json",
+    openapi_url="/api/openapi.json",
     generate_unique_id_function=generate_unique_id,
 )
 
@@ -38,7 +38,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(api_router, prefix=configs.API_V1_STR)
+app.include_router(api_router, prefix="/api")
 
 
 def main():
