@@ -134,7 +134,7 @@ class CrudBase(
         exclude: Optional[List[int]] = None,
         pagination: SearchQueryBase = SearchQueryBase(),
     ) -> Tuple[List[ModelType], int]:
-        query = query or self.query
+        query = query if query is not None else self.query
         if filter:
             filter = (
                 filter if isinstance(filter, dict) else filter.dict(exclude_unset=True)
