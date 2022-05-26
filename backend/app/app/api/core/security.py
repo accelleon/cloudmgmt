@@ -54,7 +54,6 @@ class Permission:
     def __call__(self, user: database.User = Depends(get_current_user)):
         if not user:
             raise HTTPException(status_code=401, detail="Not authenticated")
-        print(self.permission, user.is_admin)
         if self.permission == "admin" and not user.is_admin:
             raise HTTPException(
                 status_code=403,
