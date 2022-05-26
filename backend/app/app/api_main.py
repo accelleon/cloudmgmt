@@ -6,6 +6,7 @@ from starsessions.backends.redis import RedisBackend
 import uvicorn
 
 from app.api.api import api_router
+from app.api.core.exception import add_exception_handlers
 from app.core.config import configs
 
 
@@ -18,6 +19,8 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
     generate_unique_id_function=generate_unique_id,
 )
+
+add_exception_handlers(app)
 
 app.add_middleware(
     SessionMiddleware,
