@@ -66,7 +66,7 @@ async def test_create_wrong_iaas(
         },
         headers=admin_token_headers,
     )
-    assert r.status_code == 422
+    assert r.status_code == 400
 
 
 @pytest.mark.asyncio
@@ -85,7 +85,7 @@ async def test_create_no_group(
         },
         headers=admin_token_headers,
     )
-    assert r.status_code == 422
+    assert r.status_code == 400
 
 
 @pytest.mark.asyncio
@@ -124,8 +124,6 @@ async def test_create_duplicate(
         headers=admin_token_headers,
     )
     assert r.status_code == 409
-    js = r.json()
-    assert js["detail"] == "Account name already exists"
     r = await client.delete(
         f"{configs.API_V1_STR}/accounts/{acct['id']}", headers=admin_token_headers
     )
@@ -137,6 +135,24 @@ async def test_get_accounts(
     client: TestClient,
     admin_token_headers: Dict[str, str],
 ):
+    name = random_username()
+    r = await client.post(
+        f"{configs.API_V1_STR}/groups",
+        json={
+            "name": name,
+        },
+        headers=admin_token_headers,
+    )
+    r = await client.post(
+        f"{configs.API_V1_STR}/accounts",
+        json={
+            "name": name,
+            "iaas": "Heroku",
+            "data": {"api_key": "test"},
+            "group": name,
+        },
+        headers=admin_token_headers,
+    )
     r = await client.get(f"{configs.API_V1_STR}/accounts", headers=admin_token_headers)
     assert r.status_code == 200
     js = r.json()
@@ -232,7 +248,7 @@ async def test_update(
     assert r.status_code == 201
     acct = r.json()
     # Update it
-    r = await client.patch(
+    r = await client.put(
         f"{configs.API_V1_STR}/accounts/{acct['id']}",
         json={
             "data": {"endpoint": "Layershift", "api_key": "test2"},
@@ -273,7 +289,6 @@ async def test_update_duplicate(
     )
     assert r.status_code == 201
     acct = r.json()
-    print(acct)
     # Create another
     r = await client.post(
         f"{configs.API_V1_STR}/accounts",
@@ -287,7 +302,7 @@ async def test_update_duplicate(
     )
     assert r.status_code == 201
     # Update it
-    r = await client.patch(
+    r = await client.put(
         f"{configs.API_V1_STR}/accounts/{acct['id']}",
         json={
             "name": name2,
@@ -297,7 +312,6 @@ async def test_update_duplicate(
     )
     assert r.status_code == 409
     js = r.json()
-    assert js["detail"] == "Account name already exists"
 
 
 @pytest.mark.asyncio
@@ -305,7 +319,7 @@ async def test_no_exist(
     client: TestClient,
     admin_token_headers: Dict[str, str],
 ):
-    r = await client.patch(
+    r = await client.put(
         f"{configs.API_V1_STR}/accounts/186165",
         json={
             "data": {"endpoint": "Layershift", "api_key": "test2"},

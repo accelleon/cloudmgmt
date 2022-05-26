@@ -12,6 +12,7 @@ class AccountFilter(BaseModel):
     name: Optional[str] = None
     iaas: Optional[str] = None
     type: Optional[IaasType] = None
+    group: Optional[str] = None
 
 
 class CreateAccount(BaseModel):
@@ -24,6 +25,7 @@ class CreateAccount(BaseModel):
 class UpdateAccount(BaseModel):
     name: Optional[str] = None
     data: Optional[Dict[str, str]] = None
+    group: Optional[str] = None
 
 
 AccountData = CloudFactory.get_pub_data_model()
