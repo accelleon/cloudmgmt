@@ -14,6 +14,21 @@ from app.tests.utils.user import (
 
 
 @pytest.mark.asyncio
+async def test_get_all(
+    db: Session,
+    admin_token_headers: Dict[str, str],
+    client: TestClient,
+) -> None:
+    await create_random_user(db)
+    r = await client.get(
+        f"{configs.API_V1_STR}/users",
+        headers=admin_token_headers,
+    )
+    assert r.status_code == 200
+    assert r.json()['results'] != []
+
+
+@pytest.mark.asyncio
 async def test_search_user(
     db: Session,
     admin_token_headers: Dict[str, str],

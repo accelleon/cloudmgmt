@@ -113,7 +113,7 @@ class CrudBase(
         query: Select,
         pagination: SearchQueryBase,
     ) -> Tuple[List[ModelType], int]:
-        offset = (pagination.page - 1) * pagination.per_page if pagination.page else 0
+        offset = (pagination.page - 1) * pagination.per_page if pagination.page and pagination.per_page else 0
         total = await self.db.scalar(
             select([func.count()]).select_from(query.subquery())
         )
@@ -122,8 +122,7 @@ class CrudBase(
             query = query.order_by(
                 attr.desc() if pagination.order == "desc" else attr.asc()
             )
-        query = query.offset(offset).limit(pagination.per_page)
-        print(query)
+        query = query.offset(offset).limit(pagination.per_page or total)
         return (await self.db.scalars(query)).all(), total
 
     async def search(
