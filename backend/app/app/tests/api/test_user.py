@@ -25,7 +25,7 @@ async def test_get_all(
         headers=admin_token_headers,
     )
     assert r.status_code == 200
-    assert r.json()['results'] != []
+    assert r.json()["results"] != []
 
 
 @pytest.mark.asyncio

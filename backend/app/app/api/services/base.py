@@ -79,7 +79,9 @@ class CrudBase(
     ) -> ModelType:
         data = data if isinstance(data, dict) else data.dict(exclude_unset=True)
 
-        if (name := data.get(self.name_field, None)) and await self.get_by_name(name=name):
+        if (name := data.get(self.name_field, None)) and await self.get_by_name(
+            name=name
+        ):
             raise exception.Conflict(self.model, name)
 
         obj = self.model(**data)
@@ -95,7 +97,9 @@ class CrudBase(
     ) -> ModelType:
         data = data if isinstance(data, dict) else data.dict(exclude_unset=True)
 
-        if (name := data.get(self.name_field, None)) and await self.get_by_name(name=name):
+        if (name := data.get(self.name_field, None)) and await self.get_by_name(
+            name=name
+        ):
             raise exception.Conflict(self.model, name)
 
         for k, v in data.items():
@@ -113,7 +117,7 @@ class CrudBase(
         query: Select,
         pagination: SearchQueryBase,
     ) -> Tuple[List[ModelType], int]:
-        offset = (pagination.page - 1) * pagination.per_page if pagination.page and pagination.per_page else 0
+        offset = (pagination.page - 1) * pagination.per_page if pagination.page else 0
         total = await self.db.scalar(
             select([func.count()]).select_from(query.subquery())
         )
