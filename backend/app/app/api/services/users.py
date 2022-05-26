@@ -14,6 +14,10 @@ from .base import CrudBase
 
 
 class UserService(CrudBase[User, CreateUser, UpdateUser, UserFilter]):
+    @property
+    def name_field(self) -> str:
+        return "username"
+
     async def create(self, *, data: Union[CreateUser, Dict[str, Any]]) -> User:
         data.password = hash_password(data.password)
         return await super().create(data=data)
@@ -53,6 +57,3 @@ class UserService(CrudBase[User, CreateUser, UpdateUser, UserFilter]):
             exclude=exclude,
             pagination=pagination,
         )
-
-    async def get_by_name(self, name: str) -> User:
-        return await self.db.scalar(select(User).where(User.username == name))

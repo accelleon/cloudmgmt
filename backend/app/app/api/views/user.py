@@ -57,12 +57,6 @@ class UserAPI:
         """
         Create a new user.
         """
-        if await self.service.get_by_name(user_in.username):
-            raise HTTPException(
-                status_code=HTTPStatus.CONFLICT,
-                detail="User with this username already exists",
-            )
-
         return await self.service.create(data=user_in)
 
     @router.get(
@@ -119,13 +113,6 @@ class UserAPI:
                 detail="You cannot update your own user",
             )
 
-        if user_in.username is not None and user_in.username != user.username:
-            if await self.service.get_by_name(user_in.username):
-                raise HTTPException(
-                    status_code=HTTPStatus.CONFLICT,
-                    detail="User with this username already exists",
-                )
-
         # Cannot enable 2fa for another user
         if user_in.twofa_enabled and not user.twofa_enabled:
             raise HTTPException(
@@ -151,15 +138,11 @@ class UserAPI:
         """
         Delete a user.
         """
-        if user := await self.service.get(id=user_id):
-            if user.id == self.service.user.id:
-                raise HTTPException(
-                    status_code=HTTPStatus.FORBIDDEN,
-                    detail="You cannot delete your own user",
-                )
-            await self.service.delete(obj=user)
-            return Response(status_code=HTTPStatus.NO_CONTENT)
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail="User with this ID not found",
-        )
+        user = await self.service.get(id=user_id)
+        if user.id == self.service.user.id:
+            raise HTTPException(
+                status_code=HTTPStatus.FORBIDDEN,
+                detail="You cannot delete your own user",
+            )
+        await self.service.delete(obj=user)
+        return Response(status_code=HTTPStatus.NO_CONTENT)
