@@ -1,5 +1,7 @@
+import itertools
 from typing import List, Any, Tuple
 import json
+import asyncio
 
 from dateutil.relativedelta import relativedelta
 
@@ -209,19 +211,40 @@ class Bluemix(PaasBase):
     async def get_invoice(self) -> BillingResponse:
         raise NotImplementedError()
 
-    async def get_instance_count(self) -> int:
+    async def get_apps_in_org(self, org):
+        spaces = await org.get_spaces()
+        return [
+            space_info.apps
+            for space_info in itertools.chain(
+                await asyncio.gather(*[
+                    space.get_info()
+                    for space in spaces
+                ])
+            )
+        ]
+
+    async def get_apps_in_region(self, region):
+        try:
+            cf = await region.cf()
+            orgs = await cf.get_organizations()
+        except NotImplementedError:
+            return []
+        return itertools.chain(
+            await asyncio.gather(*[
+                self.get_apps_in_org(org)
+                for org in orgs
+            ])
+        )
+
+    async def get_instances(self):
         await self._api.login()
         regions = await self._api.get_regions()
-        ret = 0
-        for region in regions:
-            cf = region.cf()
-            try:
-                await cf.login()
-                orgs = await cf.get_organizations()
-                for org in orgs:
-                    spaces = await org.get_spaces()
-                    for space in spaces:
-                        ret += len((await space.get_info()).apps)
-            except NotImplementedError:
-                pass
-        return ret
+        return itertools.chain(
+            await asyncio.gather(*[
+                self.get_apps_in_region(region)
+                for region in regions
+            ])
+        )
+
+    async def get_instance_count(self) -> int:
+        return len(await self.get_instances())
