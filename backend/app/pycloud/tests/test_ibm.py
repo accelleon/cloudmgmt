@@ -1,3 +1,6 @@
+import itertools
+import asyncio
+
 import pytest
 
 from pycloud.controllers.ibm import IBMApi
@@ -33,7 +36,7 @@ async def test_cf_login():
     await api.login()
     regions = await api.get_regions()
     region = regions[0]
-    cf = region.cf()
+    cf = await region.cf()
     await cf.login()
 
 
@@ -43,8 +46,7 @@ async def test_get_organizations():
     await api.login()
     regions = await api.get_regions()
     region = regions[0]
-    cf = region.cf()
-    await cf.login()
+    cf = await region.cf()
     organizations = await cf.get_organizations()
     assert len(organizations) > 0
 
@@ -55,8 +57,7 @@ async def test_get_spaces():
     await api.login()
     regions = await api.get_regions()
     region = regions[0]
-    cf = region.cf()
-    await cf.login()
+    cf = await region.cf()
     organizations = await cf.get_organizations()
     assert len(organizations) > 0
     spaces = await organizations[0].get_spaces()
@@ -69,8 +70,7 @@ async def test_get_apps():
     await api.login()
     regions = await api.get_regions()
     region = regions[0]
-    cf = region.cf()
-    await cf.login()
+    cf = await region.cf()
     organizations = await cf.get_organizations()
     assert len(organizations) > 0
     spaces = await organizations[0].get_spaces()

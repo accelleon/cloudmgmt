@@ -42,5 +42,7 @@ ListRegionsResp = List[Region]
 
 
 class RegionResource(BaseResource[Region]):
-    def cf(self) -> CloudFoundry:
-        return CloudFoundry(self)
+    async def cf(self) -> CloudFoundry:
+        ret = CloudFoundry(self)
+        await ret.login()
+        return ret
