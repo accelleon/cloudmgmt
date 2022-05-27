@@ -12,13 +12,17 @@ def json_source(settings: BaseSettings) -> Dict[str, Any]:
     Helper function to let us use a JSON file as a config source.
     """
     encoding = settings.__config__.env_file_encoding
-    try:
-        env = json.loads(
-            Path("/etc/cloudcost/config.json").read_text(encoding=encoding)
-        )
-    except FileNotFoundError:
-        env = {}
-    return env
+    paths = [
+        "config.json",
+        "/etc/cloudcost/config.json",
+    ]
+    for path in paths:
+        path = Path(path)
+        if path.exists():
+            return (
+                json.loads(path.read_text(encoding=encoding))
+            )
+    return {}
 
 
 class Configs(BaseSettings):
