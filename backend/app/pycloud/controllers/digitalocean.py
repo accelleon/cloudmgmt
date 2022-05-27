@@ -1,9 +1,15 @@
 from typing import List
 
 from pycloud.base import IaasBase
-from pycloud.models import IaasParam, BillingResponse
+from pycloud.models import IaasParam, BillingResponse, VirtualMachine
 from pycloud.utils import current_month_date_range
 from pycloud import exc
+
+
+def public_ip(networks):
+    for n in networks:
+        if n["type"] == "public":
+            return n["ip_address"]
 
 
 class DigitalOcean(IaasBase):
@@ -98,6 +104,32 @@ class DigitalOcean(IaasBase):
     async def get_invoice(self) -> BillingResponse:
         pass
 
+    async def get_instances(self) -> List[VirtualMachine]:
+        r = await self._session.get(
+            self.url("/v2/droplets"), headers=self._headers
+        )
+        if r.status_code == 401:
+            raise exc.AuthorizationError(
+                "Invalid API key. Please check your DigitalOcean API key."
+            )
+        if r.status_code != 200:
+            raise exc.UnknownError(
+                "Failed to get DigitalOcean instances: {}".format(r.text)
+            )
+            return None
+        js = r.json()
+        return [
+            VirtualMachine(
+                name=i["name"],
+                id=i["id"],
+                ip=public_ip(i["networks"]),
+                status=i["status"],
+                iaas="DigitalOcean",
+                tags=i["tags"],
+            )
+            for i in js["droplets"]
+        ]
+
     async def get_instance_count(self) -> int:
         r = await self._session.get(self.url("/v2/droplets"), headers=self._headers)
         if r.status_code == 401:
@@ -110,3 +142,38 @@ class DigitalOcean(IaasBase):
             )
         js = r.json()
         return js["meta"]["total"]
+
+    async def get_instance(self, instance_id: str) -> VirtualMachine:
+        r = await self._session.get(
+            self.url("/v2/droplets/{}".format(instance_id)), headers=self._headers
+        )
+        if r.status_code == 401:
+            raise exc.AuthorizationError(
+                "Invalid API key. Please check your DigitalOcean API key."
+            )
+        if r.status_code != 200:
+            raise exc.UnknownError(
+                "Failed to get DigitalOcean instance: {}".format(r.text)
+            )
+        js = r.json()
+        return VirtualMachine(
+            name=js["name"],
+            id=js["id"],
+            ip=public_ip(js["networks"]),
+            status=js["status"],
+            iaas="DigitalOcean",
+            tags=js["tags"],
+        )
+
+    async def delete_instance(self, instance: VirtualMachine) -> None:
+        r = await self._session.delete(
+            self.url("/v2/droplets/{}".format(instance.id)), headers=self._headers
+        )
+        if r.status_code == 401:
+            raise exc.AuthorizationError(
+                "Invalid API key. Please check your DigitalOcean API key."
+            )
+        if r.status_code != 204:
+            raise exc.UnknownError(
+                "Failed to delete DigitalOcean instance: {}".format(r.text)
+            )
