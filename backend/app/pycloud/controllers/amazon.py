@@ -1,5 +1,7 @@
 from datetime import date, datetime
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Iterable, Iterator, List, Optional
+import itertools
+from itertools import chain
 
 import asyncio
 from asgiref.sync import sync_to_async
@@ -7,19 +9,16 @@ import boto3
 from botocore.exceptions import ClientError
 
 if TYPE_CHECKING:
-    from mypy_boto3_ce import Client
+    from mypy_boto3_ec2.service_resource import Instance, ServiceResourceInstancesCollection
 
 from pycloud.base import IaasBase
-from pycloud.models import BillingResponse, IaasParam
-from pycloud.utils import current_month_date_range
+from pycloud.models import BillingResponse, IaasParam, VirtualMachine
+from pycloud.utils import current_month_date_range, as_async
 from pycloud import exc
-
 
 class Amazon(IaasBase):
     access_key: str
     secret_key: str
-
-    _client: "Client"
 
     @staticmethod
     def params() -> List[IaasParam]:
@@ -28,26 +27,30 @@ class Amazon(IaasBase):
             IaasParam(key="secret_key", label="Secret Key", type="secret"),
         ]
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self._client = boto3.client(
-            "ce",
-            aws_access_key_id=self.access_key,
-            aws_secret_access_key=self.secret_key,
+    @staticmethod
+    def map_instance(instance: "Instance") -> VirtualMachine:
+        return VirtualMachine(
+            id=instance.id,
+            name=instance.id,
+            state=instance.state["Name"],
+            ip=instance.public_ip_address,
+            iaas="Amazon",
         )
 
-    async def validate_account(self) -> None:
-        def _validate_account():
-            try:
-                boto3.client(
-                    "sts",
-                    aws_access_key_id=self.access_key,
-                    aws_secret_access_key=self.secret_key,
-                ).get_caller_identity()
-            except Exception as e:
-                raise exc.AuthorizationError("Failed to validate account: {}".format(e))
+    @staticmethod
+    def map_instances(instances: Iterable["Instance"]) -> List[VirtualMachine]:
+        return [Amazon.map_instance(instance) for instance in instances]
 
-        return await sync_to_async(_validate_account)()
+    @as_async
+    def validate_account(self) -> None:
+        try:
+            boto3.client(
+                "sts",
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+            ).get_caller_identity()
+        except Exception as e:
+            raise exc.AuthorizationError("Failed to validate account: {}".format(e))
 
     def _get_billing(self, start: datetime, end: datetime) -> BillingResponse:
         """
@@ -55,8 +58,13 @@ class Amazon(IaasBase):
         """
         # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ce.html#CostExplorer.Client.get_cost_and_usage
         try:
+            client = boto3.client(
+                "ce",
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+            )
             # TODO: Wrap in async call
-            resp = self._client.get_cost_and_usage(
+            resp = client.get_cost_and_usage(
                 TimePeriod={
                     "Start": start.strftime("%Y-%m-%d"),
                     "End": end.strftime("%Y-%m-%d"),
@@ -78,9 +86,6 @@ class Amazon(IaasBase):
     async def get_current_invoiced(self) -> BillingResponse:
         start, end = current_month_date_range()
         return await sync_to_async(self._get_billing)(start, end)
-        return await asyncio.get_running_loop().run_in_executor(
-            None, self._get_billing, start, end
-        )
 
     async def get_current_usage(self) -> BillingResponse:
         return await self.get_current_invoiced()
@@ -89,34 +94,79 @@ class Amazon(IaasBase):
         pass
 
     async def get_instance_count(self) -> int:
-        def _get_server_count() -> int:
-            ret = 0
-            try:
-                rclient = boto3.client(
-                    "ec2",
-                    aws_access_key_id=self.access_key,
-                    aws_secret_access_key=self.secret_key,
-                    region_name="us-east-1",
-                )
-                region_resp = rclient.describe_regions()
-                regions = [region["RegionName"] for region in region_resp["Regions"]]
-                for region in regions:
-                    client = boto3.resource(
-                        "ec2",
-                        aws_access_key_id=self.access_key,
-                        aws_secret_access_key=self.secret_key,
-                        region_name=region,
-                    )
-                    instances = client.instances.all()
-                    ret += len(
-                        [
-                            instance
-                            for instance in instances
-                            if instance.state["Name"] != "terminated"
-                        ]
-                    )
-            except ClientError as e:
-                raise exc.AuthorizationError("Failed to get server count: {}".format(e))
-            return ret
+        return len(await self.get_instances())
 
-        return await sync_to_async(_get_server_count)()
+    @as_async
+    def get_regions(self) -> List[str]:
+        rclient = boto3.client(
+            "ec2",
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
+            region_name="us-east-1",
+        )
+        region_resp = rclient.describe_regions()
+        return [region["RegionName"] for region in region_resp["Regions"]]
+
+    @as_async
+    def _get_instances_in_region(self, region: str, instance_ids: Optional[List[str]] = None) -> "ServiceResourceInstancesCollection":
+        client = boto3.resource(
+            "ec2",
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
+            region_name=region,
+        )
+        instances = client.instances
+        if instance_ids:
+            instances = instances.filter(Filters=[{'Name': 'instance-id', 'Values': instance_ids}])
+        return instances.all()
+
+    async def _get_instances(self, instance_ids: Optional[List[str]] = None) -> List["Instance"]:
+        regions = await self.get_regions()
+        instanceList: List["ServiceResourceInstancesCollection"] = (
+            await asyncio.gather(
+                *[
+                    self._get_instances_in_region(region, instance_ids)
+                    for region in regions
+                ]
+            )
+        )
+        return list(itertools.chain.from_iterable(instanceList))
+
+    async def get_instances(self) -> List[VirtualMachine]:
+        return self.map_instances(await self._get_instances())
+
+    async def get_instance(self, instance_id: str) -> Optional[VirtualMachine]:
+        instances = await self._get_instances(instance_ids=[instance_id])
+        return self.map_instance(instances[0]) if instances else None
+
+    async def delete_instance(self, instance: VirtualMachine) -> None:
+        instances = await self._get_instances(instance_ids=[instance.id])
+        if instances:
+            await sync_to_async(instances[0].terminate)()
+
+    @as_async
+    def list_buckets(self) -> List[str]:
+        s3 = boto3.client(
+            "s3",
+            aws_access_key_id=self.access_key,
+            aws_secret_access_key=self.secret_key,
+        )
+        resp = s3.list_buckets()
+        return [bucket["Name"] for bucket in resp["Buckets"]]
+
+    @as_async
+    def get_whitelist(self, bucket) -> List[str]:
+        """
+        Returns the whitelist for the given bucket.
+        """
+        # https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.get_bucket_policy
+        try:
+            client = boto3.client(
+                "s3",
+                aws_access_key_id=self.access_key,
+                aws_secret_access_key=self.secret_key,
+            )
+            resp = client.get_bucket_policy(Bucket=bucket)
+            return resp["Policy"]["Statement"][0]["Condition"]["NotIpAddress"]["aws:SourceIp"]
+        except ClientError as e:
+            raise exc.AuthorizationError("Failed to get bucket policy: {}".format(e))

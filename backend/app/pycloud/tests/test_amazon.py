@@ -33,3 +33,16 @@ async def test_wrong_cred() -> None:
 
     with pytest.raises(AuthorizationError):
         await client.get_billing("2022-04")
+
+
+@pytest.mark.asyncio
+async def test_get_instances() -> None:
+    client = CloudFactory.get_client(
+        "Amazon",
+        {
+            "access_key": "",
+            "secret_key": "",
+        },
+    )
+    instances = await client.get_instances()
+    assert instances
