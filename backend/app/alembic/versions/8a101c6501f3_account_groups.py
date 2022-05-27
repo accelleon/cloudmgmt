@@ -28,7 +28,7 @@ def upgrade():
         sa.Column("group_id", sa.Integer, sa.ForeignKey("groups.id"), nullable=True),
     )
 
-    op.execute("INSERT INTO groups (name) VALUES ('change-me');")
+    op.execute("INSERT INTO groups (id, name) VALUES (0, 'change-me');")
     op.execute("UPDATE account SET group_id = 0;")
 
     op.alter_column("account", "group_id", nullable=False)
