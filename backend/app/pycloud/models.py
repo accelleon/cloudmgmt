@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Any
 from datetime import datetime
 
 from pydantic import BaseModel, root_validator
@@ -23,6 +23,16 @@ class IaasType(Enum):
     IAAS = "IAAS"
     PAAS = "PAAS"
     SIP = "SIP"
+
+
+class VirtualMachine(BaseModel):
+    metadata: Any
+    id: str
+    name: str
+    iaas: str
+    ip: Optional[str]
+    state: str
+    tags: List[str] = []
 
 
 class IaasParam(BaseModel):

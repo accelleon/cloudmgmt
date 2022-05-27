@@ -5,7 +5,7 @@ from pydantic import BaseModel, AnyHttpUrl
 from httpx import AsyncClient, AsyncHTTPTransport
 from urllib.parse import urljoin
 
-from .models import IaasType, IaasParam, BillingResponse
+from .models import IaasType, IaasParam, BillingResponse, VirtualMachine
 
 
 session: Optional[AsyncClient] = None
@@ -41,7 +41,9 @@ class ProviderBase(BaseModel, ABC):
         global session
         if not session:
             transport = AsyncHTTPTransport(retries=5)
-            session = AsyncClient(transport=transport, follow_redirects=True, timeout=30)
+            session = AsyncClient(
+                transport=transport, follow_redirects=True, timeout=30
+            )
         self._session = session
         self._headers.update(
             {
@@ -97,6 +99,21 @@ class IaasBase(CloudBase):
     @staticmethod
     def type() -> IaasType:
         return IaasType.IAAS
+
+    async def create_instance(self) -> VirtualMachine:
+        raise NotImplementedError()
+
+    @abstractmethod
+    async def get_instance(self, instance_id: str) -> VirtualMachine:
+        pass
+
+    @abstractmethod
+    async def get_instances(self) -> List[VirtualMachine]:
+        pass
+
+    @abstractmethod
+    async def delete_instance(self, instance: VirtualMachine) -> None:
+        pass
 
 
 class PaasBase(CloudBase):
