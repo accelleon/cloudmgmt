@@ -32,4 +32,16 @@ export class LoginService {
         });
     }
 
+    /**
+     * Logout
+     * @returns any Successful Response
+     * @throws ApiError
+     */
+    public static logout(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/logout',
+        });
+    }
+
 }

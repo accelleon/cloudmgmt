@@ -2,8 +2,7 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type UpdateAccount = {
+export type UpdateGroup = {
     name?: string;
-    data?: Record<string, string>;
-    group?: string;
+    account_ids?: Array<number>;
 };

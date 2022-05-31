@@ -20,6 +20,7 @@ export class AccountService {
      * @param name
      * @param iaas
      * @param type
+     * @param group
      * @param page
      * @param perPage
      * @param sort
@@ -31,9 +32,10 @@ export class AccountService {
         name?: string,
         iaas?: string,
         type?: IaasType,
+        group?: string,
         page?: number,
         perPage?: number,
-        sort: string = 'name',
+        sort?: string,
         order?: SearchOrder,
     ): CancelablePromise<AccountSearchResponse> {
         return __request(OpenAPI, {
@@ -43,6 +45,7 @@ export class AccountService {
                 'name': name,
                 'iaas': iaas,
                 'type': type,
+                'group': group,
                 'page': page,
                 'per_page': perPage,
                 'sort': sort,
@@ -106,31 +109,6 @@ export class AccountService {
     }
 
     /**
-     * Delete Account
-     * Delete an account.
-     * @param accountId
-     * @returns void
-     * @throws ApiError
-     */
-    public static deleteAccount(
-        accountId: number,
-    ): CancelablePromise<void> {
-        return __request(OpenAPI, {
-            method: 'DELETE',
-            url: '/api/v1/accounts/{account_id}',
-            path: {
-                'account_id': accountId,
-            },
-            errors: {
-                401: `Unauthorized`,
-                403: `Forbidden`,
-                404: `Not Found`,
-                422: `Validation Error`,
-            },
-        });
-    }
-
-    /**
      * Update Account
      * Update an account.
      * @param accountId
@@ -143,7 +121,7 @@ export class AccountService {
         requestBody: UpdateAccount,
     ): CancelablePromise<Account> {
         return __request(OpenAPI, {
-            method: 'PATCH',
+            method: 'PUT',
             url: '/api/v1/accounts/{account_id}',
             path: {
                 'account_id': accountId,
@@ -154,24 +132,25 @@ export class AccountService {
                 401: `Unauthorized`,
                 403: `Forbidden`,
                 404: `Not Found`,
+                409: `Conflict`,
                 422: `Validation Error`,
             },
         });
     }
 
     /**
-     * Validate Account
-     * Validate an account.
+     * Delete Account
+     * Delete an account.
      * @param accountId
-     * @returns Account Successful Response
+     * @returns void
      * @throws ApiError
      */
-    public static validateAccount(
+    public static deleteAccount(
         accountId: number,
-    ): CancelablePromise<Account> {
+    ): CancelablePromise<void> {
         return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v1/accounts/{account_id}/validate',
+            method: 'DELETE',
+            url: '/api/v1/accounts/{account_id}',
             path: {
                 'account_id': accountId,
             },

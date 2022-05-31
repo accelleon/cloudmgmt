@@ -1,58 +1,50 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CreateUser } from '../models/CreateUser';
+import type { CreateGroup } from '../models/CreateGroup';
+import type { Group } from '../models/Group';
+import type { GroupSearchResponse } from '../models/GroupSearchResponse';
 import type { SearchOrder } from '../models/SearchOrder';
-import type { UpdateUser } from '../models/UpdateUser';
-import type { User } from '../models/User';
-import type { UserSearchResponse } from '../models/UserSearchResponse';
+import type { UpdateGroup } from '../models/UpdateGroup';
 
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 
-export class UserService {
+export class GroupsService {
 
     /**
-     * Get Users
-     * Get a list of users filtered by query.
-     * @param username
-     * @param firstName
-     * @param lastName
-     * @param isAdmin
-     * @param twofaEnabled
+     * Get Groups
+     * Get a list of groups filtered by query.
+     * @param name
      * @param page
      * @param perPage
      * @param sort
      * @param order
-     * @returns UserSearchResponse Successful Response
+     * @param requestBody
+     * @returns GroupSearchResponse Successful Response
      * @throws ApiError
      */
-    public static getUsers(
-        username?: string,
-        firstName?: string,
-        lastName?: string,
-        isAdmin?: boolean,
-        twofaEnabled?: boolean,
+    public static getGroups(
+        name?: string,
         page?: number,
         perPage?: number,
         sort?: string,
         order?: SearchOrder,
-    ): CancelablePromise<UserSearchResponse> {
+        requestBody?: Array<number>,
+    ): CancelablePromise<GroupSearchResponse> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/users',
+            url: '/api/v1/groups',
             query: {
-                'username': username,
-                'first_name': firstName,
-                'last_name': lastName,
-                'is_admin': isAdmin,
-                'twofa_enabled': twofaEnabled,
+                'name': name,
                 'page': page,
                 'per_page': perPage,
                 'sort': sort,
                 'order': order,
             },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 401: `Unauthorized`,
                 403: `Forbidden`,
@@ -62,18 +54,18 @@ export class UserService {
     }
 
     /**
-     * Create User
-     * Create a new user.
+     * Create Group
+     * Create a new group.
      * @param requestBody
-     * @returns User Successful Response
+     * @returns Group Successful Response
      * @throws ApiError
      */
-    public static createUser(
-        requestBody: CreateUser,
-    ): CancelablePromise<User> {
+    public static createGroup(
+        requestBody: CreateGroup,
+    ): CancelablePromise<Group> {
         return __request(OpenAPI, {
             method: 'POST',
-            url: '/api/v1/users',
+            url: '/api/v1/groups',
             body: requestBody,
             mediaType: 'application/json',
             errors: {
@@ -86,20 +78,20 @@ export class UserService {
     }
 
     /**
-     * Get User
-     * Get a user by ID.
-     * @param userId
-     * @returns User Successful Response
+     * Get Group
+     * Get a group by id.
+     * @param groupId
+     * @returns Group Successful Response
      * @throws ApiError
      */
-    public static getUser(
-        userId: number,
-    ): CancelablePromise<User> {
+    public static getGroup(
+        groupId: number,
+    ): CancelablePromise<Group> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v1/users/{user_id}',
+            url: '/api/v1/groups/{group_id}',
             path: {
-                'user_id': userId,
+                'group_id': groupId,
             },
             errors: {
                 401: `Unauthorized`,
@@ -111,55 +103,55 @@ export class UserService {
     }
 
     /**
-     * Delete User
-     * Delete a user.
-     * @param userId
+     * Update Group
+     * Update a group by id.
+     * @param groupId
+     * @param requestBody
+     * @returns Group Successful Response
+     * @throws ApiError
+     */
+    public static updateGroup(
+        groupId: number,
+        requestBody: UpdateGroup,
+    ): CancelablePromise<Group> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/groups/{group_id}',
+            path: {
+                'group_id': groupId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                401: `Unauthorized`,
+                403: `Forbidden`,
+                404: `Not Found`,
+                409: `Conflict`,
+                422: `Validation Error`,
+            },
+        });
+    }
+
+    /**
+     * Delete Group
+     * Delete a group by id.
+     * @param groupId
      * @returns void
      * @throws ApiError
      */
-    public static deleteUser(
-        userId: number,
+    public static deleteGroup(
+        groupId: number,
     ): CancelablePromise<void> {
         return __request(OpenAPI, {
             method: 'DELETE',
-            url: '/api/v1/users/{user_id}',
+            url: '/api/v1/groups/{group_id}',
             path: {
-                'user_id': userId,
+                'group_id': groupId,
             },
             errors: {
                 401: `Unauthorized`,
                 403: `Forbidden`,
                 404: `Not Found`,
-                422: `Validation Error`,
-            },
-        });
-    }
-
-    /**
-     * Update User
-     * Update a user.
-     * @param userId
-     * @param requestBody
-     * @returns User Successful Response
-     * @throws ApiError
-     */
-    public static updateUser(
-        userId: number,
-        requestBody: UpdateUser,
-    ): CancelablePromise<User> {
-        return __request(OpenAPI, {
-            method: 'PATCH',
-            url: '/api/v1/users/{user_id}',
-            path: {
-                'user_id': userId,
-            },
-            body: requestBody,
-            mediaType: 'application/json',
-            errors: {
-                401: `Unauthorized`,
-                403: `Forbidden`,
-                404: `Not Found`,
-                409: `Conflict`,
                 422: `Validation Error`,
             },
         });

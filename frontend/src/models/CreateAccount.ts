@@ -6,4 +6,5 @@ export type CreateAccount = {
     name: string;
     iaas: string;
     data: Record<string, string>;
+    group: string;
 };

@@ -11,12 +11,14 @@ export class MetricService {
      * Get All Metrics
      * @param start
      * @param end
+     * @param period
      * @returns any Successful Response
      * @throws ApiError
      */
     public static getAllMetrics(
         start?: string,
         end?: string,
+        period?: string,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -24,6 +26,7 @@ export class MetricService {
             query: {
                 'start': start,
                 'end': end,
+                'period': period,
             },
             errors: {
                 422: `Validation Error`,
